@@ -1,0 +1,499 @@
+html, body {
+    padding: 0;
+    margin: 0;
+	/* background: #e0e0ff; */
+}
+
+body, textarea  {  
+   font-family: sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+   
+/*
+li a {
+    color: blue;
+}
+*/
+
+/* Cytoscape */
+#cy {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+
+/* removing the 10px padding between the image and the title. To work this assumes that this css is loaded after the fancybox one. Alternatively could do this in javascript jquery using: $('.fancybox-title-inside-wrap').css('padding-top','0');  */
+.fancybox-title-inside-wrap {
+	padding-top: 0; /* Default is: 10px */
+}
+
+
+
+span.title {
+    font-weight: 100;
+    font-size: 66px;
+    width: 100%;
+    float: left;
+}
+
+
+/* padding-top padding-right padding-bottom padding-left */
+/* Removed the " ,#footer" for below, as logos look bettter on white background */
+#header {
+    margin: 0;
+	border: 0;
+	padding: 0;
+    min-width:100%;
+	background: #004279;  /* was #0000ee same standard blue as hyperlinks, or #0000ff or just 'blue'. was purple: #aa66ff; */
+	text-align: center;
+	color: white;
+}
+#header a:link { color: white; }  /* #70DB93; */
+#header a:visited { color: white; } /* #70DB93; */
+#header a:hover { color: #70DB93; }
+#header a:active { color: red; } /* #70DB93;  */
+#header h1 {color: white; padding: 5px; margin: 0; }
+/* #header a:link {color: white;} */
+
+
+#footer {
+    margin: 0;
+	border: 0;
+	padding: 0;
+    min-width:100%;
+	background: white;
+	text-align: center;
+	color: white;
+}
+
+/* * {margin:0; padding:0;} */
+
+/* The main text should be not at wide as the page */
+#maintext_div {
+    /* margin: 5px;
+	border: 5px;
+	padding: 5px 80px 5px 80px; */
+    margin: auto;
+	max-width: 1000px;
+	background: white;
+	text-align: left;
+}
+#maintext a:link { color: #004279; }  /* is same colour as page header, which is same blue colour as UCD logo #70DB93; */
+#maintext a:visited { color: blue; } /* #70DB93; */
+#maintext a:hover { color: green; }
+#maintext a:active { color: blue; } /* #70DB93;  */
+
+/* For the dependency, drivers and studies tables: */
+#maintable_div {	
+/*    margin: 5px;
+	border: 5px;
+	padding: 5px; */
+	margin: auto;
+	max-width: 1000px;
+    /* min-width:100%; */
+	background: white;
+	text-align: left;
+}
+#maintable_div a:link { color: #004279; }  /* is same colour as page header, which is same blue colour as UCD logo #70DB93; */
+#maintable_div a:visited { color: #004279; } /* same at page header. was: #70DB93; */  
+#maintable_div a:hover { color: green; }
+#maintable_div a:active { color: blue; } /* #70DB93;  */
+
+#searchbox_table, #search_by{
+	background-color: #99bfe6;  /* was: #8FD4EA  #1CADE1 #07ADE3 blues from top of SBI logo. was #0088CF but too dark blue from top third of the UCD logo. Originally #ddddff; */
+}
+
+#searchbox_table {
+	padding: 5px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #004279;  /* same blue colour as page header */
+}
+  
+#info_result_table {
+	margin: 0;
+	padding: 0px; /*  cellpadding="6" */
+	border: 1px solid #004279;  /* same blue colour as page header */
+}
+
+#legend_table table, #legend_table  th, #legend_table  td {  
+  font-size: 75%;
+  text-align: center;
+  padding: 1px 4px;
+  border: 1px solid black;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.script {
+  margin-left: 40px;
+}
+
+	
+/*
+ .ui-autocomplete.ui-menu{fontSize: 10px, width:300px}
+
+ 
+    targets the first result's <a> element, 
+    remove the a at the end to target the li itself 
+ .ui-autocomplete.ui-menu li:first-child a{color:blue;}
+
+ ul.ui-autocomplete.ui-menu
+*/
+
+
+/*
+.ui-autocomplete {font-size: small; font-weight: normal;}
+.ui-front {font-size: small; font-weight: normal;}
+.ui-widget-content {font-size: small; font-weight: normal;}
+.ui-menu {font-size: small; font-weight: normal; width: 500;}
+*/
+
+.ui-widget {font-family: sans-serif; font-size: small; font-weight: normal;}
+.ui-menu-item {font-family: sans-serif; font-size: small; font-weight: normal;}  /*  width: 800; */
+	
+.tabler {
+  margin-top: 10px;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 10px;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/*   width: 100%; */
+
+.tabler,
+.tabler th,
+.tabler td {
+  border: none;
+  text-align: left;
+  padding: 3px;
+  font-size: 95%;
+}
+
+.tabler th {text-align: center; background-color: #ddddff}
+
+.tabler tbody tr:nth-child(even) {
+  background-color: #f2f2f2
+}
+
+.tabler tr:hover:nth-child(even) {
+  background-color: #ddddff
+}
+
+.tabler tr:hover {
+  background-color: #ddddff
+}
+
+/* Dependency table alternate row colurs - as not using zebra widget, as this CSS might be faster for large tables */
+.dep_table tbody tr:nth-child(even) {
+  background-color: #bfbfbf; /* was: #f2f2f2 */
+}
+
+
+
+/* Custom styles for jquery-ui tooltip, from: https://jqueryui.com/tooltip/#custom-style */
+.ui-tooltip, .arrow:after {
+    /* background: black; */
+	background: #ffffc0;  /* a light yellow, was #ffff70;  */
+    /* border: 2px solid white; */
+	border: 1px solid black;
+}
+.ui-tooltip {
+    padding: 10px 20px;
+    color: black;
+	/* color: white; */
+    border-radius: 20px;
+    /* font: bold 14px "Helvetica Neue", Sans-Serif; */
+    /* text-transform: uppercase; */
+    box-shadow: 0 0 7px black;
+	max-width: 300px; /* SJB - Setting it wider than default as gene names are often longer than the tooltip box, which puts arrow in wrong place */
+}
+.arrow {
+    width: 70px;
+    height: 20px; /* was 16px */
+    overflow: hidden;
+    position: absolute;
+    left: 50%; /* 40% works if track is false, was: 50% */
+    margin-left: -35px;
+    bottom: -20px;  /* was: -16px */
+}
+.arrow.top {
+    top: -20px; /* was -16px */
+    bottom: auto;
+}
+.arrow.left {
+    left: 35%; /* SJB was 20% */
+}
+.arrow:after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: -15px; /* was -20px */
+    width: 28px; /* was 25px */
+    height: 28px; /*was: 25px */
+    box-shadow: 6px 5px 9px -9px black;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.arrow.top:after {
+    bottom: -20px;
+    top: auto;
+}
+  
+
+/*
+ The following tool tip styles is from: http://www.lets-develop.com/html5-html-css-css3-php-wordpress-jquery-javascript-photoshop-illustrator-flash-tutorial/css-css3-css-3-style-styling/style-tooltip-css-how-to-style-the-title-attribute-with-css/
+
+a {
+  // color: #d6005e;
+}
+
+a:hover{
+//color: #ff2283;
+position: relative;
+}
+
+a[title]:hover:after{
+content: attr(title);
+padding: 8px 12px;
+color: #85003a;
+border: 1px solid #8c8c8c;
+position: absolute;
+left: 0;
+top: 100%;
+white-space: nowrap;
+z-index: 20;
+-moz-border-radius: 3px;
+-webkit-border-radius: 3px;
+border-radius: 3px;
+-moz-box-shadow: 0px 0px 2px #c0c1c2;
+-webkit-box-shadow: 0px 0px 2px #c0c1c2;
+box-shadow: 0px 0px 2px #c0c1c2;
+background-image: -moz-linear-gradient(top, #ffffff, #eeeeee);
+background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #ffffff),color-stop(1, #eeeeee));
+background-image: -webkit-linear-gradient(top, #ffffff, #eeeeee);
+background-image: -moz-linear-gradient(top, #ffffff, #eeeeee);
+background-image: -ms-linear-gradient(top, #ffffff, #eeeeee);
+background-image: -o-linear-gradient(top, #ffffff, #eeeeee);
+}
+
+
+
+a.tooltip span{
+z-index: 10;
+display: none;
+border-radius:4px;
+-moz-border-radius: 4px;
+-webkit-border-radius: 4px;
+}
+a.tooltip:hover span{
+display: inline;
+position: absolute;
+border: 1px solid #8c8c8c;
+background: #f4f4f4;
+}
+a.tooltip > span{
+width: 200px;
+padding: 10px 12px;
+opacity: 0;
+visibility: hidden;
+z-index: 10;
+position: absolute;
+font-size: 12px;
+font-style: normal;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px; -o-border-radius: 3px;
+border-radius: 3px;
+-webkit-box-shadow: 4px 4px 4px #d9b3c3;
+-moz-box-shadow: 4px 4px 4px #d9b3c3;
+box-shadow: 4px 4px 4px #d9b3c3;
+}
+a.tooltip:hover > span{
+opacity: 1;
+text-decoration:none;
+visibility: visible;
+overflow: visible;
+margin-top: 40px;
+display: inline;
+margin-left: -200px;
+}
+a.tooltip span b{
+width: 15px;
+height: 15px;
+margin-left: 20px;
+margin-top: -19px;
+display: block;
+position: absolute;
+-webkit-transform: rotate(-45deg);
+-moz-transform: rotate(-45deg);
+-o-transform: rotate(-45deg);
+transform: rotate(-45deg);
+-webkit-box-shadow: inset -1px 1px 0 #fff;
+-moz-box-shadow: inset 0 1px 0 #fff; -o-box-shadow: inset 0 1px 0 #fff;
+box-shadow: inset 0 1px 0 #fff;
+display: none\0/; *display: none;
+background: #f4f4f4;
+border-top: 1px solid #8c8c8c;
+border-right: 1px solid #8c8c8c;
+}
+a.tooltip > span{
+color: #000000;
+background: #f4f4f4;
+background: -moz-linear-gradient(top, #FBF5E6 0%, #FFFFFF 100%);
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FBF5E6), color-stop(100%,#FFFFFF));
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FBF5E6', endColorstr='#FFFFFF',GradientType=0 );
+border: 1px solid #8c8c8c;
+}
+*/
+
+/* From: http://stackoverflow.com/questions/2011142/how-to-change-the-style-of-title-attribute-inside-the-anchor-tag
+ Use, eg: <a href="#" class="tip">Link<span>This is the CSS tooltip showing up when you mouse over the link</span></a>
+ */
+a.tip {
+    /* border-bottom: 1px dashed; */
+    text-decoration: none
+}
+a.tip:hover {
+    cursor: pointer; /* was: help; */
+    position: relative
+}
+a.tip span {
+    display: none
+}
+a.tip:hover span {
+    border: #000000 1px;
+    padding: 5px 20px 5px 5px;
+    display: block;
+    z-index: 100;
+/*    background: url(../images/status-info.png) #f0f0f0 no-repeat 100% 5%; */
+    background: #ffff66;
+    left: 40px;
+    margin: 10px;
+    width: 300px;
+    position: absolute;
+    top: 10px;
+    text-decoration: none
+}
+
+a.tipleft {
+    /* border-bottom: 1px dashed; */
+    text-decoration: none
+}
+a.tipleft:hover {
+    cursor: pointer; /* was: help; */
+    position: relative
+}
+a.tipleft span {
+    display: none
+}
+a.tipleft:hover span {
+    border: #000000 1px;
+    padding: 5px 20px 5px 5px;
+    display: block;
+    z-index: 100;
+/*    background: url(../images/status-info.png) #f0f0f0 no-repeat 100% 5%; */
+    background: #ffff66;
+    left: -310px;
+    margin: 10px;
+    width: 300px;
+    position: absolute;
+    top: -15px;
+    text-decoration: none
+}
+
+a.tipright {
+    /* border-bottom: 1px dashed; */
+    text-decoration: none
+}
+a.tipright:hover {
+    cursor: pointer; /* was: help; */
+    position: relative
+}
+a.tipright span {
+    display: none
+}
+a.tipright:hover span {
+    border: #000000 1px;
+    padding: 5px 20px 5px 5px;
+    display: block;
+    z-index: 9000; /* was 100 */
+/*    background: url(../images/status-info.png) #f0f0f0 no-repeat 100% 5%; */
+    background: #ffff66;
+    left: 80px;
+    margin: 10px;
+    width: 300px;
+    position: absolute;
+    top: -15px;
+    text-decoration: none
+}
+
+
+/* Cursor types: http://www.w3schools.com/cssref/playit.asp?filename=playcss_cursor&preval=alias */
+
+
+/*
+From: http://sixrevisions.com/css/css-only-tooltips/
+.tooltip {
+  border-bottom: 1px dotted #000000;
+  color: #000000; outline: none;
+  cursor: help; text-decoration: none;
+  position: relative;
+}
+.tooltip span {
+  margin-left: -999em;
+  position: absolute;
+}
+.tooltip:hover span {
+  font-family: Calibri, Tahoma, Geneva, sans-serif;
+  position: absolute;
+  left: 1em;
+  top: 2em;
+  z-index: 99;
+  margin-left: 0;
+  width: 250px;
+}
+.tooltip:hover img {
+  border: 0;
+  margin: -10px 0 0 -55px;
+  float: left;
+  position: absolute;
+}
+.tooltip:hover em {
+  font-family: Candara, Tahoma, Geneva, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  display: block;
+  padding: 0.2em 0 0.6em 0;
+}
+.classic { padding: 0.8em 1em; }
+.custom { padding: 0.5em 0.8em 0.8em 2em; }
+* html a:hover { background: transparent; }
+
+.classic { background: #FFFFAA; border: 1px solid #FFAD33; }
+.critical { background: #FFCCAA; border: 1px solid #FF3334; }
+.help { background: #9FDAEE; border: 1px solid #2BB0D7; }
+.info { background: #9FDAEE; border: 1px solid #2BB0D7; }
+.warning { background: #FFFFAA; border: 1px solid #FFAD33; }
+
+*/
+
+/*
+We can add more styles, see: https://docs.djangoproject.com/en/1.9/intro/tutorial06/
+
+body {
+    background: white url("images/background.gif") no-repeat right bottom;
+
+NOTE:  You should always use relative paths to link your static files between each other, because then you can change STATIC_URL (used by the static template tag to generate its URLs) without having to modify a bunch of paths in your static files as well.
+}
+*/
+
+

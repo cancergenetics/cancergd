@@ -1,0 +1,198 @@
+{# % extends 'gendep/base.html' % #}
+{% load staticfiles %}
+{% block links_top %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script -->
+  
+  <script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
+  
+  <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+  
+  <!-- script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-qtip/2.2.5/cytoscape-qtip.js"></script -->
+  <script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-cola/1.1.1/cytoscape-cola.js"></script>
+  
+{% endblock %}
+{% block scripts %}
+<style type="text/css">
+  body { 
+      font: 12px helvetica neue, helvetica, arial, sans-serif;
+    }
+	
+    #cy {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+</style>
+
+<script type="text/javascript">
+ $(function() { // on dom ready
+
+ /*
+Cola demos:
+
+http://bioinformatics.oxfordjournals.org/content/32/2/309.full
+
+http://marvl.infotech.monash.edu/webcola/
+
+http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+
+
+http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/code.js
+http://stackoverflow.com/questions/28853072/rendering-speed-of-cola-layout-in-cytoscape-js
+
+*/
+ 
+ /*
+  var params = {
+    name: 'cola',
+    nodeSpacing: 5,
+    edgeLengthVal: 45,
+    animate: true,
+    randomize: false,
+    maxSimulationTime: 1500
+  };
+  var layout = makeLayout();
+  var running = false;
+
+  cy.on('layoutstart', function(){
+    running = true;
+  }).on('layoutstop', function(){
+    running = false;
+  });
+  
+  layout.run();
+
+   function makeLayout( opts ){
+    params.randomize = false;
+    params.edgeLength = function(e){ return params.edgeLengthVal / e.data('weight'); };
+
+    for( var i in opts ){
+      params[i] = opts[i];
+    }
+
+    return cy.makeLayout( params );
+  }
+
+  
+  */
+ 
+    //var cy = 
+	$('#cy').cytoscape({
+	/* Default layouts include null, random, preset, grid, circle, concentric, breadthfirst, dagre, cose, cola, spread, arbor and springy. */
+	/* Tried: cose, cola */
+
+        layout: {
+            name: 'cola',
+			// nodeSpacing: 5,
+            // edgeLengthVal: 45,
+            // animate: true,
+            randomize: true,
+            maxSimulationTime: 3000,
+			fit: true
+
+/*
+            name: 'cose',
+            idealEdgeLength: 30,
+            nodeOverlap: 20,
+			useMultitasking: true,
+			fit: true
+*/			
+        },
+		zoom: 2,
+		minZoom: 0.5,
+        maxZoom: 5,
+		pan: { x: 0, y: 0 },
+		/* motionBlur: true, */
+		wheelSensitivity: 0.2,
+        style: cytoscape.stylesheet()
+            .selector('node')
+            .css({
+				'shape': 'ellipse',
+				'width': 50,
+				'height': 50,
+			    'background-color': '#d2b48c',
+                'content': 'data(name)',					
+                'text-valign': 'center',
+				'font-size': '18px',
+				'font-weight': 'bold',
+                'color': '#004279'
+                /* 'text-outline-width': 2,
+                'text-outline-color': '#888' */
+        })
+            .selector('edge')
+            .css({
+			    'curve-style': 'haystack',  /* haystack are fast to draw */
+				'haystack-radius': '0.1',
+				'opacity': '0.4',
+				'width': '2',
+                'line-color': 'green'
+        })	
+            .selector(':selected')
+            .css({
+                'background-color': 'black',
+                'line-color': 'black',
+                'target-arrow-color': 'black',
+                'source-arrow-color': 'black'
+        })
+            .selector('.faded')
+            .css({
+                'opacity': 0.25,
+                'text-opacity': 0
+        }),
+
+elements: {
+  nodes: [
+{% for node in node_list %}  {data: {id: '{{ node }}', name: '{{ node }}'} }{% if not forloop.last %},{% endif %}
+{% endfor %} ],
+  edges: [
+{% for edge in edge_list %}  {data: { source: '{{ edge.0 }}', target: '{{ edge.1 }}'} }{% if not forloop.last %},{% endif %}
+{% endfor %} ]
+},
+
+
+            ready: function() {
+                window.cy = this;
+
+                // giddy up...
+
+                cy.elements().unselectify();
+
+                cy.on('tap', 'node', function(e) {
+                    var node = e.cyTarget;
+                    var neighborhood = node.neighborhood().add(node);
+
+                    cy.elements().addClass('faded');
+                    neighborhood.removeClass('faded');
+                });
+
+                cy.on('tap', function(e) {
+                    if (e.cyTarget === cy) {
+                        cy.elements().removeClass('faded');
+                    }
+                });
+            }
+			
+        });
+/*		
+  var layout = cy.makelayout({
+    name: 'cola',
+    nodeSpacing: 5,
+    edgeLengthVal: 45,
+    animate: true,
+    randomize: false,
+    maxSimulationTime: 1500
+  });
+  layout.run();
+*/
+}); // on dom ready
+</script>	
+{% endblock %}
+
+{% block content %}
+<p>Using Cytoscape.js to display these proteins, and their connections as obtained from String-db.....</p>
+  <div id="cy"></div>
+{% endblock%}

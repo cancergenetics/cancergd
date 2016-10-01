@@ -1,0 +1,123 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block links_top %}
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" class="ui-theme" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+{% endblock %}
+{% block scripts %}
+<style type="text/css">
+  .ui-tooltip {
+    padding: 5px 5px;
+    background: #ffffc0;
+	/*color: white; */
+    border-radius: 10px;	
+	z-index: 2147478001;  /* So will appear above the fancybox 2147478000*/
+    font: bold 12px "Helvetica Neue", Sans-Serif;
+  }
+</style>
+
+
+<script type="text/javascript">
+  function add_tooltips_to_driver_table() {
+	// Initialise the Tooltips
+	$('#driver_table_tbody').tooltip({
+	  items: "[data-study_list], [data-histotype_list]",
+	  show: false, // effect
+	  hide: false,
+      track: true, // follow mouse
+	  position: {
+        my: "center+15% bottom-20",  // this center+10% should match the ".arrow.left {left: 40%;} in 'style.css' file
+        at: "center top",
+	    using: function( position, feedback ) {
+          $( this ).css( position );
+		  
+		  $( "<div>" )
+            .addClass( "arrow" )
+            .addClass( feedback.vertical )
+            .addClass( feedback.horizontal )
+            .appendTo( this );
+        }
+	  },
+	  
+      content: function(callback) {  // 'callback' function is called below with the data:
+        var element = $( this );
+/*
+        if ( element.is( "[data-study_list]" ) ) {
+          var gene_name = element.attr("data-gene");  // was: = element.text();
+		  if (gene_name in gene_info_cache) {
+			var result = format_gene_info_for_tooltip(gene_info_cache[gene_name]);
+			callback(result);
+			}
+		  else {
+            var url = global_url_gene_info_for_mygene.replace('mygene',gene_name);
+            $.ajax({
+              url: url,
+              dataType: 'json', 
+            })
+            .done(function(data, textStatus, jqXHR) {  // or use .always(...)
+              if (data['success']) {
+			  	gene_info_cache[gene_name] = data; // cache to retrieve faster next time.
+			    result = format_gene_info_for_tooltip(data);
+			    callback(result);
+				}
+			  else {callback("Error: "+data['message'])}
+		    })
+		    .fail(function(jqXHR, textStatus, errorThrown) {
+			  callback("Ajax Failed: '"+textStatus+"'  '"+errorThrown+"'");
+            })
+		  }
+        }
+*/        
+        if ( element.is( "[data-study_list]" ) ) {
+//	      var study_list = study_info(element.attr("data-study").split(',') );
+//        return '<b>'+study[iexptype]+':</b> '+study[isummary];
+//          return '<b>'+study[ishortname]+':</b> '+study[idetails];
+          return "PubMed Ids: "+element.attr("data-study_list").replace(/,/g, ', '); // g is needed for replace all occurances
+        }
+        else if ( element.is( "[data-histotype_list]" ) ) {
+// Convert the histotypes to their full_names:      
+//        var histotype_list = element.attr("data-histotype_list").split(',');
+          return element.attr("data-histotype_list").replace(/,/g, ', ');
+        }
+      }    // end of 'content:'
+   });  // end of tooltip
+}
+
+
+$(document).ready(function() {
+    add_tooltips_to_driver_table();
+    }) 
+    
+</script>
+{% endblock %}
+
+
+{% block content %}
+<p>Details of driver genes investigated:</p>
+{% endblock %}
+{% block table %}
+<table cellpadding="3" class="tabler" id="driver_table"> <!-- style="border: 1px solid blue;" -->
+<thead><tr><th>Driver gene</th><th>Entrez ID</th><th>Full name</th><th>Synonyms</th><th>Num studies</th><th>Num tissues</th><th>Num targets</th><th>External links</th></tr></thead>
+<tbody id="driver_table_tbody">
+{% for g in driver_list %}
+<tr>
+<td><a href="{% url 'gendep:home_search_by_gene' search_by='driver' gene_name=g.gene_name %}">{{ g.gene_name }}</a></td>
+<td>{{ g.entrez_id }}</td>
+<td>{{ g.full_name }}</td>
+<td><font size="-1">{{ g.prevname_synonyms }}</font></td>
+<td style="text-align:center" data-study_list="{{ g.driver_study_list }}">{{ g.driver_num_studies }}</td>
+<td style="text-align:center" data-histotype_list="{{ g.driver_histotype_list }}">{{ g.driver_num_histotypes }} {# was: driver_histotype_list_full_names #}</td>
+<td style="text-align:center">{{ g.driver_num_targets }}</td>
+<td><font size="-2">
+  <a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene={{ g.gene_name }}" target="_blank">GeneCards</a>
+  <a href="https://www.ncbi.nlm.nih.gov/gene/{{ g.entrez_id }}" target="_blank">Entrez</a>
+  {% if g.ensembl_id != '' %} <a href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g={{ g.ensembl_id }}" target="_blank">Ensembl</a> {% endif %}  
+  {% if g.hgnc_id != ''%} <a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id={{ g.hgnc_id }}" target="_blank">HGNC</a> {% endif %}  
+  {# was driver.external_links|safe #}
+</font></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

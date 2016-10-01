@@ -1,0 +1,9 @@
+{% if very_significant_list %}
+    <ul>
+    {% for target in very_significant_list %}
+        <li><a href="/gendep/{{ target.id }}/">{{ target.target }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No very significant targets are available.</p>
+{% endif %}

@@ -1,0 +1,9 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block content %}
+<h1>Thank you for your comment/query:</h1>
+<p><b>Your name:</b> {{ name }}</p>
+<p><b>Your email:</b> {{ email }}</p>
+<p><b>Your comment/query:</b><br/> {{ comment|linebreaks }}</p>
+<p><b>{{ email_sent }}</b></p>
+{% endblock %}

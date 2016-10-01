@@ -1,0 +1,28 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block content %}
+<p>Studies included in this database:<p/>
+{% endblock %}
+{% block table %}
+<table cellpadding="3" class="tabler">
+<thead><tr><th>Link</th><th>PubMed ID</th><th>Title:</th><th>Authors</th><th>Experiment type</th><th>Journal</th><th>Publication date</th><th>Num drivers</th><th>Num tissues</th><th>Num targets in study</th>{#<th>Num targets in database</th>#}</tr></thead>
+<tbody>
+{% for study in study_list %}
+<tr>
+<td>{{ study.weblink|safe }}</td>
+<td>{{ study.pmid }}</td>
+<td>{{ study.title }}</td>
+<td><a class="tip" href="#">{{ study.authors|slice:":30" }} et al<span>{{ study.authors }}</span></a></td>
+<td><a class="tip" href="#">{{ study.experiment_type }}<span>{{ study.summary }}</span></a></td>
+<td>{{ study.journal }}</td>
+<td>{{ study.pub_date }}</td>
+<td style="text-align:center">{{ study.num_drivers }}</td>
+<td style="text-align:center">{{ study.num_histotypes }}</td>
+<td style="text-align:center">{{ study.num_targets }}</td>
+{# <td style="text-align:center">{{ study.num_targets_in_db }}</td> #}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock%}
+

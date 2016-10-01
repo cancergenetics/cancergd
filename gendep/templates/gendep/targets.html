@@ -1,0 +1,26 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block content %}
+<p>Details of target/dependency genes investigated:</p>
+{% endblock %}
+{% block table %}
+<table cellpadding="3" class="tabler"> <!-- style="border: 1px solid blue;" -->
+<thead><tr><th>Target gene</th><th>Entrez ID</th><th>Full name</th><th>Synonyms</th>{# <th>Num studies</th><th>Num tissues</th><th>Num drivers</th><th>External links</th> #}</tr></thead>
+<tbody>
+{% for target in target_list %}
+<tr>
+<td><a href="{% url 'gendep:home_search_by_gene' search_by='target' gene_name=target.gene_name %}">{{ target.gene_name }}</a></td>
+<td>{{ target.full_name }}</td>
+<td>{{ target.entrez_id }}</td>
+<td><font size="-1">{{ target.prevname_synonyms }}</font></td>
+{% comment %}
+<td style="text-align:center">{{ target.num_studies }}</td>
+<td style="text-align:center">{{ target.num_histotypes }}</td>
+<td style="text-align:center">{{ target.num_driver }}</td>
+<td><font size="-2">{{ target.external_links|safe }}</font></td>
+{% endcomment %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

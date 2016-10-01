@@ -1,5 +1,6 @@
 """ Script to import the CGD data into the database tables """
 import sys, os, csv, re
+import gzip  # To directly the compressed string db files without needing to uncompress them first.
 import django
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,7 +28,8 @@ def add_gene_details() :
     Data is sourced from the HGNC complete set.
     """
     entrez_to_symbol = {}
-    with open("./input_data/hgnc_complete_set.txt","rU") as f :
+    # The hgnc_complete_set.txt file contains unicode characters in the 'name' column, eg. the Greek symbols for Alpha and Beta, etc, so need to open it with utf-8 encoding:
+    with open("./input_data/hgnc_complete_set.txt","rU", encoding='utf-8') as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             if row['entrez_id'] and row['symbol']:
@@ -66,6 +68,18 @@ def add_driver_details() :
             except ObjectDoesNotExist:
                 print("ERROR updating driver", row)
     return            
+
+    
+def open_file(filename, mode='rt', encoding='utf-8'):
+    """ Open file as gzipped if not already uncompressed. 'mode' is 'rt' for read the gzip files as Strings (instead of Bytes). Needs utf-8 encoding for protein.aliases file. """
+    if os.path.exists(filename):
+        f = open(filename, mode, encoding=encoding)
+    elif os.path.exists(filename+'.gz'):
+        f = gzip.open(filename+'.gz', mode, encoding=encoding)  # In earlier python versions (eg. python 3.2) need to wrap this as: f = io.TextIOWrapper(gzip.open(filename+'.gz', mode, encoding=encoding))
+    else:
+        raise FileNotFoundError("File '%s' file NOT found: " %(filename))
+    return f
+    
     
 def add_ensembl_proteinids() :
     """
@@ -85,7 +99,7 @@ def add_ensembl_proteinids() :
             entrez = r[0]
             ensembl_pid = r[1].split('.')[1]
             entrez_to_ensemblpid[entrez] = ensembl_pid
-    with open("./input_data/9606.protein.aliases.v10.txt","r") as f:
+    with open_file("./input_data/9606.protein.aliases.v10.txt") as f:
         for line in f :
             if 'ENSG' in line :
                 parts = line.split("\t")
@@ -175,10 +189,7 @@ def add_dependency_file(study, filename, duplicates=False) :
             zdiff = float(row["ZDiff"])
             za = float(row["zA"])
             zb = float(row["zB"])
-            if "tissue" in row:
-                tissue = row["tissue"]
-            else :
-                tissue = "PANCAN"
+            tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
                 target = Gene.objects.get(entrez_id = target_entrez)
@@ -193,6 +204,7 @@ def add_dependency_file(study, filename, duplicates=False) :
                         existing_cgd.effect_size = cles
                         existing_cgd.boxplot_data = row["boxplot_data"]
                 else :
+                    # driver_name = driver, target_name = target,
                     dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
                         zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
             except ObjectDoesNotExist :
@@ -246,7 +258,7 @@ def add_string_interactions() :
     
     stored_interactions = {}
     
-    with open("./input_data/9606.protein.links.v10.txt","r") as f:
+    with open_file("./input_data/9606.protein.links.v10.txt") as f:
         f.readline()
         reader = csv.reader(f,delimiter=" ")
         for r in reader :
@@ -255,7 +267,7 @@ def add_string_interactions() :
                 gene1 = r[0].split('.')[1]
                 gene2 = r[1].split('.')[1]
                 if gene1 in driver_ids or gene2 in driver_ids :
-                    stored_interactions[(gene1, gene2)] = score
+                    stored_interactions[(gene1, gene2)] = score  # Would gene1+'_'+gene2 be faster as the key?
     
     for d in Dependency.objects.all() :
         driver_id = d.driver.ensembl_protein_id
@@ -263,7 +275,7 @@ def add_string_interactions() :
         if (driver_id, target_id) in stored_interactions :
             d.interaction = get_string_confidence(stored_interactions[(driver_id, target_id)])
             d.save()
-        if (target_id, driver_id) in stored_interactions :
+        if (target_id, driver_id) in stored_interactions :   # Ask Colm, would elif be quicker here ?
             d.interaction = get_string_confidence(stored_interactions[(target_id, driver_id)])
             d.save()
         if target_id == driver_id :
@@ -290,4 +302,4 @@ if __name__ == "__main__":
         
         # Add dependencies
         add_dependencies()        
-        add_string_interactions()
+        #add_string_interactions()

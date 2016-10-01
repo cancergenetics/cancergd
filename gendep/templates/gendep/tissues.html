@@ -1,0 +1,20 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block content %}
+<p>Details of tissues investigated:</p>
+{% endblock %}
+{% block table %}
+<table cellpadding="3" class="tabler"> <!-- style="border: 1px solid blue;" -->
+<thead><tr><th>Tissue full name</th><th>Name for <a href="{% url 'gendep:faq' %}#json">JSON api</a></th><th>Studies</th><th>Comments</th></tr></thead>
+<tbody>
+{% for histotype in histotype_list %}
+<tr>
+<td>{{ histotype.1 }}</td>
+<td>{{ histotype.0 }}</td>
+<td></td>
+<td></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

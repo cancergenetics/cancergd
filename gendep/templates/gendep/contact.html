@@ -1,0 +1,81 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+function check_comment_form() {
+  // As the autocomplete form permits text that doesn't match any driver:
+  var name = document.getElementById("name").value;  
+  var email = document.getElementById("email").value;
+  var comment = document.getElementById("comment").value;
+  var msg = '';  
+  var elem = null;
+
+  if (name == null || name.replace(/\s*/, '') == "") {
+    msg += "'Your name' field needs a value entered";
+	elem = document.getElementById("name");
+    }
+  if (email == null || email.replace(/\s*/, '') == "") {
+    msg += "\n'Your email' field needs a value entered";
+    if (elem==null) {elem = document.getElementById("email");}
+    }
+  if (comment == null || comment.replace(/\s*/, '') == "") {
+    msg += "\n'Your comment' field needs a value entered";
+	if (elem==null) {elem = document.getElementById("comment");}
+    }
+  
+  if (msg !='') {
+    alert(msg);
+	// evt.preventDefault();
+	if (elem!=null) {elem.focus();}
+	return false;
+	}	
+  else {
+    document.getElementById("comment_submit_button").value="Submitting...";
+    return true;
+  }
+}
+
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>Contact</h1>
+
+
+<!-- Could add the mailgun email validator: https://github.com/mailgun/validator-demo -->
+
+<p>We welcome your comments and queries:</p>
+<table align="center">
+<tr><td>
+<form name="form" id="form" method="post" onsubmit="return check_comment_form();" action="{% url 'gendep:log_comment' %}">
+{% csrf_token %}
+<label for="name">Your name:</label><br/>
+<input type="text" size="80" name="name" id="name" placeholder="Your name" required />
+<br/> &nbsp; <br/>
+<label for="email">Your email:</label><br/>
+<input type="email" size="80" name="email" id="email" placeholder="Your email" required />
+<br/> &nbsp; <br/>
+{% comment%}
+<label for="interest">Your area of interest:</label><br/>
+<textarea rows="3" cols="81" name="interest" id="interest" placeholder="Your area of interest" required ></textarea>
+<br/> &nbsp; <br/>
+{% endcomment %}
+<label for="comment">Your comment/query:</label><br/>
+<textarea rows="10" cols="81" name="comment" id="comment" placeholder="Your comment or query" required ></textarea>
+<br/> &nbsp; <br/>
+{% comment %}
+<!-- Can reenable this check if get spammed -->
+<label for="human">To confirm that you aren't a web-spam-robot, please give answer as a figure, eg. 8:</label><br/>
+five plus two is: <input type="text" size="10" name="human" id="human" placeholder="Your answer" required />
+<br/> &nbsp; <br/>
+{% endcomment %}
+<input type="submit" id="comment_submit_button" value="Submit comment"/>
+</form>
+</td></tr>
+</table>
+
+<br/>
+<p>Or email Colm Ryan (Systems Biology Ireland): <span style="color:blue;">cancergenetics [AT] ucd.ie</span></p>
+{% endblock%}

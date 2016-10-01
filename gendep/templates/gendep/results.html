@@ -1,0 +1,132 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{# For defining template blocks see: https://docs.djangoproject.com/en/1.9/ref/templates/language/ #}
+{% block links_top %}
+{# Links to jQuery and jQuery-UI google hosted libraries for the autocomplete search box: #}
+
+<!-- Add jQuery library -->
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+
+<!-- Add fancyBox -->
+<link rel="stylesheet" href="{% static 'gendep/fancybox/source/jquery.fancybox.css' %}" type="text/css" media="screen" />
+<script type="text/javascript" src="{% static 'gendep/fancybox/source/jquery.fancybox.pack.js' %}"></script>
+
+{% endblock %}
+{% block scripts %}
+<style type="text/css">
+    .jsAction {
+        cursor: pointer;
+        color: #00f;
+        text-decoration: underline;
+    }
+</style>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+
+
+function show_plot(driver,target)
+  {
+  document.getElementById('plot_title').innerHTML = '<b>' + target + ' vs ' + driver + '</b>'; 
+  if (driver=='ERBB2' && target=='MAP2K3')
+    {
+    // Should use { % static .... % } below in future:
+    // document.getElementById("plot_image").src = '../static/gendep/' + target + '_vs_' + driver + '.png'; // eg: MAP2K3_vs_ERBB2.png
+    document.getElementById("plot_image").src = '{% static 'gendep/boxplots/' %}' + driver + '_' + target + '.png'; // eg: MAP2K3_vs_ERBB2.png
+    document.getElementById('plot_description').innerHTML = 'ERBB2 mutant cell lines have an increased dependency upon MAP2K3 (p=10-4 | Tissues=muliple | Source=Campbell et al (2015))'; 
+    }
+  else
+    {
+    document.getElementById("plot_image").src = '';
+    document.getElementById('plot_description').innerHTML = 'No plot available';
+    }
+  }
+</script>
+
+<style type="text/css">
+	.fancybox-custom .fancybox-skin {
+		box-shadow: 0 0 50px #222;
+	}
+</style>
+{% endblock %}
+{% block content %}
+<!-- histotype.full_name  -->
+
+<table align="center" cellpadding="8" style="border: 1px solid blue;">
+<tr><td>
+<p>Tissue type: {% if histotype == "ALL_HISTOTYPES" %} All histotypes {% else %} {{ histotype_full_name }} {% endif %}</p>
+<p>Study: {% if study == "ALL_STUDIES" %} All studies {% else %} <a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ study.pmid }}" target="_blank">{{ study.pmid }}</a> "{{ study.title }}", {{ study.authors|slice:":30" }} et al, {{ study.journal }}, {{ study.pub_date }} {% endif %} </p>
+
+<p><b>Driver Gene: {{ driver.gene_name }}</b></p>
+<p><u>Synonyms:</u> {{ driver.synonyms }} {{ driver.prev_names }}</p>
+<p><u>Gene Descripion:</u> {{ driver.full_name }}</p>
+<p><u>External links:</u>
+  <a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene={{ driver.gene_name }}" title="Genecards" target="_blank">GeneCards</a> 
+| <a href="http://www.ncbi.nlm.nih.gov/gene/{{ driver.entrez_id }}" title="Entrez Gene at NCBI" target="_blank">Entrez</a> 
+| <a href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g={{ driver.ensembl_id }}" title="Ensembl Gene" target="_blank">Ensembl</a> 
+| <a href="http://vega.sanger.ac.uk/Homo_sapiens/Gene/Summary?g={{ driver.vega_id }}" title="Vertebrate Genome Annotation" target="_blank">Vega</a> 
+| <a href="http://www.omim.org/entry/{{ driver.omim_id }}" title="Online Mendelian Inheritance in Man" target="_blank">OMIM</a>
+| <a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id={{ driver.hgnc_id }}" title="HUGO Gene Nomenclature Committee" target="_blank">HGNC</a> 
+| <a href="http://www.cancerrxgene.org/translation/Search?query={{ driver.gene_name }}" title="CancerRxGene search" target="_blank">CancerRxGene</a> 
+| <a href="http://www.cbioportal.org/ln?q={{ driver.gene_name }}" title="cBioPortal for Cancer Genomics" target="_blank">cBioPortal</a> 
+| <a href="http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln={{ driver.gene_name }}" title="Catalogue of Somatic Mutations in Cancer" target="_blank">COSMIC</a> 
+| <a href="https://cansar.icr.ac.uk/cansar/molecular-targets/{{ driver.uniprot_id }}/" title="CanSAR" target="_blank">CanSAR</a> 
+</p>
+
+{% comment %}
+<!--
+script
+set_graph(driver,target)
+{% url 'gendep:graph' dependency.driver.gene_name dependency.target.gene_name }}
+-->
+<!--
+<a href="set_graph( {{ dependency.driver.gene_name }}, {{ dependency.target.gene_name }} );"/>{{ dependency.target.gene_name }}</a>
+-->
+<!-- 
+When using the Histotype table class, then below use: dependency.histotype.full_name,
+but when using the choices CharField, use: dependency.get_histotype_display() 
+
+style="border-bottom: 1px solid #ddd;"
+
+-->
+{% endcomment %}
+
+</td></tr><tr><td align="center">
+
+{% if dependency_list %}
+<p style="font-size: 75%;">For Driver 'ERBB2': Click the 'MAP2K3' dependency to display the box plot at bottom of this table.</p>
+  <table class=tabler>
+    <tr><th>Dependency</th><th>P-value</th><th>PubMed ID</th><th>Tissue</th><th>Inhibitors</th><th>Experiment Type</th></tr>
+    {% for dependency in dependency_list %}
+    <tr> 
+        <td>
+		{% comment %}
+		<!-- The old method was: -->
+		<span class="jsAction" onclick="show_plot( '{{ dependency.driver.gene_name }}', '{{ dependency.target.gene_name }}' );" title="{{ dependency.target.full_name }}, {{ dependency.target.synonyms }} {{ dependency.target.prev_names }}">{{ dependency.target.gene_name }}</span></td>
+        {% endcomment %}
+		<!-- Now using flashbox: -->
+		<!--  Note: ID's are single use and are only applied to one element. Galleries are created from elements who have the same "data-fancybox-group" or "rel" attribute value.   Use `title` or `data-fancybox-title` attribute to specify item caption. -->
+		<a class="fancybox" rel="group" href="{% static 'gendep/boxplots/' %}{{ dependency.driver.gene_name }}_{{ dependency.target.gene_name }}.png" title="{{ dependency.target.full_name }}, {{ dependency.target.synonyms }} {{ dependency.target.prev_names }}" data-fancybox-title="ERBB2 mutant cell lines have an increased dependency upon MAP2K3 (p=10-4 | Tissues=muliple | Source=Campbell et al (2015))" >{{ dependency.target.gene_name }}</a></td>
+        <td>{{ dependency.wilcox_p }}</td>
+        <td><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ dependency.study.pmid }}" title="{{ dependency.study.title }}, {{ dependency.study.authors|slice:":30" }} et al, {{ dependency.study.journal }}, {{ dependency.study.pub_date }}" target="_blank">{{ dependency.study.sort_name }}</a></td>
+        <td>{{ dependency.get_histotype_display }}</td>
+        <td></td>
+        <td><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ dependency.study.pmid }}" title="{{ dependency.study.summary }}" target="_blank">{{ dependency.study.experiment_type }}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+{% else %}
+    <p>No dependencies found.</p>
+{% endif %}
+
+</td></tr><tr><td align="center">
+<p id="plot_title"></p>
+<img id="plot_image"/>
+<p id="plot_description" style="font-size: 95%;"></p>
+</td></tr>
+</table>
+
+{% endblock %}
