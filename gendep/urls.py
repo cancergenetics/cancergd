@@ -65,11 +65,11 @@ urlpatterns = [
     # For sending protein_list and gene_list as HTML GET or POST:
     url(r'cytoscape/(?P<required_score>[0-9]+)/$', views.cytoscape, name='cytoscape_post'),
     
-    # url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<gene_name>[0-9A-Za-z\-_\.]*)/(?P<histotype_name>[0-9A-Za-z\_]*)/(?P<study_pmid>[0-9A-Za-z\_]*)/$', views.index, name='home_search_by_gene_tissue_pmid'),
-    url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<entrez_id>[0-9a-z]*)/(?P<histotype_name>[0-9A-Za-z\_]*)/(?P<study_pmid>[0-9A-Za-z\_]*)/$', views.index, name='home_search_by_gene_tissue_pmid'),    
+    url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<gene_name>[0-9A-Za-z\-_\.]*)/(?P<histotype_name>[0-9A-Za-z\_]*)/(?P<study_pmid>[0-9A-Za-z\_]*)/$', views.index, name='home_search_by_gene_tissue_pmid'),
+    # url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<entrez_id>[0-9a-z]*)/(?P<histotype_name>[0-9A-Za-z\_]*)/(?P<study_pmid>[0-9A-Za-z\_]*)/$', views.index, name='home_search_by_gene_tissue_pmid'),    
 
-    # url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<gene_name>[0-9A-Za-z\-_\.]+)/$', views.index, name='home_search_by_gene'),
-    url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<entrez_id>[0-9a-z]+)/$', views.index, name='home_search_by_gene'),
+    url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<gene_name>[0-9A-Za-z\-_\.]+)/$', views.index, name='home_search_by_gene'),
+    # url(r'^(?P<search_by>(?:mysearchby|driver|target))/(?P<entrez_id>[0-9a-z]+)/$', views.index, name='home_search_by_gene'),
 
     url(r'^(?P<search_by>(?:mysearchby|driver|target))/$', views.index, name='home_search_by'), # Needs to be at end as could otherwise interpret 'about' as driver name.
         

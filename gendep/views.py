@@ -591,16 +591,16 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
     and overcomes problem that the latest Django 1.10 has with 'selected_related': https://code.djangoproject.com/ticket/24687 
     and http://eboreimeoikeh.com/zealcreationz.com/django/docs/releases/1.10.txt and http://fossies.org/diffs/Django/1.9.8_vs_1.10/tests/select_related/tests.py-diff.html """
     # As the results are already filtered by R for wilcox_P<=0.05 then don't actually need to filter on this wilcox_p <= 0.05
-    
+
     error_msg = ''
-    
+
     filter = "D.%s = %%s" %(search_by)  # AND D.wilcox_p <= %%s
     # Now changed to using entrez_id in the Dependency table so need to check Gene table for name (or send entrez_id from browser):
     # params = [gene_name] # , wilcox_p
     params = [entrez_id] # , wilcox_p
 
     # filter = "D.gene_name = %%s"   # AND D.wilcox_p <= %%s
-    
+
     if histotype_name != "ALL_HISTOTYPES":
         filter += " AND D.histotype = %s" # Correctly uses: =histotype_name, not: =histotype_full_name        
         params.append(histotype_name)
@@ -611,8 +611,8 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
 
     select = 'target' if search_by=='driver' else 'driver'
 
-    columns = "D.id, D.%s, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
-                
+    columns = "D.id, D.%s AS entrez_id, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
+
     # related_columns = ", G.inhibitors, G.ensembl_protein_id"
     # related_join = " INNER JOIN gendep_gene G ON (D.%s = G.gene_name)" %(select) # Used for both query_types.
     related_columns = ", G.gene_name, G.inhibitors, G.ensembl_protein_id"
@@ -624,13 +624,13 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
         related_join += " INNER JOIN gendep_study S ON (D.pmid = S.pmid)"        
     elif query_type != 'dependency_gene':
         error_msg += " ERROR: *** Invalid 'query_type': %s ***" %(query_type)
-        
+
     # Not searching for: gendep_dependency.driver, gendep_dependency.target_variant, gendep_dependency.mutation_type, gendep_dependency.boxplot_data, etc
 
     rawsql = ("SELECT " + columns + related_columns +
               " FROM gendep_dependency D" + related_join +
               " WHERE (%s) ORDER BY D.%s ASC") %(filter, order_by)
-             
+
     print("build_rawsql:",rawsql)
     return error_msg, Dependency.objects.raw(rawsql, params)
 
@@ -738,6 +738,7 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
         # wilcox_p in scientific format with no decimal places (.0 precision), and remove python's leading zero from the exponent.
         results.append([
                     d.gene_name,  # WAS:  d.target_id if search_by_driver else d.driver_id,
+                    # Optionally could add: d.entrez_id,
                     format(d.wilcox_p, ".0e").replace("e-0", "e-"),
                     format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
                     format(d.zdiff,".2f"), # Usually negative. two decomal places
@@ -899,8 +900,11 @@ def stringdb_interactions(required_score, protein_list):
     try:
         response = urlopen(req)
     except URLError as e:
-        if hasattr(e, 'reason'):
-            return False, "We failed to reach a server: " + e.reason
+        if hasattr(e, 'reason'):   # The reason for this error. It can be a message string or another exception instance.
+            if isinstance(e.reason, str):
+                return False, "We failed to reach a server: " + e.reason
+            else:    
+                raise e.reason
         elif hasattr(e, 'code'):
             return False, "The server couldn't fulfill the request. Error code: " + e.code
     else:  # response is fine
@@ -1196,7 +1200,8 @@ ASC
     
     study_name = "All studies" if study_pmid=='ALL_STUDIES' else study.short_name
     # Using 'and' rather than comma below as a comma would split the line in csv files:
-    query_text = "%s='%s' and Tissue='%s' and Study='%s'" % (search_by.title(), gene_name, histotype_full_name, study_name)
+    # query_text = "%s='%s' and Tissue='%s' and Study='%s'" % (search_by.title(), gene_name, histotype_full_name, study_name)    
+    query_text = "%s entrez_id='%s' and Tissue='%s' and Study='%s'" % (search_by.title(), entrez_id, histotype_full_name, study_name)
     
     file_download_text = "Downloaded from cancergd.org on %s" %(timestamp)
     

@@ -33,8 +33,8 @@ def add_gene_details() :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             if row['entrez_id'] and row['symbol']:
-                synonyms = row['alias_symbol'].split("|")
-                prev_names = row['prev_symbol'].split("|")
+                synonyms = synonyms=='' ? [] : row['alias_symbol'].split("|")
+                prev_names = prev_names=='' ? [] : row['prev_symbol'].split("|") # Need to check for empty prev_names, otherwise get [ '' ] then synonym_string becomes, eg: " | RHEB2 " or "PI3K | "
                 synonym_string = " | ".join(list(set(synonyms).union(prev_names)))
                 g = Gene.objects.create(
                          gene_name = row['symbol'], # eg. ERBB2
@@ -302,4 +302,4 @@ if __name__ == "__main__":
         
         # Add dependencies
         add_dependencies()        
-        #add_string_interactions()
+        add_string_interactions()

@@ -13,12 +13,13 @@
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.2.js' %}"></script>
   <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.theme.min.css' %}" class="ui-theme" />
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.min.js' %}"></script>
+{% endcomment %}
+  
   {# Or on MacBook: #}
-
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.4.js' %}"></script>
   <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.theme.min.css' %}" class="ui-theme" />  
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script> 
-{% endcomment %}
+
   
   <link rel="stylesheet" href="{% static 'gendep/tablesorter/css/theme.blue.min.css' %}" class="theme blue" />
   <link rel="stylesheet" href="{% static 'gendep/fancybox/source/jquery.fancybox.css' %}" type="text/css" />
@@ -514,7 +515,11 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
 
 	function open_autocomplete_menu() {
 	  // Set the minLength to 0 and display the menu
-      if ($( "#gene" ).autocomplete( "option", "minLength" ) != 0) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search", "" );} // or could use the current contents for the search.
+      // if ($( "#gene" ).autocomplete( "option", "minLength" ) != 0) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search", "" );} // or could use the current contents for the search.
+      // If don't specify a search string then uses the current input which is what we want:
+      // **** But need to test if is already open due to having entered two characters.            
+      // && $( "#gene" ).autocomplete( "option", "minLength" )!=0
+      if (! $("#gene").autocomplete('widget').is(':visible') ) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search" );} // or could use the current contents for the search.      
 	}
 	
 	function close_autocomplete_menu() {
@@ -549,10 +554,12 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
     });
     
     $("#gene").focus(function(e){close_autocomplete_menu();}); // close if click inside the gene input box.
-    $("html").click(function(e) { if ($(e.target).attr("class")!="ui-menu-item") {close_autocomplete_menu();} }); // Close if click outside the autocomplete menu.
+    $("#gene").on( "autocompleteclose", function(e,ui) {if ($( "#gene" ).autocomplete( "option", "minLength" )==0) { $( "#gene" ).autocomplete( "option", "minLength", 2 );} });
+    $("html").click(function(e) { if ($(e.target).attr("class")!="ui-menu-item") {close_autocomplete_menu();} }); // Close if click outside the autocomplete menu.    
+    $(document).on("keydown", function(e) {if (get_key(e) == 27) {close_autocomplete_menu();} }); // Close if press Escape when the autocomplete menu is visible.
+    // Autocomplete API: ttps://api.jqueryui.com/autocomplete/
+    // Removing space from buttons in Safari.
     
-    $(document).on("keydown", function(e) {if (get_key(e) == 27) {close_autocomplete_menu();} }); // Close if press escape when the autocomplete menu is visible.
-
 });
 
 
@@ -665,7 +672,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   <!-- Could add a button: https://jqueryui.com/autocomplete/#combobox -->
   <!-- button name="show_all_button" id="show_all_button" style="background-color:cyan; color:white;margin-left:-3px;"><font size="+1"></font></button -->
 
-  </td><td style="padding-left:0;"> <button name="show_all_button" id="show_all_button" tabindex="-1" style="background-color:#3388ff; color:white; border-style:solid; border:1px; margin-left:-3px;">&vArr;</button> {# &#8681; &varr; &vArr; #}
+  {# </td><td style="padding-left:0;"> <button name="show_all_button" id="show_all_button" tabindex="-1" style="background-color:#3388ff; color:white; border-style:solid; border:1px; margin-left:-3px;">&vArr;</button> #}  {# &#8681; &varr; &vArr; #}
 </td>
 
 

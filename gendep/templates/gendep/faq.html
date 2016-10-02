@@ -46,13 +46,13 @@
 
 <p>(1) This dependency data can also be obtained in JSON format for input into scripts. The data in the dependency table can be obtained, using a URL of the format:
 <pre class="script">
-http://{{current_url}}{% url 'gendep:get_dependencies'  search_by='driver' gene_name='GENE' histotype_name='TISSUE' study_pmid='STUDY' %}
-{# http://{{current_url}}{ % url 'gendep:get_dependencies'  search_by='driver' entrez_id='GENE_ENTREZ_ID' histotype_name='TISSUE' study_pmid='STUDY' % } #}
+{# http://{{current_url}}{ % url 'gendep:get_dependencies'  search_by='driver' gene_name='GENE' histotype_name='TISSUE' study_pmid='STUDY' % } #}
+http://{{current_url}}{% url 'gendep:get_dependencies'  search_by='driver' entrez_id='12345' histotype_name='TISSUE' study_pmid='STUDY' %}
 </pre>
 where:
 <ul>
 <li>"driver" to indicate search is by driver gene. Change this to "target" to search by target gene. 
-<li>"GENE" is the name of the gene gene (eg. ERBB2), as listed on the <a href="{% url 'gendep:drivers' %}">drivers page</a> or <a href="{% url 'gendep:targets' %}">targets page</a>.
+{# <li>"GENE" is the name of the gene gene (eg. ERBB2), #}<li>"12345" is the Entrez_ID of the gene gene (eg. 2064), as listed on the <a href="{% url 'gendep:drivers' %}">drivers page</a> {#or <a href="{ % url 'gendep:targets' % }">targets page #}</a>.
 <li>"TISSUE" is either: "ALL_HISTOTYPES", or one of the tissues (eg. LUNG) listed on the <a href="{% url 'gendep:tissues' %}">tissues page</a>.</li>
 <li>"STUDY" is either "ALL_STUDIES", or one of the study PubMed Id's as listed on the <a href="{% url 'gendep:studies' %}">studies page</a>.</li>
 </ul>
@@ -62,20 +62,20 @@ For example:
 (a) To retreive data for driver gene ERBB2, all tissues and all studies:
 <pre class="script">
 {# http://{{current_url}}{ % url 'gendep:get_dependencies' search_by='driver' gene_name='ERBB2' histotype_name='ALL_HISTOTYPES' study_pmid='ALL_STUDIES' % }  #}
-http://{{current_url}}{% url 'gendep:get_dependencies' search_by='driver' entrez_id='12345' histotype_name='ALL_HISTOTYPES' study_pmid='ALL_STUDIES' %}
+http://{{current_url}}{% url 'gendep:get_dependencies' search_by='driver' entrez_id='2064' histotype_name='ALL_HISTOTYPES' study_pmid='ALL_STUDIES' %}
 </pre>
 
 (b) To retreive data for target gene ERBB2, Pan-cancer, study Campbell(2016):
 <pre class="script">
 {# http://{{current_url}}{ % url 'gendep:get_dependencies' search_by='target' gene_name='ERBB2' histotype_name='PANCAN' study_pmid='26947069' % } #}
-http://{{current_url}}{% url 'gendep:get_dependencies' search_by='target' entrez_id='12345' histotype_name='PANCAN' study_pmid='26947069' %}
+http://{{current_url}}{% url 'gendep:get_dependencies' search_by='target' entrez_id='2064' histotype_name='PANCAN' study_pmid='26947069' %}
 </pre>
 
 <p>You can retrieve and extract the data from JSON, using a script. In Python 3, you could use:</p>
 <pre class="script">
 import urllib.request, json
 {# url = "http://{{current_url}}{ % url 'gendep:get_dependencies' search_by='driver' gene_name='ERBB2' histotype_name='BREAST' study_pmid='26947069' % }" #}
-url = "http://{{current_url}}{% url 'gendep:get_dependencies' search_by='driver' entrez_id='12345' histotype_name='BREAST' study_pmid='26947069' %}"
+url = "http://{{current_url}}{% url 'gendep:get_dependencies' search_by='driver' entrez_id='2064' histotype_name='BREAST' study_pmid='26947069' %}"
 response = urllib.request.urlopen(url).read().decode('utf-8')
 data = json.loads(response)
 </pre>

@@ -122,6 +122,7 @@ function show_search_info(data) {
   var search_by = qi['search_by'];
   $("#gene_search_by").html(search_by=='target' ? 'Target' : 'Driver');
   var gene = qi['gene_name'];
+  var entrez_id = qi['gene_entrez'];  // global_selected_entrez_id
 
   if (gene != global_selected_gene) {alert("ERROR: query returned search by gene("+gene+") != global_selected_gene("+global_selected_gene+")")}
   $("#gene_name").html(gene);
@@ -139,9 +140,12 @@ function show_search_info(data) {
   
   $("#result_info").html( "For "+ search_by +" gene <b>" + gene + "</b>, a total of <b>" + qi['dependency_count'] + " dependencies</b> were found in " + histotype_formatted + " in " + study_info(qi['study_pmid'])[idetails]);  
   
-  var download_csv_url = global_url_for_download_csv.replace('mysearchby',search_by).replace('mygene',gene).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);
-  
-  var download_excel_url = global_url_for_download_excel.replace('mysearchby',search_by).replace('mygene',gene).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);
+  //var download_csv_url = global_url_for_download_csv.replace('mysearchby',search_by).replace('mygene',gene).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);  
+  //var download_excel_url = global_url_for_download_excel.replace('mysearchby',search_by).replace('mygene',gene).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);
+
+  var download_csv_url = global_url_for_download_csv.replace('mysearchby',search_by).replace('mygene',entrez_id).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);  
+  var download_excel_url = global_url_for_download_excel.replace('mysearchby',search_by).replace('mygene',entrez_id).replace('myhistotype',qi['histotype_name']).replace('mystudy',qi['study_pmid']);
+
   
    $("#download_csv_form")
      .attr("action", download_csv_url)
