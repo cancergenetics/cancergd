@@ -190,25 +190,26 @@ def add_dependency_file(study, filename, duplicates=False) :
             za = float(row["zA"])
             zb = float(row["zB"])
             tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
-            try :
-                driver = Gene.objects.get(entrez_id = marker_entrez)
-                target = Gene.objects.get(entrez_id = target_entrez)
-                key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
-                if duplicates and (key in dependencies) :
-                    existing_cgd = dependencies[key]
-                    if existing_cgd.wilcox_p > wilcox_p :
-                        existing_cgd.za = za
-                        existing_cgd.zb = zb
-                        existing_cgd.wilcox_p = wilcox_p
-                        existing_cgd.zdiff = zdiff
-                        existing_cgd.effect_size = cles
-                        existing_cgd.boxplot_data = row["boxplot_data"]
-                else :
-                    # driver_name = driver, target_name = target,
-                    dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
-                        zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
-            except ObjectDoesNotExist :
-                print("Skipping row",row['marker'],row['target'])
+            if wilcox_p < 0.05 and cles >= 0.65 :
+                try :
+                    driver = Gene.objects.get(entrez_id = marker_entrez)
+                    target = Gene.objects.get(entrez_id = target_entrez)
+                    key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
+                    if duplicates and (key in dependencies) :
+                        existing_cgd = dependencies[key]
+                        if existing_cgd.wilcox_p > wilcox_p :
+                            existing_cgd.za = za
+                            existing_cgd.zb = zb
+                            existing_cgd.wilcox_p = wilcox_p
+                            existing_cgd.zdiff = zdiff
+                            existing_cgd.effect_size = cles
+                            existing_cgd.boxplot_data = row["boxplot_data"]
+                    else :
+                        # driver_name = driver, target_name = target,
+                        dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
+                            zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
+                except ObjectDoesNotExist :
+                    print("Skipping row",row['marker'],row['target'])
         Dependency.objects.bulk_create(dependencies.values()) # Much quicker than individual creation of objects     
     return
 
