@@ -19,28 +19,25 @@
 <p>The effect size presented in the database is the <i>Common Language Effect Size</i>, equivalent to the <i>Probability of Superiority</i> and the <i>Area Under the ROC Curve</i>. It indicates the probability that a cell line with an alteration in a particular <a href="{% url 'gendep:drivers' %}">driver gene</a> will be more sensitive to a given RNAi reagent than a cell line without that alteration. For instance, the effect size in Campbell <i>et al</i> for the dependency of <i>ERBB2</i> amplified cell lines upon <i>MAP2K3</i> siRNA is 81%. This indicates that if two cell lines are chosen at random, one with <i>ERBB2</i> amplification and one without, 83% of the time the cell line with the <i>ERBB2</i> amplification will be more sensitive to the <i>MAP2K3</i> siRNA.</p>
 
 <p>Note that the <i>Common Language Effect Size</i> does not indicate the magnitude of the difference in sensitivity between the altered and wild-type group of cell lines. It merely indicates that one group is more sensitive than the other, not how much more sensitive.</p>
-<br/>
 
 <a name="dependencies"><h2>What dependencies are included?</h2></a>
 
 <p>We include all dependencies that have a <i>nominally significant</i> p-value less than 0.05 and a <i>Common Language Effect Size</i> of greater than 65%. By <i>nominally significant</i> we mean that the p-value has not been corrected for multiple hypothesis testing. We, and others, have found that analysing all of the nominally significant dependencies associated with a <a href="{% url 'gendep:drivers' %}">driver gene</a> can provide more insight than analysing only those that survive correction for multiple hypothesis testing.</p>
-<br/>
 
 <a name="boxplots"><h2>How should I interpret the box plots?</h2></a>
 
 <center><img src="{% static 'gendep/images/FAQ_boxplot.png' %}" alt="Box plot"/></center>
 
-<p>Each <a href="https://en.wikipedia.org/wiki/Box_plot" title="Box plot">box plot</a> shows the sensitivity of cell lines partitioned according to the status of a particular <a href="{% url 'gendep:drivers' %}">driver gene</a> to RNAi reagents targeting a particular gene. For instance above we show the box plot indicating a dependency between <i>ERBB2</i> amplification and sensitivity to <i>MAP2K3</i> siRNA. The cell lines featuring the alteration in question are displayed on the right and the cell lines without the alteration are on the left.  Each coloured circle represents a cell line and the position along the y-axis indicates how sensitive that cell line is to the RNAi reagents targeting the gene indicated. The colours indicate the tissue of origin for each cell line, as indicated in the legend. The boxes themselves are <a href="https://en.wikipedia.org/wiki/Box_plot#Types_of_box_plots" title="Box plot">Tukey box plots</a> – the bold line indicates the median of each group, the edges of the box indicates the interquartile range, and the whiskers indicate 1.5 times the interquartile range.</p>
-<br/>
-
+<p>Each <a href="https://en.wikipedia.org/wiki/Box_plot" title="Box plot">box plot</a> shows the sensitivity of cell lines partitioned according to the status of a particular <a href="{% url 'gendep:drivers' %}">driver gene</a> to RNAi reagents targeting a particular gene. For instance above we show the box plot indicating a dependency between <i>ERBB2</i> amplification and sensitivity to <i>MAP2K3</i> siRNA. The cell lines featuring the alteration in question are displayed on the right and the cell lines without the alteration are on the left. Each coloured object represents a cell line and the position along the y-axis indicates how sensitive that cell line is to the RNAi reagents targeting the gene indicated. The colours indicate the tissue of origin for each cell line, as indicated in the legend. The shape of each object indicates the alteration type (circle = no alteration, triangle = copy number, diamond = mutation). The boxes themselves are <a href="https://en.wikipedia.org/wiki/Box_plot#Types_of_box_plots" title="Box plot">Tukey box plots</a> – the bold line indicates the median of each group, the edges of the box indicates the interquartile range, and the whiskers indicate 1.5 times the interquartile range.</p>
 
 <a name="gene_altered"><h2>When is a driver gene considered 'altered'?</h2></a>
 
-<p>We attempt to identify likely 'functional' alterations in driver genes using the same approach as in <a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7">Campbell, Ryan <i>et al</i>, Cell Reports, 2016</a>. Briefly, for oncogenes we consider a functional alteration to be either a focal amplification or a mutation in a recurrently mutated site. For tumour suppressor genes we consider a functional alteration to be a homozygous gene deletion, a likely loss-of-function mutation (frameshift, nonsense or splice site alteration), or a mutation to a recurrently mutated site. For a site within a gene to be considered 'recurrently mutated' it must be mutated in ~3% of all samples that feature a mutation in that gene. For example, if there are 1,000 reported mutations to the KRAS gene in our database and 300 of them alter residue 13 then residue 13 is considered recurrently mutated (300/1,000 = 30%). In contrast if residue 27 is mutated two times then it is not considered recurrently mutated (2/1,000 = 0.2%). Our source database for detecting recurrence is <a href="http://www.ncbi.nlm.nih.gov/pubmed/24183448">Davoli <i>et al</i>, Cell, 2013</a>.</p>
+<p> We integrate copy number profiles and exome sequencing to identify likely functional alterations in cancer driver genes. For most oncogenes we consider a functional alteration to be either an amplification, recurrent missense mutation, or recurrent in frame deletion or insertion. Recurrence is defined as as at least 3 previous mutations of a particular site in the <a href="http://cancer.sanger.ac.uk/cosmic">COSMIC database</a>. For a small number of oncogenes (ERBB2, MYC, MYCN) we consider only amplifications as functional events, while for another group (KRAS, BRAF, NRAS, HRAS) we only consider recurrent mutations/indels. In addition to recurrent missense or indel events, for tumour suppressors we consider that all nonsense, frameshift and splice-site mutations are likely functional alterations. We also consider that deletions (derived from copy number profiles) are functional alterations for tumour suppressors.</p>
 
 <a name="genotyping"><h2>Where does the genotyping data come from?</h2></a>
 
-<p> Copy number profiling is currently taken from the <a href="http://www.broadinstitute.org/ccle/" title="CCLE">Cancer Cell Line Encyclopedia</a> while exome data is primarily taken from the <a href="http://cancer.sanger.ac.uk/cell_lines">COSMIC Cell Lines Project</a>. For 11 ovarian cancer cell lines the exome data was obtained from <a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7">Campbell, Ryan <i>et al</i>, Cell Reports, 2016</a> </p>
+<p> Exome data for ~1,000 cell lines are obtained from the <a href="http://www.cancerrxgene.org/gdsc1000/GDSC1000_WebResources/Home.html">GDSC resource</a>. Copy number data for the same set of cell lines is obtained from <a href = "http://www.cancerrxgene.org/downloads">CancerRXGene</a>. We use the gene level copy number scores which are derived from PICNIC analysis of Affymetrix SNP6.0 array data. An oncogene is considered amplified if the entire coding sequence has 8 or more copies while a tumour suppressor is considered deleted if any part of the coding sequence has a copy number of 0. </p>
+  
 
 <a name="json"><h2>How can I access this data from scripts as a JSON web service?</h2></a>
 
@@ -51,21 +48,20 @@ http://{{current_url}}{% url 'gendep:get_dependencies'  search_by='driver' entre
 </pre>
 where:
 <ul>
-<li>"driver" to indicate search is by driver gene. Change this to "target" to search by target gene. 
-{# <li>"GENE" is the name of the gene gene (eg. ERBB2), #}<li>"12345" is the Entrez_ID of the gene gene (eg. 2064), as listed on the <a href="{% url 'gendep:drivers' %}">drivers page</a> {#or <a href="{ % url 'gendep:targets' % }">targets page #}</a>.
+<li>"driver" to indicate search is by driver gene. Change this to "target" to search by target gene.</li>
+{#<li>"GENE" is the name of the gene gene (eg. ERBB2), #}<li>"12345" is the Entrez_ID of the gene gene (eg. 2064), as listed on the <a href="{% url 'gendep:drivers' %}">drivers page</a> or <a href="{% url 'gendep:targets' %}">targets page</a>.</li>
 <li>"TISSUE" is either: "ALL_HISTOTYPES", or one of the tissues (eg. LUNG) listed on the <a href="{% url 'gendep:tissues' %}">tissues page</a>.</li>
 <li>"STUDY" is either "ALL_STUDIES", or one of the study PubMed Id's as listed on the <a href="{% url 'gendep:studies' %}">studies page</a>.</li>
 </ul>
 
-For example:
-</p>
-(a) To retreive data for driver gene ERBB2, all tissues and all studies:
+<p>For example:</p>
+<p>(a) To retreive data for driver gene ERBB2, all tissues and all studies:</p>
 <pre class="script">
 {# http://{{current_url}}{ % url 'gendep:get_dependencies' search_by='driver' gene_name='ERBB2' histotype_name='ALL_HISTOTYPES' study_pmid='ALL_STUDIES' % }  #}
 http://{{current_url}}{% url 'gendep:get_dependencies' search_by='driver' entrez_id='2064' histotype_name='ALL_HISTOTYPES' study_pmid='ALL_STUDIES' %}
 </pre>
 
-(b) To retreive data for target gene ERBB2, Pan-cancer, study Campbell(2016):
+<p>(b) To retreive data for target gene ERBB2, Pan-cancer, study Campbell(2016):</p>
 <pre class="script">
 {# http://{{current_url}}{ % url 'gendep:get_dependencies' search_by='target' gene_name='ERBB2' histotype_name='PANCAN' study_pmid='26947069' % } #}
 http://{{current_url}}{% url 'gendep:get_dependencies' search_by='target' entrez_id='2064' histotype_name='PANCAN' study_pmid='26947069' %}
@@ -103,13 +99,13 @@ http://{{current_url}}{% url 'gendep:get_gene_info' gene_name='ERBB2' %}
 <pre class="script">
 http://{{current_url}}{% url 'gendep:get_boxplot' dataformat='csv' driver_name='ERBB2' target_name='MAK2P' histotype_name='PANCAN' study_pmid='26947069' %}
 </pre>
-</br>
 
 
 <a name="downloaddb"><h2>How can I download the whole CancerGD database to interrogate locally?</h2></a>
 <p>The full CancerGD database can be downloaded as an <a href="{% static 'gendep/db_sqlite.zip' %}" download>Sqlite3 database</a> or a <a href="{% static 'gendep/all_dependencies.csv.gz' %}" download>Comma-separate values (CSV) file</a>. These are compressed files so need to be uncompressed using either Linux/MacOS command-line, eg: "unzip db_sqlite.zip" or "gunzip all_dependencies.csv.gz". On Windows could use a program such as <a href="http://www.7-zip.org/">7-Zip</a>.
 
-<p>To query the SQLite database you can use a program such as the free <a href="http://sqlitebrowser.org/">SQLite Browser</a>, as follows:</p>
+<p>To query the SQLite database you can use a program such as the free <a href="http://sqlitebrowser.org/">SQLite Browser</a>
+{% comment %}, as follows:</p>
 
 <p>On the "Browse Data" tab, can select the "gendep_dependency" table and set filters in the cells below the column names. Can also the use '%' symbol to match to text within a string column eg: in the 'boxplot_data' column use %LUNG% to match any rows containing LUNG in that column.</p>
 
@@ -119,9 +115,10 @@ http://{{current_url}}{% url 'gendep:get_boxplot' dataformat='csv' driver_name='
 </pre>
 </p>or the full query the CancerGD system uses to display the Dependency table, eg:
 <pre class="script">
-  SELECT D.id, D.target, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype, G.inhibitors, G.ensembl_protein_id FROM gendep_dependency D INNER JOIN gendep_gene G ON (D.target = G.gene_name) WHERE (D.driver = 'ERBB2' AND D.wilcox_p <= 0.05 AND D.histotype = 'PANCAN') ORDER BY D.wilcox_p ASC;
+  SELECT D.id, D.target, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype, G.inhibitors, G.ensembl_protein_id FROM gendep_dependency D INNER JOIN gendep_gene G ON (D.target = G.gene_name) WHERE (D.driver = '2064' AND D.wilcox_p <= 0.05 AND D.histotype = 'PANCAN') ORDER BY D.wilcox_p ASC;
 </pre>
 
-<p>If you make changes to the data, then you need to either cancel ("Revert Changes" button) or save ("Write Changes" button) at top left to Cancel or Save your changes</p>
+<p>Where '2064' is entrez_id for 'ERBB2'. If you make changes to the data, then you need to either cancel ("Revert Changes" button) or save ("Write Changes" button) at top left to Cancel or Save your changes</p>
+{% endcomment %}
 	
 {% endblock %}

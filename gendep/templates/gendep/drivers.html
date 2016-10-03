@@ -94,11 +94,12 @@ $(document).ready(function() {
 
 
 {% block content %}
-<p>Details of driver genes investigated:</p>
+<h2 align="center">Details of driver genes investigated</h2>
 {% endblock %}
 {% block table %}
 <table cellpadding="3" class="tabler" id="driver_table"> <!-- style="border: 1px solid blue;" -->
-<thead><tr><th>Driver gene</th><th>Entrez ID</th><th>Full name</th><th>Synonyms</th><th>Num studies</th><th>Num tissues</th><th>Num targets</th><th>External links</th></tr></thead>
+<thead><tr><th>Driver gene</th><th>Entrez ID</th><th>Full name</th><th>Synonyms</th><th>Alterations Considered</th><th>Studies</th><th>Tissues</th><th>Targets</th>{#<th>External links</th>#}</tr></thead>
+
 <tbody id="driver_table_tbody">
 {% for g in driver_list %}
 <tr>
@@ -106,9 +107,11 @@ $(document).ready(function() {
 <td>{{ g.entrez_id }}</td>
 <td>{{ g.full_name }}</td>
 <td><font size="-1">{{ g.prevname_synonyms }}</font></td>
+<td><font size="-1">{{ g.alteration_considered }}</font></td>
 <td style="text-align:center" data-study_list="{{ g.driver_study_list }}">{{ g.driver_num_studies }}</td>
 <td style="text-align:center" data-histotype_list="{{ g.driver_histotype_list }}">{{ g.driver_num_histotypes }} {# was: driver_histotype_list_full_names #}</td>
 <td style="text-align:center">{{ g.driver_num_targets }}</td>
+{% comment %}
 <td><font size="-2">
   <a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene={{ g.gene_name }}" target="_blank">GeneCards</a>
   <a href="https://www.ncbi.nlm.nih.gov/gene/{{ g.entrez_id }}" target="_blank">Entrez</a>
@@ -116,6 +119,7 @@ $(document).ready(function() {
   {% if g.hgnc_id != ''%} <a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id={{ g.hgnc_id }}" target="_blank">HGNC</a> {% endif %}  
   {# was driver.external_links|safe #}
 </font></td>
+{% endcomment %}
 </tr>
 {% endfor %}
 </tbody>

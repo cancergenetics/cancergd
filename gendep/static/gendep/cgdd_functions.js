@@ -565,10 +565,6 @@ var stopat=20;	// To stop table early for testing.
 	  
 	  // *** GOOD: http://desalasworks.com/article/javascript-performance-techniques/
 
-	  var darkgreen_UCD_logo  = '#00A548';
-	  var midgreen_SBI_logo   = '#92C747';
-	  var lightgreen_SBI_logo = '#CDF19C'; // was actually:'#ADD17C';
-
 	  val = parseFloat(d[iwilcox_p]); // This will be in scientific format, eg: 5E-4
       if      (val <= 0.0001) {bgcolor=darkgreen_UCD_logo}
 	  else if (val <= 0.001)  {bgcolor=midgreen_SBI_logo}

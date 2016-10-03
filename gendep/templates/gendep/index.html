@@ -13,13 +13,12 @@
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.2.js' %}"></script>
   <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.theme.min.css' %}" class="ui-theme" />
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.min.js' %}"></script>
-{% endcomment %}
   
   {# Or on MacBook: #}
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.4.js' %}"></script>
   <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.theme.min.css' %}" class="ui-theme" />  
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script> 
-
+{% endcomment %}
   
   <link rel="stylesheet" href="{% static 'gendep/tablesorter/css/theme.blue.min.css' %}" class="theme blue" />
   <link rel="stylesheet" href="{% static 'gendep/fancybox/source/jquery.fancybox.css' %}" type="text/css" />
@@ -102,6 +101,22 @@
     font: bold 12px "Helvetica Neue", Sans-Serif;
   }
 
+  .ui-autocomplete li.ui-menu-item.ui-state-focus {
+    /* color: green; */
+    /* background: #96B202; */
+    background: #92C747;
+    /* outline: none; */
+  }
+
+/* Or maybe:  
+  .ui-autocomplete .ui-menu-item a.ui-state-focus {
+      background: #C4FFC4;
+      border: 1px solid #32BE61;
+}
+Because when you hover an item the jQuery adds the style "ui-state-focus" to the link.  
+*/
+  
+  
 /*  
   .custom-tooltip-styling {
     font-size:14px;
@@ -115,6 +130,12 @@
 
 
 <script type="text/javascript">
+
+// Colours for the dependency table highlighting:
+var darkgreen_UCD_logo  = '#00A548';
+var midgreen_SBI_logo   = '#92C747';
+var lightgreen_SBI_logo = '#CDF19C'; // was actually:'#ADD17C';
+
 
 // Global variables set by Django template engine's url() tag - need 'static' tag as their path changes if local dev server or pythonanywhere production server:
 var global_url_for_faq = "{% url 'gendep:faq' %}"; 
@@ -176,6 +197,7 @@ var gene_info_cache = {}; // To cache gene_info retrieved by AJAX call for the t
 var boxplot_cache = {}; // Used by the "svg_boxplots.js" script to cache boxplots for faster redisplay.
 
 // var dependency_array = [];
+
 
 var experimenttype_array = [
    {% for experimenttype in experimenttype_list %} {value: "{{ experimenttype.0 }}" }{% if not forloop.last %},{% endif %}
