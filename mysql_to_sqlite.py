@@ -32,9 +32,8 @@ from django.conf import settings
 
 
 # from gendep.models import Study, Gene, Drug, Dependency  # Removed: Histotype, 
-
-
-conn = sqlite3.connect('db.sqlite3')
+SQLITE_DBNAME='db.sqlite3'
+conn = sqlite3.connect(SQLITE_DBNAME)
 sqlite_cursor = conn.cursor()
 
 mysql_cursor = connection.cursor() # Django
@@ -51,11 +50,22 @@ if connection.vendor == 'sqlite' or DB['ENGINE'][-7:] == 'sqlite3':  # ENGINE: "
     print("ERROR: In '%s/settings.py' the default DATABASE is sqlite, but this script expects MySQL (or Postrges)" %(PROJECT))
     sys.exit()
       
-print("\n** WARNING: This will delete all data from database '%s' **" %(DB['NAME']))
+print("\n** WARNING: This will delete all data from SQLite database '%s' **" %(SQLITE_DBNAME))
+# print("\n** WARNING: This will delete all data from SQLite database '%s' **" %(DB['NAME']))
 if input("\nContinue (y/n)?").lower() != 'y':
     print("Exiting")
     sys.exit() # input() removes the trailing newline.
-    
+
+print("NOT FINISHED YET")
+sys.exit()
+
+
+# *** The following was added for MySql to Sqlite:
+print("Deleting data from the Sqlite database %s ..." %(SQLITE_DBNAME))
+print(sqlite_cursor.execute("SET FOREIGN_KEY_CHECKS=0; TRUNCATE `gendep_dependency`; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; SET FOREIGN_KEY_CHECKS=1;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"
+print(sqlite_cursor.execute("ALTER TABLE `gendep_dependency` AUTO_INCREMENT=1;"))     
+
+
 # Get exclusive lock on the tables first ideally..
 
 # empty the mysql table - after asking first !!!!
@@ -66,16 +76,21 @@ if input("\nContinue (y/n)?").lower() != 'y':
 #TRUNCATE TABLE is faster: https://dev.mysql.com/doc/refman/5.0/en/truncate-table.html
 #delete the dependency table first as it has foreign keys.
 
+
 if connection.vendor == 'mysql':
-    print("Deleting data from the MySQL database %s ..." %(DB['NAME']))    
-    print(mysql_cursor.execute("SET FOREIGN_KEY_CHECKS=0; TRUNCATE `gendep_dependency`; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; SET FOREIGN_KEY_CHECKS=1;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"    
-    # The following AUTO_INCREMENT=1 reset needs to be in a separate mysql execute statement, otherwise get error about: #        django.db.utils.ProgrammingError: (2014, "Commands out of sync; you can't run this command now")
-    print(mysql_cursor.execute("ALTER TABLE `gendep_dependency` AUTO_INCREMENT=1;"))     
-    
+     print("\nReading data from MySQL database '%s'" %(DB['NAME']))
+# *** The following was commented out for MySql to Sqlite:
+#    print("Deleting data from the MySQL database %s ..." %(DB['NAME']))    
+#    print(mysql_cursor.execute("SET FOREIGN_KEY_CHECKS=0; TRUNCATE `gendep_dependency`; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; SET FOREIGN_KEY_CHECKS=1;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"    
+#    # The following AUTO_INCREMENT=1 reset needs to be in a separate mysql execute statement, otherwise get error about: #        django.db.utils.ProgrammingError: (2014, "Commands out of sync; you can't run this command now")
+#    print(mysql_cursor.execute("ALTER TABLE `gendep_dependency` AUTO_INCREMENT=1;"))     
+#    
 elif connection.vendor == 'postgres':
-    print("Deleting data from the Postgres database %s ..." %(DB['NAME']))
-    # Need to test if this Postgres works, maybe need to disable foreign key trigger on other tables too:
-    print(mysql_cursor.execute("ALTER ALTER TABLE 'gendep_dependency' DISABLE TRIGGER ALL; TRUNCATE `gendep_dependency` TRUNCATE TABLE tablename RESTART IDENTITY; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; ALTER ALTER TABLE 'gendep_dependency' ENABLE TRIGGER ALL;"))
+     print("\nReading data from Postgres database '%s'" %(DB['NAME']))
+# *** The following was commented out for MySql to Sqlite:     
+#    print("Deleting data from the Postgres database %s ..." %(DB['NAME']))
+#    # Need to test if this Postgres works, maybe need to disable foreign key trigger on other tables too:
+#    print(mysql_cursor.execute("ALTER ALTER TABLE 'gendep_dependency' DISABLE TRIGGER ALL; TRUNCATE `gendep_dependency` TRUNCATE TABLE tablename RESTART IDENTITY; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; ALTER ALTER TABLE 'gendep_dependency' ENABLE TRIGGER ALL;"))
 else:
     print("Unexpected database type: ",connection.vendor)
     sys.exit()
@@ -91,7 +106,9 @@ else:
 for table in ( 'study', 'gene', 'dependency'):   # Not used: 'drug',
     table = 'gendep_'+table # As table names are prefixed with the app name.
 
-    rows = sqlite_cursor.execute( "SELECT * FROM '%s'" %(table) )
+# *** The following was commented out for MySql to Sqlite:
+#    rows = sqlite_cursor.execute( "SELECT * FROM '%s'" %(table) )
+    rows = mysql_cursor.execute( "SELECT * FROM '%s'" %(table) )
 
     colnames = [c[0] for c in rows.description] # eg: (('gene_name', None, None, None, None, None, None),...
     
@@ -116,29 +133,28 @@ for table in ( 'study', 'gene', 'dependency'):   # Not used: 'drug',
             #        row = list(row) # As cannot change elements with a tuple
             #        row[10] = row[10][:pos]
 #                print(row[10])
-            try:
-                mysql_cursor.execute(insert_statement, row) # using parameters will safely escape the strings.
-            except Warning as warning:  # To report the row causing any data truncation error:
-                    print("\nERROR:")
-                    for key,val in row.items():
-                        print(key, ":", val)
-                    print("\n")                        
-                    raise warning
-    
+# *** The following was commented out for MySql to Sqlite:
+#            mysql_cursor.execute(insert_statement, row) # using parameters will safely escape the strings.
+            sqlite_cursor.execute(insert_statement, row) # using parameters will safely escape the strings.            
     
 #       printf( "INSERT INTO '%s' VALUES( %s );\n", $table,  ','.join(values) )
 
 # Maybe:
 # transaction.set_dirty()        
 # transaction.commit()
+# Save (commit) the changes
+
+# *** The following commit() was added out for MySql to Sqlite:
+conn.commit()
+# Close the sqlite connection:
+conn.close()
 
 # Close the mysql cursor:
 mysql_cursor.close()
 
-# Close the sqlite connection:
-conn.close()
-
-print("Finished loading data from sqlite to mysql")
+# *** The following was commented out for MySql to Sqlite:
+# print("Finished loading data from sqlite to mysql")
+print("Finished loading data from MySQL to Sqlite '%s'" %(SQLITE_DBNAME))
 
 # Alternatively could use: https://github.com/motherapp/sqlite_sql_parser
 
