@@ -62,8 +62,10 @@ sys.exit()
 
 # *** The following was added for MySql to Sqlite:
 print("Deleting data from the Sqlite database %s ..." %(SQLITE_DBNAME))
-print(sqlite_cursor.execute("SET FOREIGN_KEY_CHECKS=0; TRUNCATE `gendep_dependency`; TRUNCATE `gendep_study`; TRUNCATE `gendep_gene`; SET FOREIGN_KEY_CHECKS=1;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"
-print(sqlite_cursor.execute("ALTER TABLE `gendep_dependency` AUTO_INCREMENT=1;"))     
+# PRAGMA foreign_keys = OFF;  PRAGMA foreign_keys = ON; BUTY are OFF by default in Sqlite:
+# Sqlite has no TRUNCATE, so use DELETE FROM table_name; then VACUUM;
+print(sqlite_cursor.execute("PRAGMA foreign_keys = OFF; DELETE FROM gendep_dependency; DELETE FROM gendep_study; DELETE FROM gendep_gene; VACUUM; PRAGMA foreign_keys = ON;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"
+print(sqlite_cursor.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'gendep_dependency';  COMMIT;")) # Not needed if table starts empty.
 
 
 # Get exclusive lock on the tables first ideally..
