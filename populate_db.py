@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ Script to import the CGD data into the database tables """
 import sys, os, csv, re
 import gzip  # To directly the compressed string db files without needing to uncompress them first.
@@ -36,7 +38,8 @@ def add_gene_details() :
                 synonyms = [] if row['alias_symbol']=='' else row['alias_symbol'].split("|")
                 prev_names = [] if row['prev_symbol']=='' else row['prev_symbol'].split("|") # Need to check for empty prev_names, otherwise get [ '' ] then synonym_string becomes, eg: " | RHEB2 " or "PI3K | "
                 synonym_string = " | ".join(list(set(synonyms).union(prev_names)))
-                g = Gene.objects.create(
+                try:
+                    g = Gene.objects.create(
                          gene_name = row['symbol'], # eg. ERBB2
                          full_name  = row['name'], # eg. erb-b2 receptor tyrosine kinase 2
                          prevname_synonyms = synonym_string, # eg: NGL  (plus)  NEU|HER-2|CD340|HER2
@@ -44,10 +47,17 @@ def add_gene_details() :
                          ensembl_id = row['ensembl_gene_id'], # eg: ENSG00000141736
                          vega_id = row['vega_id'], # eg: OTTHUMG00000179300
                          hgnc_id = row['hgnc_id'].split(':')[1],
-                         omim_id = row['omim_id'],
+                         omim_id = row['omim_id'].split('|')[0], # eg. omim_id: 312095|465000
                          cosmic_id = row['cosmic'],
                          uniprot_id = row['uniprot_ids'].split('|')[0]
                          )
+                except Warning as warning:  # To report the row causing any data truncation error.
+                    print("\nERROR:")
+                    for key,val in row.items():
+                        print(key, ":", val)
+                    print("\n")                        
+                    raise warning
+                    
                 entrez_to_symbol[row['entrez_id']] = row['symbol']
     return entrez_to_symbol
 
@@ -178,7 +188,7 @@ def add_dependency_file(study, filename, duplicates=False) :
     except ObjectDoesNotExist :
         print("ERROR, STUDY ",study," does not exist")
         return
-    dependencies = {}
+#    dependencies = {}
     with open("./R_scripts/outputs/%s" % filename,"rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
@@ -193,9 +203,16 @@ def add_dependency_file(study, filename, duplicates=False) :
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
                 target = Gene.objects.get(entrez_id = target_entrez)
-                key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
-                if duplicates and (key in dependencies) :
-                    existing_cgd = dependencies[key]
+                
+#                key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
+#                if duplicates and (key in dependencies) :
+#                    existing_cgd = dependencies[key]
+
+#                if duplicates and Dependency.objects.filter(driver_id=marker_entrez, target_id=target_entrez, histotype=tissue, study_id=pmid).exists() :                
+#                    existing_cgd = Dependency.objects.get(driver_id=marker_entrez, target_id=target_entrez, histotype=tissue, study_id=pmid)
+
+                if duplicates and Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists() :
+                    existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
                     if existing_cgd.wilcox_p > wilcox_p :
                         existing_cgd.za = za
                         existing_cgd.zb = zb
@@ -203,13 +220,22 @@ def add_dependency_file(study, filename, duplicates=False) :
                         existing_cgd.zdiff = zdiff
                         existing_cgd.effect_size = cles
                         existing_cgd.boxplot_data = row["boxplot_data"]
+                        existing_cgd.save()
                 else :
-                    # driver_name = driver, target_name = target,
-                    dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
-                        zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
+                    dependency = Dependency.objects.create(driver = driver, target = target, wilcox_p = wilcox_p, za = za, zb = zb, zdiff = zdiff,
+                        effect_size=cles, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
+                        
+#                    dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
+#                        zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])                        
+                    # With MySQL, can get error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away') because try to add too many at once. So best to do bulk_create in batches of eg. 500 rows.
+#                    if len(dependencies) == last_bulk_create + 500:
+#                        Dependency.objects.bulk_create(dependencies.values()) # Much quicker than individual creation of objects
+#                        last_bulk_create = len(dependencies)
+#                        dependencies.clear()
             except ObjectDoesNotExist :
                 print("Skipping row",row['marker'],row['target'])
-        Dependency.objects.bulk_create(dependencies.values()) # Much quicker than individual creation of objects     
+                
+#        if len(dependencies)>last_bulk_create: Dependency.objects.bulk_create(dependencies.values()) # Save final batch. Much quicker than individual creation of objects
     return
 
 def add_dependencies() :
@@ -225,7 +251,7 @@ def add_dependencies() :
             screens = row["CGD_files"].split(';')
             duplicates = row["DuplicateGenes"] == "1"
             for s in screens :
-                print("Adding dependencies",s,duplicates)
+                print("Adding dependencies from %s, Duplicates: %s" %(s,duplicates))
                 add_dependency_file(pmid,s,duplicates)
     return
         
@@ -291,15 +317,24 @@ if __name__ == "__main__":
         print("\nEmptying database tables")
         for table in (Dependency, Study, Gene): 
             table.objects.all().delete()
+        print("\nAdding Studies to Database")
         add_studies()
         
         # Add details to gene table
+        print("\nAdding Genes")
         mapped_genes = add_gene_details()
         add_driver_details()
+        print("\nAdding Ensembl protein IDs to Gene table")
         add_ensembl_proteinids()
+        print("\nAdding Inhibitor drugs to Gene table")
         add_inhibitor_details()
+        print("\nAdding Entrez summaries to Gene table")
         add_entrez_summaries()
-        
+        print("\nFinished")
         # Add dependencies
-        add_dependencies()        
+        print("\nAdding Dependencies")
+        add_dependencies()
+        print("\nAdding String-DB Interactions to Dependency table")
         add_string_interactions()
+        print("\nFinished.")
+        
