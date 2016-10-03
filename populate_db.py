@@ -31,7 +31,7 @@ def add_gene_details() :
     """
     entrez_to_symbol = {}
     # The hgnc_complete_set.txt file contains unicode characters in the 'name' column, eg. the Greek symbols for Alpha and Beta, etc, so need to open it with utf-8 encoding:
-    with open("./input_data/hgnc_complete_set.txt","rU", encoding='utf-8') as f :
+    with open_file("./input_data/hgnc_complete_set.txt") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             if row['entrez_id'] and row['symbol']:

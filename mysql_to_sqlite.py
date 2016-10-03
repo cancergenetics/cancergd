@@ -56,16 +56,16 @@ if input("\nContinue (y/n)?").lower() != 'y':
     print("Exiting")
     sys.exit() # input() removes the trailing newline.
 
-print("NOT FINISHED YET")
-sys.exit()
-
 
 # *** The following was added for MySql to Sqlite:
 print("Deleting data from the Sqlite database %s ..." %(SQLITE_DBNAME))
+# Not needed if table starts empty.
 # PRAGMA foreign_keys = OFF;  PRAGMA foreign_keys = ON; BUTY are OFF by default in Sqlite:
 # Sqlite has no TRUNCATE, so use DELETE FROM table_name; then VACUUM;
-print(sqlite_cursor.execute("PRAGMA foreign_keys = OFF; DELETE FROM gendep_dependency; DELETE FROM gendep_study; DELETE FROM gendep_gene; VACUUM; PRAGMA foreign_keys = ON;")) # maybe add "IF EXISTS", eg: "TRUNCATE `gendep_gene` IF EXISTS;"
-print(sqlite_cursor.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'gendep_dependency';  COMMIT;")) # Not needed if table starts empty.
+# sqlite3.Warning: You can only execute one statement at a time.
+# maybe add "IF EXISTS", eg: "DELETE FROM gendep_gene IF EXISTS;"
+for statement in ( "PRAGMA foreign_keys = OFF;", "DELETE FROM gendep_dependency;", "DELETE FROM gendep_study;", "DELETE FROM gendep_gene;", "VACUUM;", "PRAGMA foreign_keys = ON;", "UPDATE sqlite_sequence SET seq = 0 WHERE name = 'gendep_dependency';" ):
+    print(sqlite_cursor.execute(statement))
 
 
 # Get exclusive lock on the tables first ideally..
@@ -110,11 +110,15 @@ for table in ( 'study', 'gene', 'dependency'):   # Not used: 'drug',
 
 # *** The following was commented out for MySql to Sqlite:
 #    rows = sqlite_cursor.execute( "SELECT * FROM '%s'" %(table) )
-    rows = mysql_cursor.execute( "SELECT * FROM '%s'" %(table) )
+#    colnames = [c[0] for c in rows.description] # eg: (('gene_name', None, None, None, None, None, None),...
 
-    colnames = [c[0] for c in rows.description] # eg: (('gene_name', None, None, None, None, None, None),...
-    
-    insert_statement = "INSERT INTO `%s` (%s) VALUES (%s)" %(table, ','.join(colnames), ','.join(["%s"]*len(colnames)))
+    mysql_cursor.execute( "SHOW columns FROM `%s`" %(table) )
+    colnames = [c[0] for c in mysql_cursor.fetchall()]
+    mysql_cursor.execute( "SELECT * FROM `%s`" %(table) )
+
+# *** The following was commented out for MySql to Sqlite:
+    #    insert_statement = "INSERT INTO `%s` (%s) VALUES (%s)" %(table, ','.join(colnames), ','.join(["%s"]*len(colnames)))
+    insert_statement = "INSERT INTO '%s' (%s) VALUES (%s)" %(table, ','.join(colnames), ','.join(["?"]*len(colnames)))
     
     print(insert_statement)    
 
@@ -127,7 +131,10 @@ for table in ( 'study', 'gene', 'dependency'):   # Not used: 'drug',
     
     # Using Django custom SQL. Note: Django expects the "%s" placeholder, (not the "?" placeholder, which is used by the SQLite Python bindings).   
     with transaction.atomic():
-        for row in rows:
+# *** The following was commented out for MySql to Sqlite:
+#        for row in rows:
+        for row in mysql_cursor.fetchall():
+
             # These double omim_id's (eg. ....|.....) are now fixed in load_data.py
             #if table == 'gendep_gene' and len(row[10])>9:
             #    pos = row[10].find('|')
