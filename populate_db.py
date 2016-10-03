@@ -188,30 +188,24 @@ def add_dependency_file(study, filename, duplicates=False) :
     except ObjectDoesNotExist :
         print("ERROR, STUDY ",study," does not exist")
         return
-#    dependencies = {}
+
     with open("./R_scripts/outputs/%s" % filename,"rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
-            marker_entrez = row['marker'].split('_')[1]
-            target_entrez = row['target'].split('_')[1]
             wilcox_p = float(row['wilcox.p'])
             cles = float(row["CLES"])
+            if wilcox_p >= 0.05 or cles < 0.65 :
+               continue  # ie. only include dependencies if wilcox_p < 0.05 and cles >= 0.65 :
+            marker_entrez = row['marker'].split('_')[1]
+            target_entrez = row['target'].split('_')[1]
             zdiff = float(row["ZDiff"])
             za = float(row["zA"])
             zb = float(row["zB"])
             tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
-<<<<<<< HEAD
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
                 target = Gene.objects.get(entrez_id = target_entrez)
                 
-#                key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
-#                if duplicates and (key in dependencies) :
-#                    existing_cgd = dependencies[key]
-
-#                if duplicates and Dependency.objects.filter(driver_id=marker_entrez, target_id=target_entrez, histotype=tissue, study_id=pmid).exists() :                
-#                    existing_cgd = Dependency.objects.get(driver_id=marker_entrez, target_id=target_entrez, histotype=tissue, study_id=pmid)
-
                 if duplicates and Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists() :
                     existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
                     if existing_cgd.wilcox_p > wilcox_p :
@@ -223,43 +217,13 @@ def add_dependency_file(study, filename, duplicates=False) :
                         existing_cgd.boxplot_data = row["boxplot_data"]
                         existing_cgd.save()
                 else :
+                    # No longer using "bulk_update" as with MySQL, can get error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away') because try to add too many at once. Could add in batches of 500 but adds extra complexity.
                     dependency = Dependency.objects.create(driver = driver, target = target, wilcox_p = wilcox_p, za = za, zb = zb, zdiff = zdiff,
                         effect_size=cles, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
                         
-#                    dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
-#                        zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])                        
-                    # With MySQL, can get error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away') because try to add too many at once. So best to do bulk_create in batches of eg. 500 rows.
-#                    if len(dependencies) == last_bulk_create + 500:
-#                        Dependency.objects.bulk_create(dependencies.values()) # Much quicker than individual creation of objects
-#                        last_bulk_create = len(dependencies)
-#                        dependencies.clear()
             except ObjectDoesNotExist :
                 print("Skipping row",row['marker'],row['target'])
-                
-#        if len(dependencies)>last_bulk_create: Dependency.objects.bulk_create(dependencies.values()) # Save final batch. Much quicker than individual creation of objects
-=======
-            if wilcox_p < 0.05 and cles >= 0.65 :
-                try :
-                    driver = Gene.objects.get(entrez_id = marker_entrez)
-                    target = Gene.objects.get(entrez_id = target_entrez)
-                    key = "%s_%s_%s" % (marker_entrez,target_entrez, tissue)
-                    if duplicates and (key in dependencies) :
-                        existing_cgd = dependencies[key]
-                        if existing_cgd.wilcox_p > wilcox_p :
-                            existing_cgd.za = za
-                            existing_cgd.zb = zb
-                            existing_cgd.wilcox_p = wilcox_p
-                            existing_cgd.zdiff = zdiff
-                            existing_cgd.effect_size = cles
-                            existing_cgd.boxplot_data = row["boxplot_data"]
-                    else :
-                        # driver_name = driver, target_name = target,
-                        dependencies[key] = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, effect_size=cles, za = za,
-                            zb = zb, zdiff = zdiff, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
-                except ObjectDoesNotExist :
-                    print("Skipping row",row['marker'],row['target'])
-        Dependency.objects.bulk_create(dependencies.values()) # Much quicker than individual creation of objects     
->>>>>>> 05067088f37634959baba045c0bed80a3305990f
+
     return
 
 def add_dependencies() :
@@ -354,16 +318,10 @@ if __name__ == "__main__":
         add_inhibitor_details()
         print("\nAdding Entrez summaries to Gene table")
         add_entrez_summaries()
-        print("\nFinished")
+
         # Add dependencies
-<<<<<<< HEAD
         print("\nAdding Dependencies")
         add_dependencies()
         print("\nAdding String-DB Interactions to Dependency table")
         add_string_interactions()
         print("\nFinished.")
-        
-=======
-        add_dependencies()        
-        add_string_interactions()
->>>>>>> 05067088f37634959baba045c0bed80a3305990f
