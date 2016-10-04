@@ -21,6 +21,10 @@ so loss of unique primary key) so need to check for data truncation, as it jsut 
 To convert the MySQL data truncation (due to field max_length being too small) into raising an exception
 we use :"""
 
+# Delete unused gene rows:
+# select * FROM gendep_gene WHERE NOT EXISTS (SELECT * FROM gendep_dependency AS D WHERE D.target = gendep_gene.entrez_id OR D.driver = gendep_gene.entrez_id);
+
+
 warnings.filterwarnings('error', 'Data truncated .*')
 
 def add_gene_details() :
@@ -55,7 +59,7 @@ def add_gene_details() :
                     print("\nERROR:")
                     for key,val in row.items():
                         print(key, ":", val)
-                    print("\n")                        
+                    print("\n")
                     raise warning
                     
                 entrez_to_symbol[row['entrez_id']] = row['symbol']
@@ -204,8 +208,12 @@ def add_dependency_file(study, filename, duplicates=False) :
             tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
+                if not driver.is_driver :
+                    print("Gene %s %s should have is_driver=True, but is %s" %(driver.gene_name, marker_entrez, driver.is_driver))
                 target = Gene.objects.get(entrez_id = target_entrez)
-                
+                if not target.is_target :
+                    target.is_target=True
+                    target.save()
                 if duplicates and Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists() :
                     existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
                     if existing_cgd.wilcox_p > wilcox_p :
@@ -281,25 +289,29 @@ def add_string_interactions() :
                 gene1 = r[0].split('.')[1]
                 gene2 = r[1].split('.')[1]
                 if gene1 in driver_ids or gene2 in driver_ids :
-                    stored_interactions[(gene1, gene2)] = score  # Would gene1+'_'+gene2 be faster as the key?
+                    # As each gene pair appears in protein.links as both geneA,geneB and as geneB,geneA then sort the gene pair (so always (geneA,geneB) and store the score once instead of twice to reduce memory needed, and test once below.
+                    genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((gene1,gene2)))
+                    if genes in stored_interactions and stored_interactions[genes] != score :
+                        print("Scores differ %d != %d for reversed occurance of gene_pair (%s %s)" (stored_interactions[genes], score, gene1, gene2))
+                    stored_interactions[genes] = score  # Would gene1+'_'+gene2 be faster as the key?
     
     for d in Dependency.objects.all() :
         driver_id = d.driver.ensembl_protein_id
         target_id = d.target.ensembl_protein_id
-        if (driver_id, target_id) in stored_interactions :
-            d.interaction = get_string_confidence(stored_interactions[(driver_id, target_id)])
-            d.save()
-        if (target_id, driver_id) in stored_interactions :   # Ask Colm, would elif be quicker here ?
-            d.interaction = get_string_confidence(stored_interactions[(target_id, driver_id)])
-            d.save()
         if target_id == driver_id :
             d.interaction = get_string_confidence(1000) 
             d.save()
+        else :
+            genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((driver_id,target_id))) 
+            if genes in stored_interactions :
+                d.interaction = get_string_confidence(stored_interactions[genes])
+                d.save()
     print(Dependency.objects.filter(interaction = "Highest").count(), "Highest confidence interactions")
     print(Dependency.objects.filter(interaction = "High").count(), "High confidence interactions")
     print(Dependency.objects.filter(interaction = "Medium").count(), "Medium confidence interactions")
     return
-    
+
+                
 if __name__ == "__main__":
     with transaction.atomic(): 
         print("\nEmptying database tables")
