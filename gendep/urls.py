@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^get_gene_info/(?P<gene_name>[0-9A-Za-z\-_\.]+)/$', cache_page(60*60*24)(views.gene_info), name='get_gene_info'),
 
     # Allow carriage return character (as is %0D) - using a semicolon as the divider instead of return:
-    # url(r'get_stringdb_interactions/(?P<required_score>[0-9]+)/(?P<protein_list>[0-9A-Za-z\.;\%\r]+)/$', views.get_stringdb_interactions, name='get_stringdb_interactions'),
+    url(r'get_stringdb_interactions/(?P<required_score>[0-9]+)/(?P<protein_list>[0-9A-Za-z\.;\%\r]+)/$', views.get_stringdb_interactions, name='get_stringdb_interactions'),
     
     # For sending protein_list request as HTML GET or better POST, as browsers have a max url length, especially IE, in address bar so use POST:
     url(r'get_stringdb_interactions/(?P<required_score>[0-9]+)/$', views.get_stringdb_interactions, name='get_stringdb_interactions_post'),
