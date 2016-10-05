@@ -324,16 +324,13 @@ def optimize_database() :
     if connection.vendor == 'sqlite' : # Alternatively use:  from django.conf import settings; if settings.DATABASES['default']['ENGINE'][-7:] == 'sqlite3':   # as ENGINE is "django.db.backends.sqlite3"
         connection.isolation_level = None  # To enable AUTOCOMMIT, as VACUUM needs to be outside a transaction.
         cursor = connection.cursor()
-        print(cursor.execute("VACUUM"))   # Data modifying operation - commit required.  The autocommit mode is useful to execute commands requiring to be run outside a transaction, such as CREATE DATABASE or VACUUM.
+        cursor.execute("VACUUM") # Data modifying operation - commit required.  The autocommit mode is useful to execute commands requiring to be run outside a transaction, such as CREATE DATABASE or VACUUM.
 
     elif connection.vendor == 'mysql':
-        cursor = connection.cursor()
-        print(cursor.execute("OPTIMIZE TABLE gendep_study, gendep_gene, gendep_dependency;"))
+        connection.cursor().execute("OPTIMIZE TABLE gendep_study, gendep_gene, gendep_dependency;")
     
-    elif connection.vendor == 'postgres':
-        # In Postgres (VACUUM cannot be executed inside a transaction block):
-        cursor = connection.cursor()        
-        print(cursor.execute("VACUUM FULL"))  # or to avoid rewriting the file: "VACUUM ANALYZE"
+    elif connection.vendor == 'postgres':  # In Postgres (VACUUM cannot be executed inside a transaction block):
+        connection.cursor().execute("VACUUM FULL")  # or to avoid rewriting the file: "VACUUM ANALYZE"
     else:
         print("Unexpected database type: ",connection.vendor)
 
