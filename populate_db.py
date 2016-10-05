@@ -4,13 +4,14 @@
 import sys, os, csv, re
 import gzip  # To directly the compressed string db files without needing to uncompress them first.
 import django
-from django.db import transaction
+from django.db import  connection, transaction
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 import warnings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cgdd.settings")
 django.setup()
 from gendep.models import Study, Gene, Dependency 
+# from django.conf import settings
 
 """In the SQLite database (used for development locally), the max_length parameter for fields
 is ignored as the "numeric arguments in parentheses that following the type name (ex: "VARCHAR(255)")
@@ -20,9 +21,6 @@ BUT MySQL does enforce max_length, so MySQL will truncate strings that are too l
 so loss of unique primary key) so need to check for data truncation, as it jsut gives a warning NOT an exception.
 To convert the MySQL data truncation (due to field max_length being too small) into raising an exception
 we use :"""
-
-# Delete unused gene rows:
-# select * FROM gendep_gene WHERE NOT EXISTS (SELECT * FROM gendep_dependency AS D WHERE D.target = gendep_gene.entrez_id OR D.driver = gendep_gene.entrez_id);
 
 
 warnings.filterwarnings('error', 'Data truncated .*')
@@ -289,20 +287,20 @@ def add_string_interactions() :
                 gene1 = r[0].split('.')[1]
                 gene2 = r[1].split('.')[1]
                 if gene1 in driver_ids or gene2 in driver_ids :
-                    # As each gene pair appears in protein.links as both geneA,geneB and as geneB,geneA then sort the gene pair (so always (geneA,geneB) and store the score once instead of twice to reduce memory needed, and test once below.
+                    # As each gene pair appears in protein.links as both geneA,geneB and as geneB,geneA, then sort the gene pair (so always geneA,geneB) and store the score once instead of twice to reduce memory needed, and then test just once below.
                     genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((gene1,gene2)))
                     if genes in stored_interactions and stored_interactions[genes] != score :
                         print("Scores differ %d != %d for reversed occurance of gene_pair (%s %s)" (stored_interactions[genes], score, gene1, gene2))
                     stored_interactions[genes] = score  # Would gene1+'_'+gene2 be faster as the key?
     
     for d in Dependency.objects.all() :
-        driver_id = d.driver.ensembl_protein_id
-        target_id = d.target.ensembl_protein_id
-        if target_id == driver_id :
-            d.interaction = get_string_confidence(1000) 
+        gene1 = d.driver.ensembl_protein_id
+        gene2 = d.target.ensembl_protein_id
+        if gene1 == gene2 :
+            d.interaction = get_string_confidence(1000)
             d.save()
         else :
-            genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((driver_id,target_id))) 
+            genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((gene1,gene2)))
             if genes in stored_interactions :
                 d.interaction = get_string_confidence(stored_interactions[genes])
                 d.save()
@@ -311,9 +309,40 @@ def add_string_interactions() :
     print(Dependency.objects.filter(interaction = "Medium").count(), "Medium confidence interactions")
     return
 
+
+def delete_unused_genes() :
+    """ Remove the unused genes from Gene table. Then remove the empty space and optimize """
+    Gene.objects.filter(is_driver=False, is_target=False).delete() # is_driver AND is_target are both False
+    # Alternatively if not using is_driver and is_target columns:
+    # select * FROM gendep_gene WHERE NOT EXISTS (SELECT * FROM gendep_dependency AS D WHERE D.target = gendep_gene.entrez_id OR D.driver = gendep_gene.entrez_id);
+
+
+
+def optimize_database() :
+    """ To recover unused space in database file and optimise access """
+
+    if connection.vendor == 'sqlite' : # Alternatively use:  from django.conf import settings; if settings.DATABASES['default']['ENGINE'][-7:] == 'sqlite3':   # as ENGINE is "django.db.backends.sqlite3"
+        connection.isolation_level = None  # To enable AUTOCOMMIT, as VACUUM needs to be outside a transaction.
+        cursor = connection.cursor()
+        print(cursor.execute("VACUUM"))   # Data modifying operation - commit required.  The autocommit mode is useful to execute commands requiring to be run outside a transaction, such as CREATE DATABASE or VACUUM.
+
+    elif connection.vendor == 'mysql':
+        cursor = connection.cursor()
+        print(cursor.execute("OPTIMIZE TABLE gendep_study, gendep_gene, gendep_dependency;"))
+    
+    elif connection.vendor == 'postgres':
+        # In Postgres (VACUUM cannot be executed inside a transaction block):
+        cursor = connection.cursor()        
+        print(cursor.execute("VACUUM FULL"))  # or to avoid rewriting the file: "VACUUM ANALYZE"
+    else:
+        print("Unexpected database type: ",connection.vendor)
+
+
+
+
                 
-if __name__ == "__main__":
-    with transaction.atomic(): 
+if __name__ == "__main__" :
+    with transaction.atomic():     
         print("\nEmptying database tables")
         for table in (Dependency, Study, Gene): 
             table.objects.all().delete()
@@ -336,4 +365,11 @@ if __name__ == "__main__":
         add_dependencies()
         print("\nAdding String-DB Interactions to Dependency table")
         add_string_interactions()
-        print("\nFinished.")
+
+        print("\nDeleting unused genes")
+        delete_unused_genes()
+        
+    print("\nOptmizing database")
+    optimize_database() # Is outside the transaction.atomic()
+    
+    print("\nFinished.")

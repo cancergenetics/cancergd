@@ -12,7 +12,11 @@ python manage.py makemigrations gendep || exit
 python manage.py sqlmigrate gendep 0001 || exit
 python manage.py migrate || exit
 #python ./load_data.py
-python ./populate_db.py
+
+
+time python ./populate_db.py
+
+# time python ./old_populate_db.py
 
 python manage.py createcachetable
 # To just see the SQL use:  python createcachetable --dry-run

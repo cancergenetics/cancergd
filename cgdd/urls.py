@@ -29,7 +29,7 @@ urlpatterns = [
 #    url(r'^api/', include('gendep.urls_api')),
 
     url(r'^stats/', admin.site.admin_view(gendep.views.awstats_view), name='stats'),     # The 'self.admin_site.admin_view()' wrapper checks that have admin permissions and marks the page as non-cacheable.
-    # The above also for eg: stats/awstats?output=allhosts    
+    # The above also for eg: stats/awstats?output=allhosts      # For the links within the awstats.pl (as set by the 'WrapperScript="stats"' in the awstats config file.
 
     # The 'robots.txt' response for web search engine robots (this empty 'Disallow:' means all pages are allowed)
     url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow:", content_type="text/plain"), name="robots_file"),
