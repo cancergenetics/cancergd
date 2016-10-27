@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-# This will remove everything from the cache.
+# This will remove everything from the cache (cached webpages and cached database query results).
+# It is possible instead to just remove the cached views, but is a bit more complicated: http://stackoverflow.com/questions/2268417/expire-a-view-cache-in-django
+
+# To run thise as bash command-line, just type: clearcache.py (if is already executable with chmod +x clearcache.py), or: python clearcache.py 
 
 import os
 
