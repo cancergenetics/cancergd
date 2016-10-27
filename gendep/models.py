@@ -12,6 +12,7 @@ from django.utils import timezone # For Comment() table, with USE_TZ=True in set
 # OR:
 #   mysql -u cgenetics -h cgenetics.mysql.pythonanywhere-services.com
 #   use cgenetics$gendep
+# or: use cgenetics$cancergd  (for updated website, Oct 2016)
 # THEN:
 #   describe gendep_dependency;
 #   ALTER TABLE gendep_dependency MODIFY driver varchar(20) NOT NULL;

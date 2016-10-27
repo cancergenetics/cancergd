@@ -956,7 +956,7 @@ def cytoscape(request, required_score, protein_list=None, gene_list=None):
     Could just receive:
       - receive protein_list and lookup the corresponding gene_names in Gene table
       - or receive gene_list and lookup the corresponding protein ids in the Gene table
-      
+    NOTE: There is a {% csrf_token %} in the index.html template for this cytoscape post form, so may beed to add a @csrf_protect decorator.
     """
     if (protein_list is None) or (protein_list == ''):
         protein_list = post_or_get_from_request(request,'protein_list')
