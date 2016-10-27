@@ -18,5 +18,5 @@ django.setup()
 from django.conf import settings
 from django.core.cache import cache
 
-print(cache.clear())
+cache.clear()
 print("Cleared cache\n")
