@@ -98,7 +98,7 @@ function gene_external_links(id, div, all) {
   if (id['entrez_id'] != '') {links += div+' <a class="tip" href="https://www.ncbi.nlm.nih.gov/gene/'+id['entrez_id']+'" target="_blank">Entrez<span>Entrez Gene at NCBI: '+id['entrez_id']+'</span></a> ';}
   if (id['ensembl_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=%s" target="_blank">Ensembl<span>Ensembl Gene: %s</span></a> ', id['ensembl_id'], id['ensembl_id']);}
     // Ensembl_protein not needed now: if (all && (id['ensembl_protein_id'] != '')) {links += div + sprintf(' <a class="tip" href="http://www.ensembl.org/Homo_sapiens/protview?peptide=%s" target="_blank">Ensembl_protein<span>Ensembl Protein: %s</span></a> ', id['ensembl_protein_id'],id['ensembl_protein_id']);}
-  if (id['hgnc_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=%s" target="_blank">HGNC<span>HUGO Gene Nomenclature Committee: %s</span></a> ', id['hgnc_id'], id['hgnc_id']);}
+  // Hiding HGNC to save space: if (id['hgnc_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=%s" target="_blank">HGNC<span>HUGO Gene Nomenclature Committee: %s</span></a> ', id['hgnc_id'], id['hgnc_id']);}
   if (all) {
     // No loner showing VEGA: if (id['vega_id'] != '') {links += div + sprintf(' <a class="tip" href="http://vega.sanger.ac.uk/Homo_sapiens/Gene/Summary?g=%s" target="_blank">Vega<span>Vertebrate Genome Annotation: %s</span></a> ', id['vega_id'], id['vega_id']);}
     if (id['omim_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.omim.org/entry/%s" target="_blank">OMIM<span>Online Mendelian Inheritance in Man: %s</span></a> ', id['omim_id'], id['omim_id']);}
@@ -108,8 +108,8 @@ function gene_external_links(id, div, all) {
   if (id['cosmic_id'] != '') {links += div + sprintf(' <a class="tip" href="http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=%s" target="_blank">COSMIC<span>Catalogue of Somatic Mutations in Cancer: %s</span></a> ', id['cosmic_id'],id['cosmic_id']);}
   if (id['uniprot_id'] != '') {links += div + sprintf(' <a class="tip" href="https://cansar.icr.ac.uk/cansar/molecular-targets/%s/" target="_blank">CanSAR<span>CanSAR: %s</span></a> ', id['uniprot_id'],id['uniprot_id']);}  // CanSAR uses UniProt ids
   if (all && (id['uniprot_id'] != '')) {links += div + sprintf(' <a class="tip" href="http://www.uniprot.org/uniprot/%s" target="_blank">UniProtKB<span>UniProtKB: %s</span></a> ', id['uniprot_id'],id['uniprot_id']);}
-  // Added this GenomeRNAi to boxplot in May 2016:
-  if (id['entrez_id'] != '') {links += div + ' <a class="tip" href=" http://www.genomernai.org/v15/gene' + ( id['entrez_id']=='' ?  'Search/'+id['gene_name'] : 'details/'+id['entrez_id'] ) + '" target="_blank">GenomeRNAi<span>GenomeRNAi - phenotypes from RNA interference</span></a>';}  // as links are eg:  http://www.genomernai.org/v15/geneSearch/ERBB2 and http://www.genomernai.org/v15/genedetails/2064 
+  if (id['entrez_id'] != '') {links += div + ' <a class="tip" href="http://www.genomernai.org/genedetails/' +id['entrez_id'] + '" target="_blank">GenomeRNAi<span>GenomeRNAi - phenotypes from RNA interference</span></a> ';}  // as links are eg:  http://www.geneomernai.org/genedetails/2064
+  if (id['ensembl_id'] != '') {links += div + ' <a class="tip" href="https://www.targetvalidation.org/target/' +id['ensembl_id'] + '" target="_blank">Open Targets<span>Open Targets</span></a> ';}  // as links are eg:https://www.targetvalidation.org/target/ENSG00000047936
    
   return links;
 }
