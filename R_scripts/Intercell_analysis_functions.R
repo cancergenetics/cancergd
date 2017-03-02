@@ -109,6 +109,10 @@ if (data_set == "Campbell") {
     "yellowgreen",
     "slategray" # **** Still to fix colour for: "Other"	  # Added Aug 2016	    
   )
+
+
+    
+  
   
 } else if(data_set == "Colt") {	  # Only Breast, but dummy BONE added in tissues file for plotting
   legend_pretty_tissues = c(
@@ -158,9 +162,23 @@ if (data_set == "Campbell") {
     "peachpuff",  # Skin
     "lightgrey"  # Soft tissue
   )
+
+} else if(data_set == "Wang") {	  # Only Breast, but dummy BONE added in tissues file for plotting
+  legend_pretty_tissues = c(
+    "Blood & Lymph",
+    "Stomach"
+  )
+  legend_actual_tissues = c(
+    "HAEMATOPOIETIC_AND_LYMPHOID_TISSUE",
+    "STOMACH"
+  )
+  legend_col=c(
+    "darkred",   # Blood & Lymph
+    "black"      # Stomach    
+  )
   
 } else {
-  stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Achilles' or 'Colt'"))
+  stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Achilles', 'Colt' or 'Wang'"))
 }
 
 names(legend_col) <- legend_actual_tissues

@@ -113,6 +113,89 @@ def awstats_view(request):
     #awstats_dir = "/Users/sbridgett/Documents/UCD/cgdd"
     #awstats_script = os.path.join(awstats_dir, "run_awstats.sh")
 
+# Also added:  PLUGIN: DecodeUTFKeys
+# REQUIRED MODULES: Encode and URI::Escape
+# PARAMETERS: None
+# DESCRIPTION: Allow AWStats to show correctly (in language charset)
+# keywords/keyphrases strings even if they were UTF8 coded by the
+# referer search engine.
+#
+# SJB enabled this plugin to cope with some server names in UTF8
+# LoadPlugin="decodeutfkeys"
+    perl5lib_for_decodeutfkeys = awstats_dir+"/URI-1.71/lib:"+awstats_dir+"/Encode-2.88/install_dir/lib/perl/5.18.2"
+    
+    perl5lib_for_geoip = awstats_dir+"/Geo-IP-1.50/install_dir/lib/perl/5.18.2"  # Path to the Geo-IP module used by awstats.pl. Could add:   +os.pathsep+os.environ['PERL5LIB']
+    config = "awstats.cancergd.org.conf" # awstats config file (in awstats_dir/wwwroot/cgi-bin) for gathering and displaying the cancergd stats.
+
+    cmd = [ awstats_script, '-config='+config ]
+    env = dict(os.environ, PERL5LIB=perl5lib_for_geoip+':'+perl5lib_for_decodeutfkeys)
+    # Alternatively copy the existing env and then modify it, so can add to any existing PERL5LIB:
+    #  env = os.environ.copy()
+    #  env['PERL5LIB'] = perl5lib_for_geoip + os.pathsep + env['PERL5LIB'] # note: os.pathsep is : or ;  whereas os.path.sep is \\ or /
+    
+        
+    if len(request.GET.dict())==0:  # as just called with /stats so set default:
+      cmd.append('-output')
+    else:
+      for key,val in request.GET.items():
+        if key=='config': continue # Always set to this config option above (just in case accidentally or deliberately user tries a different config)
+        cmd.append('-'+key+'='+val)   # eg: output, hostfilter, hostfilterex
+
+        
+    print("cmd",cmd)
+          
+    p = subprocess.Popen( cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    # Optionally add: stderr=subprocess.PIPE, shell=True, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True
+    # For 'shell=True' submit the whole command as one string, but this starts a new shell process (which is an expensive operation).
+    # If submit the command with 'shell=False', give the command as a list of strings, with the command name in the first element of the list, the first argument in the next list element, etc.
+    # But need 'shell=True' for eg: ls and rmdir which are not programs, but are internal commands within the shell program.
+    # 'universal_newlines=True' means will return Strings (rather than Bytes)
+    # Maybe 'bufsize=-1'
+
+    # "This will deadlock when using stdout=PIPE or stderr=PIPE and the child process generates enough output to a pipe such that it blocks waiting for the OS pipe buffer to accept more data. Use Popen.communicate() when using pipes to avoid that.
+    # "Use the communicate() method rather than .stdin.write, .stdout.read or .stderr.read to avoid deadlocks due to streams pausing reading or writing and blocking the child process.           
+
+    # awstats output seems to be in "iso-8859-1" rather than "uft-8"   see: https://sourceforge.net/p/awstats/discussion/43428/thread/b5cbb36c/
+    # So can get error about: 
+    # File "/home/cgenetics/cancergd/gendep/views.py", line 146, in awstats_view
+    #    stdout, stderr = p.communicate(timeout=None)
+    #  File "/usr/lib/python3.4/subprocess.py", line 960, in communicate
+    #    stdout, stderr = self._communicate(input, endtime, timeout)
+    #  File "/usr/lib/python3.4/subprocess.py", line 1659, in _communicate
+    #    self.stdout.encoding)
+    #  File "/usr/lib/python3.4/subprocess.py", line 888, in _translate_newlines
+    #    data = data.decode(encoding)
+    #  UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe7 in position 93349: invalid continuation byte
+
+    stdout, stderr = p.communicate(timeout=None)
+    # except TimeoutExpired:
+    #       os.killpg(process.pid, signal)
+    if p.returncode != 0:
+      return html_error( "awstats failed with error code: %d  StdErr: %s" %(p.returncode, '' if stderr is None else stderr) )
+
+    # For the 'AllowUpdatesFromBrowser=1' awstats config option, the update button link: http://www.cancergd.org/gendep/awstats/awstats?config=awstats.cancergd.org.conf&update=1
+    # If there are any updates then will the stdout will start with:
+    # Create/Update database for config "/home/cgenetics/awstats/awstats.cancergd.org.conf" by AWStats version 7.5 (build 20160301)
+    # From data in log file "/home/cgenetics/awstats/tools/logresolvemerge.pl /var/log/*access.log* |"...
+    # As if the "Update Now" is clicked with a subsection then the updated datta is returned.
+    if "-update=1" in cmd and stdout[:len("Create/Update database")]=="Create/Update database":
+      stdout = stdout.replace("\n","<br/>\n")
+      stdout += '<br/><a href="' + reverse('stats') + '"><button>Display the updated stats</button></a>'
+
+    # Could add logout link:  http://127.0.0.1:8000/admin/logout/ which is reverse( 'logout' ) or reverse( 'admin:logout' )
+    logout_link = '<p align="right"><a href="' + reverse( 'admin:logout' ) + '">Admin LOG OUT</a></p>'
+    return HttpResponse( ("" if stderr=="" else "ERROR:<br/>"+stderr+"<br/>\n\n") + logout_link +stdout )    
+    # Could add to the update now link in the awstats.pl srcript: padding: 10px 20px;  
+
+    awstats_dir = "/home/cgenetics/awstats"
+    awstats_script = "${awstats_dir}/wwwroot/cgi-bin/awstats.pl"
+    
+    # awstats_script = os.path.join(awstats_dir, "run_awstats.sh") # Test script for debugging.
+        
+    # Local test settings:
+    #awstats_dir = "/Users/sbridgett/Documents/UCD/cgdd"
+    #awstats_script = os.path.join(awstats_dir, "run_awstats.sh")
+
     perl5lib_for_geoip = awstats_dir+"/Geo-IP-1.50/install_dir/lib/perl/5.18.2"  # Path to the Geo-IP module used by awstats.pl. Could add:   +os.pathsep+os.environ['PERL5LIB']
     config = "awstats.cancergd.org.conf" # awstats config file (in awstats_dir/wwwroot/cgi-bin) for gathering and displaying the cancergd stats.
 
@@ -143,6 +226,19 @@ def awstats_view(request):
 
     # "This will deadlock when using stdout=PIPE or stderr=PIPE and the child process generates enough output to a pipe such that it blocks waiting for the OS pipe buffer to accept more data. Use Popen.communicate() when using pipes to avoid that.
     # "Use the communicate() method rather than .stdin.write, .stdout.read or .stderr.read to avoid deadlocks due to streams pausing reading or writing and blocking the child process.           
+
+    # awstats output seems to be in "iso-8859-1" rather than "uft-8"   see: https://sourceforge.net/p/awstats/discussion/43428/thread/b5cbb36c/
+    # So can get error about: 
+    # File "/home/cgenetics/cancergd/gendep/views.py", line 146, in awstats_view
+    #    stdout, stderr = p.communicate(timeout=None)
+    #  File "/usr/lib/python3.4/subprocess.py", line 960, in communicate
+    #    stdout, stderr = self._communicate(input, endtime, timeout)
+    #  File "/usr/lib/python3.4/subprocess.py", line 1659, in _communicate
+    #    self.stdout.encoding)
+    #  File "/usr/lib/python3.4/subprocess.py", line 888, in _translate_newlines
+    #    data = data.decode(encoding)
+    #  UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe7 in position 93349: invalid continuation byte
+
     stdout, stderr = p.communicate(timeout=None)
     # except TimeoutExpired:
     #       os.killpg(process.pid, signal)
@@ -162,6 +258,8 @@ def awstats_view(request):
     logout_link = '<p align="right"><a href="' + reverse( 'admin:logout' ) + '">Admin LOG OUT</a></p>'
     return HttpResponse( ("" if stderr=="" else "ERROR:<br/>"+stderr+"<br/>\n\n") + logout_link +stdout )    
     # Could add to the update now link in the awstats.pl srcript: padding: 10px 20px;  
+
+#=======
 
 
 
@@ -261,7 +359,7 @@ def build_driver_list(webpage):
         # (2) Using Django ORM
         #driver_list = Dependency.objects.values('driver_id').annotate(full_name=F('driver__full_name'),prevname_synonyms=F('driver__prevname_synonyms'), entrez_id=F('driver__entrez_id'), driver_histotype_list=Concat('histotype',distinct=True), driver_study_list=Concat('study_id',distinct=True) ).order_by('driver_id')
         # But this includes the full_name and synonyms in the GROUP BY list.
-        # Could try querying using the Gene object - bu this isn't working yet:
+        # Could try querying using the Gene object - but this isn't working yet:
         # driver_list = Gene.objects.values('gene_name').annotate(full_name=F('full_name'),prevname_synonyms=F('prevname_synonyms'), entrez_id=F('entrez_id'), driver_histotype_list=Concat('histotype',distinct=True), driver_study_list=Concat('study_id',distinct=True) ).order_by('driver_id')
         
         driver_list = Gene.objects.raw("SELECT G.gene_name, G.entrez_id, G.full_name, G.prevname_synonyms, "

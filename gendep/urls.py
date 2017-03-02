@@ -51,7 +51,7 @@ urlpatterns = [
     
     # For sending protein_list request as HTML GET or better POST, as browsers have a max url length, especially IE, in address bar so use POST:
     url(r'get_stringdb_interactions/(?P<required_score>[0-9]+)/$', views.get_stringdb_interactions, name='get_stringdb_interactions_post'),
-        
+    
     url(r'cytoscape/(?P<required_score>[0-9]+)/(?P<protein_list>[0-9A-Za-z\.;\%\r]+)/(?P<gene_list>[0-9A-Za-z\-_\.;\%\r]+)/$', views.cytoscape, name='cytoscape_get'),
     
     # For sending protein_list and gene_list as HTML GET or POST:

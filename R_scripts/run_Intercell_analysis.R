@@ -13,10 +13,11 @@
 # Select dataset to process by uncommenting that line #
 # --------------------------------------------------- #
 
-data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.
-#data_set <- "Achilles"  # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines.
+# data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.
+# data_set <- "Achilles"  # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines.
 # data_set <- "Colt"      # Marcotte et al (2016) - Breast cancer cell lines.
 # data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data
+data_set <- "Wang"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.
 
 # ----------------------------------------------------------- #
 # Set output path on your computer                            #
@@ -26,8 +27,8 @@ data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer 
 # Eg: on Windows:
 #setwd("C:/Users/HP/Django_projects/cgdd/postprocessing_R_results/")
 # Eg: on Mac:
-setwd("/Users/colm/Desktop/django_stuff/cancergd/R_scripts/")
-
+# setwd("/Users/colm/Desktop/django_stuff/cancergd/R_scripts/")
+setwd("/Users/sbridgett/Documents/UCD/cancergd/R_scripts/")
 
 # ------------------------------ #
 # Common inputs for all datasets #
@@ -73,14 +74,30 @@ if (data_set == "Campbell") {
   print("Running Achilles_CRISPR ...")
   pubmed_id <- "27260156" # Achilles CRISPR(2016)  
   kinome_file <- "../preprocess_genotype_data/rnai_datasets/Achilles_v3.3.8_cancergd_with_entrezids.txt"
-
   tissues_file <- "../preprocess_genotype_data/rnai_datasets/Achilles_v3.3.8_tissues.txt"
   
   uv_results_kinome_combmuts_file <- "outputs/univariate_results_Achilles_CRISPR_for36drivers_pancan_kinome_combmuts_witheffectsize_and_zdiff.txt"
   uv_results_kinome_combmuts_bytissue_file <- "outputs/univariate_results_Achilles_CRISPR_for36drivers_bytissue_kinome_combmuts_witheffectsize_and_zdiff.txt"  
+
+} else if (data_set == "Wang") {
+  #table="mmc7"
+  table="mmc3"
+
+  print(paste("Running Wang",table," ..."))
+  pubmed_id <- "28162770" # Wang(2017)
+    
+  kinome_file  <- paste("../preprocess_rnai_data/rnai_output/Wang_",table,"_cancergd.txt", sep="")
+  tissues_file <- paste("../preprocess_rnai_data/rnai_output/Wang_",table,"_cancergd_tissues.txt", sep="")
+  
+#  uv_results_kinome_combmuts_file <- paste("outputs/Wang_",table,"_for36drivers_pancan_kinome_combmuts_witheffectsize_and_zdiff.txt", sep="")
+#  uv_results_kinome_combmuts_bytissue_file <- paste("outputs/Wang_",table,"_for36drivers_bytissue_kinome_combmuts_witheffectsize_and_zdiff.txt", sep="")
+
+# Wang is only one tissue type:
+#  uv_results_kinome_combmuts_file <- paste("outputs/Wang_",table,"_CGDs_pancan__witheffectsize_and_zdiff.txt", sep="")
+  uv_results_kinome_combmuts_bytissue_file <- paste("outputs/Wang_",table,"_CGDs_bytissue_witheffectsize_and_zdiff.txt", sep="")
   
 } else {
-  stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Achilles' or 'Colt'"))
+  stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Achilles', 'Colt' or 'Wang'"))
 }
 
 print(paste("Variables set to:\ndata_set:",data_set,"\nkinome_file:",kinome_file,"\ntissues_file:",tissues_file,"\n"))
@@ -112,7 +129,7 @@ kinome_combmuts <- read_rnai_mutations(
 # on the kinome z-score data sets
 # -------------------------------- #
 
-if (data_set != "Colt") {
+if (data_set != "Colt" && data_set != "Wang") {
 	# Driver gene mutations in combined histotypes - No Pan-cancer for Colt as it is only Breast cancer cell lines.
 	uv_results_kinome_combmuts <- run_univariate_tests(
 		zscores=kinome_combmuts$rnai,
@@ -145,7 +162,7 @@ write.table(
 # (Re-)load in the results files
 # ------------------------------ #
 
-if (data_set != "Colt") {
+if (data_set != "Colt" && data_set != "Wang") {
 	uv_results_kinome_combmuts <- read.table(
 		file=uv_results_kinome_combmuts_file,
 		header=TRUE,
@@ -165,7 +182,7 @@ uv_results_kinome_combmuts_bytissue <- read.table(
 # Add the boxplot data to the result files  #
 # ----------------------------------------- #
 
-if (data_set != "Colt") {
+if (data_set != "Colt" && data_set != "Wang") {
 	# Add the combmuts boxplot data, which will be coloured by tissue
 	# select associations where wilcox.p <= 0.05 and CLES > =0.65
 
