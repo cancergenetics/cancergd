@@ -45,3 +45,5 @@ R_scripts/outputs/Marcotte_Ataris_CGDs_bytissue_witheffectsize_and_zdiff_and_box
 R_scripts/outputs/Marcotte_Ataris_CGDs_bytissue_witheffectsize_and_zdiff.txt
 
 R_scripts/R_scripts.Rproj
+
+preprocess_rnai_data/rnai_input/GARP-score.txt
