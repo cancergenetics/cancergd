@@ -19,6 +19,45 @@
 
 
 <script type="text/javascript">
+
+// Convert the PMIDs to study short names.
+function pmids_to_studyshortnames(pmid_list) {
+  var pmids = pmid_list.split(",");
+  var studies = "";  
+  for (var i=0; i<pmids.length; i++) {    
+    if (studies !== "") {studies += ", ";}
+    switch (pmids[i]) {
+      case "": break; // ie. empty.
+      {% for s in study_list %}
+      case "{{s.pmid}}": studies += "{{s.short_name}}"; break;  {% endfor %}
+      case "ALL_STUDIES": studies += "All studies"; break;
+      default: studies += 'Error: Study for pmid "'+pmids[i]+'" Not Found';
+    }
+  }
+  return studies;
+}
+
+// Convert the histotypes to display names, eg:.
+// In future could sort displaynames into alphabetic order, as not sorted by the SQLite database query (but should be by the MySQL query)
+function histotypes_to_displaynames(histotype_list) {
+  var displaynames = "";
+  var histotypes = histotype_list.split(",");
+  for (var i=0; i<histotypes.length; i++) {
+    if (displaynames !== "") {displaynames += ", ";}
+    switch (histotypes[i]) {
+      case "": break;
+      {% for histotype in histotype_list %}
+      case "{{ histotype.0 }}": displaynames += "{{ histotype.1 }}"; break; {% endfor %}	
+      // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
+      case "ALL_HISTOTYPES": displaynames += "All tissues"; break; // Not needed.
+      default: displaynames+= 'Error: Histotype "'+histotypes[i]+'" Not Found';
+    }
+  }
+  return displaynames;
+}
+
+
+
   function add_tooltips_to_driver_table() {
 	// Initialise the Tooltips
 	$('#driver_table_tbody').tooltip({
@@ -73,12 +112,12 @@
 //	      var study_list = study_info(element.attr("data-study").split(',') );
 //        return '<b>'+study[iexptype]+':</b> '+study[isummary];
 //          return '<b>'+study[ishortname]+':</b> '+study[idetails];
-          return "PubMed Ids: "+element.attr("data-study_list").replace(/,/g, ', '); // g is needed for replace all occurances
+          return "Studies: "+pmids_to_studyshortnames(element.attr("data-study_list")); // g is needed if replace all occurrences in replace(/,/g, ', ');
         }
         else if ( element.is( "[data-histotype_list]" ) ) {
 // Convert the histotypes to their full_names:      
 //        var histotype_list = element.attr("data-histotype_list").split(',');
-          return element.attr("data-histotype_list").replace(/,/g, ', ');
+          return histotypes_to_displaynames(element.attr("data-histotype_list"));   // was: .replace(/,/g, ', ');
         }
       }    // end of 'content:'
    });  // end of tooltip

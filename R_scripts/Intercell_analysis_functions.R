@@ -2,226 +2,15 @@
 # Analysis functions used for univariate
 # analyses in the Intercell II work
 # jamesc@icr.ac.uk, 11th March 2014
+# Modified: s.bridgett@qub.ac.uk, March 2017
 # ====================================== #
 require("preprocessCore")
 require(gplots)
 require(mixtools)
 
-if (data_set == "Campbell") {	
-  legend_pretty_tissues = c(
-    "Bone",
-    "Breast",
-    "Lung",
-    "Head & Neck",
-    "Pancreas",
-    "Cervix",
-    "Ovary",
-    "Esophagus",
-    "Endometrium",
-    "CNS"
-  )
-  legend_actual_tissues = c(
-    "BONE",
-    "BREAST",
-    "LUNG",
-    "HEADNECK",
-    "PANCREAS",
-    "CERVIX",
-    "OVARY",
-    "OESOPHAGUS",
-    "ENDOMETRIUM",
-    "CENTRAL_NERVOUS_SYSTEM"
-  )
-  legend_col=c(
-    "yellow",
-    "deeppink",
-    "darkgrey",
-    "firebrick4",
-    "purple",
-    "blue",
-    "cadetblue",
-    "green",
-    "orange",	
-    "darkgoldenrod4"
-  )
-  
-} else if (data_set == "Achilles") {
-  legend_pretty_tissues = c(
-    "Bone",
-    "Breast",
-    "Lung",
-    "Pancreas",
-    "Ovary",
-    "Esophagus",
-    "Endometrium",
-    "CNS",
-    "Blood & Lymph",
-    "Large Intestine", # Updated from "Intestine" Aug 2016,
-    "Kidney",
-    "Liver",
-    "Pleura", # Added Aug 2016	
-    "Prostate",
-    "Skin",
-    "Soft tissue",
-    "Stomach",
-    "Urinary tract",
-    "Other"	  # Added Aug 2016	
-  )	
-  legend_actual_tissues = c(
-    "BONE",
-    "BREAST",
-    "LUNG",
-    "PANCREAS",
-    "OVARY",
-    "OESOPHAGUS",
-    "ENDOMETRIUM",
-    "CENTRAL_NERVOUS_SYSTEM",
-    "HAEMATOPOIETIC_AND_LYMPHOID_TISSUE",
-    "LARGE_INTESTINE", # Updated from "INTESTINE" Aug 2016
-    "KIDNEY",
-    "LIVER",
-    "PLEURA", # Added Aug 2016
-    "PROSTATE",
-    "SKIN",
-    "SOFT_TISSUE",
-    "STOMACH",
-    "URINARY_TRACT",
-    "OTHER"	  # Added Aug 2016
-  )	
-  legend_col=c(
-    "yellow",    # Bone
-    "deeppink",  # Breast
-    "darkgrey",  # Lung
-    "purple",    # Pancreas
-    "cadetblue", # Ovary
-    "green",     # Oesophagus
-    "orange",    # Endometrium
-    "darkgoldenrod4", # CNS
-    "darkred",   # Blood & Lymph
-    "saddlebrown", # Large Intestine
-    "indianred",
-    "slategray",
-    "slategray",  # **** Still to fix this colour for: "Pleura", # Added Aug 2016	
-    "turquoise",  # Prostate
-    "peachpuff",  # Skin
-    "lightgrey",  # Soft tissue
-    "black",      # Stomach
-    "yellowgreen",
-    "slategray" # **** Still to fix colour for: "Other"	  # Added Aug 2016	    
-  )
 
-
-    
-  
-  
-} else if(data_set == "Colt") {	  # Only Breast, but dummy BONE added in tissues file for plotting
-  legend_pretty_tissues = c(
-    "Breast"
-  )
-  legend_actual_tissues = c(
-    "BREAST"
-  )
-  legend_col=c(
-    "deeppink"
-  )
-  
-} else if(data_set == "Achilles_CRISPR") {
-  legend_pretty_tissues = c(
-    "Bone",
-    "Breast",
-    "Blood & Lymph",
-    "Large Intestine",
-    "Lung",
-    "Ovary",
-    "Pancreas",
-    "Prostate",
-    "Skin",
-    "Soft tissue"  
-  )
-  legend_actual_tissues = c(
-    "BONE",
-    "BREAST",
-    "HAEMATOPOIETIC_AND_LYMPHOID_TISSUE",
-    "LARGE_INTESTINE",
-    "LUNG",
-    "OVARY",
-    "PANCREAS",
-    "PROSTATE",
-    "SKIN",
-    "SOFT_TISSUE"
-  )
-  legend_col=c(
-    "yellow",   # Bone
-    "deeppink", # Breast 
-    "darkred",  # Blood & Lymph
-    "saddlebrown", # Large Intestine
-    "darkgrey", # Lung
-    "cadetblue", # Ovary	
-    "purple",   # Pancreas
-    "turquoise", # Prostate
-    "peachpuff",  # Skin
-    "lightgrey"  # Soft tissue
-  )
-
-} else if(data_set == "Wang") {	  # Only Breast, but dummy BONE added in tissues file for plotting
-  legend_pretty_tissues = c(
-    "Blood & Lymph",
-    "Stomach"
-  )
-  legend_actual_tissues = c(
-    "HAEMATOPOIETIC_AND_LYMPHOID_TISSUE",
-    "STOMACH"
-  )
-  legend_col=c(
-    "darkred",   # Blood & Lymph
-    "black"      # Stomach    
-  )
-  
-} else {
-  stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Achilles', 'Colt' or 'Wang'"))
-}
-
-names(legend_col) <- legend_actual_tissues
-
-# List of driver genes we care about
-cancergd_drivers_n5 <- c(
-  "CCND1_595_ENSG00000110092",
-  "CDKN2A_1029_ENSG00000147889",
-  "EGFR_1956_ENSG00000146648",
-  "ERBB2_2064_ENSG00000141736",
-  "GNAS_2778_ENSG00000087460",
-  "KRAS_3845_ENSG00000133703",
-  "SMAD4_4089_ENSG00000141646",
-  "MDM2_4193_ENSG00000135679",
-  "MYC_4609_ENSG00000136997",
-  "NF1_4763_ENSG00000196712",
-  "NRAS_4893_ENSG00000213281",
-  "PIK3CA_5290_ENSG00000121879",
-  "PTEN_5728_ENSG00000171862",
-  "RB1_5925_ENSG00000139687",
-  "MAP2K4_6416_ENSG00000065559",
-  "SMARCA4_6597_ENSG00000127616",
-  "STK11_6794_ENSG00000118046",
-  "TP53_7157_ENSG00000141510",
-  "ARID1A_8289_ENSG00000117713",
-  "FBXW7_55294_ENSG00000109670",
-  "BRAF_673_ENSG00000157764",    # Added BRAF on 14 April 2016 for future runs
-  "CDH1_999_ENSG00000039068",    # Added CDH1 on 15 April 2016 for future runs
-  "NCOR1_9611_ENSG00000141027",  # Added NCOR1 on 15 Aug 2016 for future runs
-  "RNF43_54894_ENSG00000108375", # Added NCOR1 on 15 Aug 2016 for future runs 
-  "BCOR_54880_ENSG00000183337",
-  "EP300_2033_ENSG00000100393",
-  "CDKN2C_1031_ENSG00000123080",
-  "PIK3R1_5295_ENSG00000145675", 
-  "KDM6A_7403_ENSG00000147050",
-  "ASXL1_171023_ENSG00000171456",
-  "MSH2_4436_ENSG00000095002",
-  "ARID1B_57492_ENSG00000049618",
-  "APC_324_ENSG00000134982",
-  "CTNNB1_1499_ENSG00000168036",
-  "BRCA2_675_ENSG00000139618",
-  "MSH6_2956_ENSG00000116062"    # Added NCOR1 on 15 Aug 2016 for future runs 
-)
+# List of driver genes we care about (March 2017): "The rules for this list is that a gene must be present in our putative driver gene set (GDSC1000_cnv_exome_func_muts_v1) and also listed in either the Cancer Gene Census or a curated list from the Vogelstein lab. This results in a starting set of 256 genes. We then identify those genes that contain functional alterations in at least five cell lines in one study (ignoring tissue type) or in at least 3 cell lines in one study all of the same tissue type. This gives us a list of 53 driver genes." 
+cancergd_drivers_n5 <- read.csv("../input_data/NewAlterationDetails_from_Colm_March2017.csv")$Gene
 
 
 # Function to read in data, find the intersecting
@@ -383,7 +172,12 @@ read_rnai_mutations <- function(
 }
 
 
+
+
+
 # This is the further revised code from Colm (28 April 2016) which includes the Delta-Score (and effect size test, and without spearman, etc):
+# And writing directly to file, which especially for Cowley and Marcotte data is much faster than rbind()
+# if tissue is NULL then won't write tissue column (ie. for pan-cancer data)
 run_univariate_tests <- function(
   zscores,
   mutations,
@@ -391,15 +185,25 @@ run_univariate_tests <- function(
   sensitivity_thresholds=NULL,
   nperms=1000000,
   alt="less",
-  min_size = 3
+  min_size = 3,
+  fileConn,
+  writeheader,
+  tissue=NULL
 ){	
+
+  if (writeheader){
+      cat(file=fileConn, sep="\t", "marker", "target", "nA", "nB", "wilcox.p", "CLES", "zA", "zB", "ZDiff")
+	  if (! is.null(tissue)) {cat(file=fileConn, "\ttissue")}
+	  cat(file=fileConn, "\n")
+	  }
   
   zscores <- as.matrix(zscores)
   mutations <- as.matrix(mutations)
   all_variants <- as.matrix(all_variants)
   
+  num_results <- 0 # SJB added
   work_count <- 0  # SJB added
-  results <- NULL
+
   i <- NULL
   for(i in seq(1:length(colnames(mutations)))){
     
@@ -408,7 +212,7 @@ run_univariate_tests <- function(
       next
     }
     work_count <- work_count + 1
-    print(paste(toString(i),"WORKING ON:",toString(work_count),colnames(mutations)[i]))
+    cat("   ",work_count, "WORKING ON: i=", i,":", colnames(mutations)[i], "\n")
     
     grpA <- which(mutations[,i] > 0)
 
@@ -456,93 +260,68 @@ run_univariate_tests <- function(
       zDiff <- zA - zB
       # Output the result if min sample size is min_size or more
       if(nMin >= min_size){
-        results <- rbind(
-          results,
-          c(
-            marker,
-            target,
-            nA,
-            nB,
-            wilcox.p,
-            cles,
-            zA,
-            zB,
-            zDiff
-          )
-        )
+      	# Using cat(..paste()) gives upto 15 digit output, so is same as write.table(). Whereas just using cat() alone gives only 7 digit, unless set options("digits")=15.
+		# options("digits"=15)  getOption("digits")
+        cat(file=fileConn, sep="\t", marker, target, nA, nB, paste(sep="\t",wilcox.p, cles, zA, zB, zDiff) )
+		if (! is.null(tissue)) {cat(file=fileConn, sep="", "\t", tissue)} # NOTE: just "\t" here, not sep="\t", but default is a space.
+        cat(file=fileConn, "\n")
+		num_results <- num_results + 1;
       }
     }
   }
-  
-  if(is.null(nrow(results))){
-    return(NULL)
-  }
-  
-  colnames(results) <- c(
-    "marker",
-    "target",
-    "nA",
-    "nB",
-    "wilcox.p",
-    "CLES",
-    "zA",
-    "zB",
-    "ZDiff"
-  )
-  
-  return(results)
-  
+    
+  return(num_results)
 }
 
-run_univariate_test_bytissue <- function(x){
+
+run_univariate_test_bytissue <- function(x, fileConn, writeheader){
   
   tissue_types <- colnames(x$tissues)
+  cat("\nTissue types:\n")
   print(tissue_types)
-  uv_results_bytissue <- NULL
+
   tissue <- NULL
+  total_num_results <- 0
+  
   for(tissue in tissue_types){
-    print(paste("\nProcessing tissue:",tissue,"..."))
+    cat("\nProcessing tissue:",tissue,"...\n")
     cellline_count <- sum(
       x$tissues[,tissue]
     )
-    if(cellline_count < 6){
-      print(paste("  Skipping tissue:",tissue,"as it has less than 6 cell lines."))
-      next
-    }
+#    if(cellline_count < 6){
+#      print(paste("  Skipping tissue:",tissue,"as it has less than 6 cell lines."))
+# Changed in March 2017 for the new driver selection rule: 
+#   "...functional alterations in at least five cell lines in one study (ignoring tissue type) or in at least 3 cell lines in one study all of the same tissue type."
+# BUT the test below isn't quite correct ...... as could have less than 3 cellines in one tissue type but still have 5 cellines when ignoring tissue type. Although the min_size=3 argument for run_univariate_tests(...) below is still testing for that anyway.
+#    if(cellline_count < 3){
+#      print(paste("  Skipping tissue:",tissue,"as it has less than 3 cell lines."))
+#      next
+#    }
+# In the main "" script run_univariate_tests(...) has min_size=5 for pancancer tests so that is ok.
     tissue_rows <- which(
       x$tissues[,tissue] == 1
     )
-    temp_results <- NULL
-    temp_results <- run_univariate_tests(
+
+    num_results <- run_univariate_tests(
       zscores=x$rnai[tissue_rows,],
       mutations=x$func_muts[tissue_rows,],
       all_variants=x$all_muts[tissue_rows,],
       sensitivity_thresholds=x$rnai_iqr_thresholds,
-      min_size = 3
-    )
-    if(is.null(nrow(temp_results))){
-      print(paste("Skipping ", tissue, " - no results", sep=""))
-      next
-    }
-    temp_results <- cbind(
-      temp_results,
-      rep(tissue, times=nrow(temp_results))
-    )
-    uv_results_bytissue <- rbind(
-      uv_results_bytissue,
-      temp_results
-    )
+      min_size = 3,
+	  fileConn=fileConn,
+	  writeheader=writeheader,
+	  tissue=tissue
+    ) 
+	if (num_results == 0) { cat("\n Skipping ", tissue, " - as no results", "\n") }
+	total_num_results <- total_num_results + num_results
+	writeheader <- FALSE
+	
   }
-  colnames(
-    uv_results_bytissue
-  )[ncol(
-    uv_results_bytissue
-  )
-  ] <- "tissue"
-  return(uv_results_bytissue)
-}
-# Better to change this function so that it doesn't need tissue_actual_names list:
 
+  return(total_num_results)
+}
+
+  
 write_box_dot_plot_data <- function(
   results,
   zscores,
@@ -552,14 +331,16 @@ write_box_dot_plot_data <- function(
   tissues,
   fileConn,
   writeheader,
-  tissue_actual_names,
   response_type="Z-score"
 ){
   # Using cat() as does less conversion than print() so should be faster: https://stat.ethz.ch/R-manual/R-devel/library/base/html/cat.html
   if (writeheader){cat(names(results), "boxplot_data\n", file=fileConn, sep="\t")}
   # The by_tissue results will have extra 'tissue' column.
   
+  write_box_stats <- TRUE
   data_rows <- character(500) # Initialise to a large empty vector so that appending is fast
+  
+  tissue_names <- colnames(tissues)
   
   i <- NULL	
   for(i in 1:nrow(results)){
@@ -589,34 +370,40 @@ write_box_dot_plot_data <- function(
       func_mut_grp_rows <- which(wt_mut_grps_strings == "rec. mut.")
       # Trim the target_variant last character from the gene names for Achilles data:
       if ((data_set == "Achilles") || (data_set == "Achilles_CRISPR")) {target_gene = substr(target_gene, 1, nchar(target_gene)-1)}
-      # boxplot based on all data (wt and mut groups)
-      # This print(...) just writes to the console - want to write to file - so maybe add to table then write.table(..
-      # SJB: "In a box and whisker plot, a box is drawn around the quartile values, and the whiskers extend from each quartile to the extreme data points.
-      # http://intermath.coe.uga.edu/dictnary/descript.asp?termID=57
+	  
+	  if (write_box_stats) {
+	    # As boxplot stats are now computed by the javascript on-the-fly as need to resize boxplots when interactively unselect/select different tissues in the web interface.
+	    # BUT "svg_boxplots.js" javascript still checks that's it's initial boxes match these values from R, but this could optionally be removed in future from this R script.
+        # boxplot based on all data (wt and mut groups)
+
+        # SJB: "In a box and whisker plot, a box is drawn around the quartile values, and the whiskers extend from each quartile to the extreme data points.
+        # http://intermath.coe.uga.edu/dictnary/descript.asp?termID=57
       
-      #Box Plots: http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R2_SummaryStats-Graphs/R2_SummaryStats-Graphs_print.html
-      # A "boxplot", or "box-and-whiskers plot" is a graphical summary of a distribution; the box in the middle indicates "hinges" (close to the first and third quartiles) and median. The lines ("whiskers") show the largest or smallest observation that falls within a distance of 1.5 times the box size from the nearest hinge. If any observations fall farther away, the additional points are considered "extreme" values and are shown separately. A boxplot can often give a good idea of the data distribution, and is often more useful to compare distributions side-by-side, as it is more compact than a histogram. We will see an example soon.
+        #Box Plots: http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R2_SummaryStats-Graphs/R2_SummaryStats-Graphs_print.html
+        # A "boxplot", or "box-and-whiskers plot" is a graphical summary of a distribution; the box in the middle indicates "hinges" (close to the first and third quartiles) and median. The lines ("whiskers") show the largest or smallest observation that falls within a distance of 1.5 times the box size from the nearest hinge. If any observations fall farther away, the additional points are considered "extreme" values and are shown separately. A boxplot can often give a good idea of the data distribution, and is often more useful to compare distributions side-by-side, as it is more compact than a histogram. We will see an example soon.
       
-      # From: https://stat.ethz.ch/R-manual/R-devel/library/grDevices/html/boxplot.stats.html
-      #  boxplot.stats(x, coef = 1.5, do.conf = TRUE, do.out = TRUE)
-      wt_boxplot = boxplot.stats( round(zscores[wt_grp_rows,results$target[i]],2), do.conf = FALSE, do.out = TRUE )
-      # The round is so that will get same results as my javascript boxplot_stats() which uses input y values already rounded to 2 decimal places.
-      wt_boxplot_stats = wt_boxplot$stats
-      # http://r.789695.n4.nabble.com/Whiskers-on-the-default-boxplot-graphics-td2195503.html
-      # http://stackoverflow.com/questions/8844845/how-do-i-turn-the-numeric-output-of-boxplot-with-plot-false-into-something-usa
-      # http://rstudio-pubs-static.s3.amazonaws.com/21508_35a770dc38fa4658accef1acc4fb2fbe.html
-      # *** GOOD: http://www.sr.bham.ac.uk/~ajrs/R/r-show_data.html
-      # boxplot.stats: https://stat.ethz.ch/R-manual/R-devel/library/grDevices/html/boxplot.stats.html
-      mutant_boxplot = boxplot.stats( round(zscores[func_mut_grp_rows,results$target[i]],2), do.conf = FALSE, do.out = TRUE )
-      # The round is so that will get same results as my javascript boxplot_stats() which uses input y values already rounded to 2 decimal places.
-      mutant_boxplot_stats = mutant_boxplot$stats
-      boxplot_range <- range(wt_boxplot_stats, wt_boxplot$out, mutant_boxplot_stats, mutant_boxplot$out)
-      boxplot_range <- c( floor(boxplot_range[1]), ceiling(boxplot_range[2]) ) # Round lower down and upper up to integers.
+        # From: https://stat.ethz.ch/R-manual/R-devel/library/grDevices/html/boxplot.stats.html
+        #  boxplot.stats(x, coef = 1.5, do.conf = TRUE, do.out = TRUE)
+        wt_boxplot = boxplot.stats( round(zscores[wt_grp_rows,results$target[i]],2), do.conf = FALSE, do.out = TRUE )
+        # The round is so that will get same results as my javascript boxplot_stats() which uses input y values already rounded to 2 decimal places.
+        wt_boxplot_stats = wt_boxplot$stats
+        # http://r.789695.n4.nabble.com/Whiskers-on-the-default-boxplot-graphics-td2195503.html
+        # http://stackoverflow.com/questions/8844845/how-do-i-turn-the-numeric-output-of-boxplot-with-plot-false-into-something-usa
+        # http://rstudio-pubs-static.s3.amazonaws.com/21508_35a770dc38fa4658accef1acc4fb2fbe.html
+        # *** GOOD: http://www.sr.bham.ac.uk/~ajrs/R/r-show_data.html
+        # boxplot.stats: https://stat.ethz.ch/R-manual/R-devel/library/grDevices/html/boxplot.stats.html
+        mutant_boxplot = boxplot.stats( round(zscores[func_mut_grp_rows,results$target[i]],2), do.conf = FALSE, do.out = TRUE )
+        # The round is so that will get same results as my javascript boxplot_stats() which uses input y values already rounded to 2 decimal places.
+        mutant_boxplot_stats = mutant_boxplot$stats
+        boxplot_range <- range(wt_boxplot_stats, wt_boxplot$out, mutant_boxplot_stats, mutant_boxplot$out)
+        boxplot_range <- c( floor(boxplot_range[1]), ceiling(boxplot_range[2]) ) # Round lower down and upper up to integers.
+	  }
+	  
       cell_line_count <- 0  # This should be same as the data_rows_count
       data_rows_count <- 0  # Index for the 'data_rows' vector, which is number of cell-lines for this tissue (which is different from cell_line_count above for all the tissues for this driver+target)
       j <- NULL
-      for(j in 1:length(tissue_actual_names)){
-        tissue <- tissue_actual_names[j]
+      for(j in 1:length(tissue_names)){
+        tissue <- tissue_names[j]
         wt_rows_by_tissue <- which(
           wt_mut_grps_strings == "wt" &
             tissues[,tissue] == 1
@@ -698,7 +485,7 @@ write_box_dot_plot_data <- function(
 
           } # end of: for (k in 1:length(mutant_rows_by_tissue)) { ....
         }  # end of: if(length(mutant_rows_by_tissue) > 0){ ....
-      } # end of: for(j in 1:length(tissue_actual_names)){ ....
+      } # end of: for(j in 1:length(tissue_names)){ ....
       if (data_rows_count!=cell_line_count) {stop(paste("ERROR:",cell_line_count, "!=", tissue))}
       # Correct:
       #"ERBB2_2064_ENSG00000141736      MAP2K3_ENSG00000034152  12      67      0.000379762881197737    0.807213930348259       range,-5,2;
@@ -717,7 +504,8 @@ write_box_dot_plot_data <- function(
             
       cat(file=fileConn, sep="\t", unname(unlist(results[i,])))
       cat(file=fileConn, "\t")
-      cat(file=fileConn, sep = ",", cell_line_count, boxplot_range, wt_boxplot_stats, mutant_boxplot_stats)
+      cat(file=fileConn, sep = "", cell_line_count, ',')
+	  if (write_box_stats) {cat(file=fileConn, sep = ",", boxplot_range, wt_boxplot_stats, mutant_boxplot_stats)}
       cat(file=fileConn, ";")
       cat(file=fileConn, sep=';', data_rows[1:data_rows_count])  # data_rows[1:data_rows_count] is same as head(data_rows, n=data_rows_count)
       cat(file=fileConn, "\n")
@@ -726,10 +514,4 @@ write_box_dot_plot_data <- function(
   }
   #	close(fileConn) # caller should close the fileConn
 }
-
-
-
-
-
-
 

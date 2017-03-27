@@ -29,3 +29,9 @@ sqlite3 -batch -header -csv $IN "$SQL" | gzip > $OUT.gz
 # Cannot pipe from stdin into zip and also specify filename within the zip archive, so need to do in two steps:
 if [ -e "$OUT" ]; then echo "Please remove or rename '$OUT' first"; exit 1; fi
 sqlite3 -batch -header -csv $IN "$SQL" > $OUT  && zip $OUT.zip $OUT  && rm $OUT
+
+
+echo "Copying files to static path for downloading ..."
+cp -ip all_dependencies.csv.* db_sqlite.zip  static/gendep/
+echo Alternatively you can:  cp -ip all_dependencies.csv.* db_sqlite.zip /home/cgenetics/cancergd/gendep/static/gendep/
+echo Then:  python manage.py collectstatic

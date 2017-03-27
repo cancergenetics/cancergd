@@ -225,13 +225,14 @@ var target_array = [
 ]; // Maybe better to only populated by AJAX if user selects sets the 'search_by' to 'target'
 
 
- 
+/* 
 // Could use a study hash:
 var study_hash = {
   {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ],
   {% endfor %}
   "ALL_STUDIES": [ "All studies", "All studies", "All studies", "<b>All studies</b>" ]
 };
+*/
 
 // But probably faster using a switch statement as just four studies:
 function study_info(pmid) {
@@ -245,13 +246,14 @@ function study_info(pmid) {
 }
 var ishortname=0, iexptype=1, isummary=2, idetails=3; // column indexes for above study_info().
 
-
+/*
 // A dictionary might be faster:
 var histotype_display_hash = {
  {% for histotype in histotype_list %} "{{ histotype.0 }}": "{{ histotype.1 }}",
  {% endfor %}
   "ALL_HISTOTYPES": "All tissues"
 };  //    default: return 'Error: Histotype "'+histotype+'" Not Found';
+*/
 
 function histotype_display(histotype) {
   switch (histotype) {

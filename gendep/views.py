@@ -1156,7 +1156,9 @@ def tutorial(request):
 
 def drivers(request):
     driver_list = build_driver_list('driverspage')
-    context = {'driver_list': driver_list}
+    histotype_list = Dependency.HISTOTYPE_CHOICES
+    study_list = Study.objects.order_by('pmid')    
+    context = {'driver_list': driver_list, 'histotype_list': histotype_list, 'study_list': study_list}
     return render(request, 'gendep/drivers.html', context)
 
 def targets(request):
@@ -1170,7 +1172,8 @@ def tissues(request):
     return render(request, 'gendep/tissues.html', context)
     
 def studies(request):
-    study_list = Study.objects.order_by('pmid')    
+    # study_list = Study.objects.order_by('pmid')
+    # Could also add driver names lists in this query:
     study_list = Study.objects.raw("SELECT S.pmid, S.title, S.authors, S.experiment_type, S.journal, S.pub_date, S.num_targets, "
                                  + "COUNT(DISTINCT D.driver) AS num_drivers, "  # Or change to driver_entrez ?
                                  + "COUNT(DISTINCT D.histotype) AS num_histotypes, "

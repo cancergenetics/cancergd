@@ -1148,7 +1148,7 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
 		// "..afterShow would make way more sense to use if you plan on adding any events, whereas afterLoad fires as soon as it's ready to load before it shows anything at all""
 		afterShow: function(current, previous) {  // Otherwise might draw before fancybox is ready 	
 			svg_fancybox_loaded = true;
-			draw_svg_boxplot(driver,target,'',histotype, study_pmid, wilcox_p, effect_size, zdelta_score,  target_variant);
+			draw_svg_boxplot(driver,target,boxplot_csv)   // ,histotype, study_pmid, wilcox_p, effect_size, zdelta_score,  target_variant);
 			return true;
 		},		
 		afterClose: function() {  // There is also a "beforeClose()" event
