@@ -3,6 +3,7 @@
 """ Script to import the CGD data into the database tables """
 import sys, os, csv, re
 import gzip  # To directly the compressed string db files without needing to uncompress them first.
+from collections import defaultdict
 import django
 from django.db import  connection, transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -24,6 +25,12 @@ we use :"""
 
 
 warnings.filterwarnings('error', 'Data truncated .*')
+
+def progress(message): 
+    """ To print progress messages to both stdout, and to stderr, as stdout usually redirected to a log file as large volume of output """ 
+    if not sys.stdout.isatty(): print(message, file=sys.stderr)
+    print("\n"+message)
+    
 
 def add_gene_details() :
     """
@@ -54,10 +61,10 @@ def add_gene_details() :
                          uniprot_id = row['uniprot_ids'].split('|')[0]
                          )
                 except Warning as warning:  # To report the row causing any data truncation error.
-                    print("\nERROR:")
+                    progress("\nERROR:")
                     for key,val in row.items():
-                        print(key, ":", val)
-                    print("\n")
+                        progress(key + ":" + val)
+                    progress("\n")
                     raise warning
                     
                 entrez_to_symbol[row['entrez_id']] = row['symbol']
@@ -78,7 +85,7 @@ def add_driver_details() :
                 g.alteration_considered = mutation_type
                 g.save()
             except ObjectDoesNotExist:
-                print("ERROR updating driver", row)
+                progress("ERROR updating driver: %s" %(row))
     return            
 
     
@@ -175,7 +182,7 @@ def add_studies() :
                 journal = row["Journal"], pub_date = row["Date"], num_targets = row["Targets"])
     return 
     
-def add_dependency_file(study, filename, duplicates=False) :
+def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
     """
     Reads the dependencies stored in 'filename' and associates
     them with the study PMID provided. Duplicates indicates whether
@@ -188,7 +195,7 @@ def add_dependency_file(study, filename, duplicates=False) :
     try :
         study = Study.objects.get(pmid=study)
     except ObjectDoesNotExist :
-        print("ERROR, STUDY ",study," does not exist")
+        progress("ERROR, STUDY %s does not exist" %(study))
         return
 
     with open("./R_scripts/outputs/%s" % filename,"rU") as f :
@@ -197,13 +204,15 @@ def add_dependency_file(study, filename, duplicates=False) :
             wilcox_p = float(row['wilcox.p'])
             cles = float(row["CLES"])
             if wilcox_p >= 0.05 or cles < 0.65 :
-               continue  # ie. only include dependencies if wilcox_p < 0.05 and cles >= 0.65 :
+               continue  # ie. only include dependencies if wilcox_p < 0.05 and cles >= 0.65
+            tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
+            if tissue in exclude_tissues :
+               continue
             marker_entrez = row['marker'].split('_')[1]
             target_entrez = row['target'].split('_')[1]
             zdiff = float(row["ZDiff"])
             za = float(row["zA"])
             zb = float(row["zB"])
-            tissue = row.get("tissue", "PANCAN") # As PANCAN data has no "tissue" column, so set to "PANCAN"
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
                 if not driver.is_driver :
@@ -232,11 +241,16 @@ def add_dependency_file(study, filename, duplicates=False) :
 
     return
 
+
+
 def add_dependencies() :
     """
     Reads the screens file which contains a list of screens and 
     associated dependency files. Then calls add_dependency_file
     to add each file to the database
+    The 'exclude_tissues' is for excluding BREAST dependencies
+    in the Marcotte2012 data as already these are a subset of the
+    Marcotte (2016) data.
     """
     with open("input_data/ScreenDescriptions.txt","rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
@@ -244,9 +258,11 @@ def add_dependencies() :
             pmid = row["PMID"]
             screens = row["CGD_files"].split(';')
             duplicates = row["DuplicateGenes"] == "1"
+            exclude_tissues = row['ExcludeTissues'].strip()
+            exclude_tissues = [] if exclude_tissues == '' else exclude_tissues.split(';')
             for s in screens :
-                print("Adding dependencies from %s, Duplicates: %s" %(s,duplicates))
-                add_dependency_file(pmid,s,duplicates)
+                progress("Adding dependencies from %s, Duplicates: %s, ExcludeTissues: %s" %(s,duplicates,exclude_tissues) )
+                add_dependency_file(pmid,s,duplicates,exclude_tissues)
     return
         
 def get_string_confidence(score) :
@@ -277,7 +293,8 @@ def add_string_interactions() :
             driver_ids.add(d.ensembl_protein_id)
     
     stored_interactions = {}
-    
+
+    progress("   Loading protein links ...")
     with open_file("./input_data/9606.protein.links.v10.txt") as f:
         f.readline()
         reader = csv.reader(f,delimiter=" ")
@@ -290,10 +307,11 @@ def add_string_interactions() :
                     # As each gene pair appears in protein.links as both geneA,geneB and as geneB,geneA, then sort the gene pair (so always geneA,geneB) and store the score once instead of twice to reduce memory needed, and then test just once below.
                     genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((gene1,gene2)))
                     if genes in stored_interactions and stored_interactions[genes] != score :
-                        print("Scores differ %d != %d for reversed occurance of gene_pair (%s %s)" (stored_interactions[genes], score, gene1, gene2))
+                        progress("Scores differ %d != %d for reversed occurance of gene_pair (%s %s)" %(stored_interactions[genes], score, gene1, gene2))
                     stored_interactions[genes] = score  # Would gene1+'_'+gene2 be faster as the key?
-    
-    for d in Dependency.objects.all() :
+                    
+    progress("   Num stored_interaction: %d.  Adding interactions to table ..." %(len(stored_interactions)) )
+    for d in Dependency.objects.select_related("driver__ensembl_protein_id", "target__ensembl_protein_id").all() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_id.
         gene1 = d.driver.ensembl_protein_id
         gene2 = d.target.ensembl_protein_id
         if gene1 == gene2 :
@@ -304,9 +322,11 @@ def add_string_interactions() :
             if genes in stored_interactions :
                 d.interaction = get_string_confidence(stored_interactions[genes])
                 d.save()
-    print(Dependency.objects.filter(interaction = "Highest").count(), "Highest confidence interactions")
-    print(Dependency.objects.filter(interaction = "High").count(), "High confidence interactions")
-    print(Dependency.objects.filter(interaction = "Medium").count(), "Medium confidence interactions")
+
+    progress("   Counting interactions ...")
+    progress("   %d Highest confidence interactions" %(Dependency.objects.filter(interaction = "Highest").count()) )
+    progress("   %d High confidence interactions" %(Dependency.objects.filter(interaction = "High").count()) )
+    progress("   %d Medium confidence interactions" %(Dependency.objects.filter(interaction = "Medium").count()) )
     return
 
 
@@ -332,41 +352,96 @@ def optimize_database() :
     elif connection.vendor == 'postgres':  # In Postgres (VACUUM cannot be executed inside a transaction block):
         connection.cursor().execute("VACUUM FULL")  # or to avoid rewriting the file: "VACUUM ANALYZE"
     else:
-        print("Unexpected database type: ",connection.vendor)
+        progress("Unexpected database type: %s" %(connection.vendor))
 
 
+def add_multihit_interactions() :
+    """
+    Test counts:
+    Cowley multi 1146
+    Wang 178 
+    Marcotte 970
+    Campbell 144
+    """
+    cgds = defaultdict(set)
+    for d in Dependency.objects.all() :
+        cgd = ( d.driver_id, d.target_id, d.histotype )
+        cgds[cgd].add( d.study_id )
+    
+    shortnames = {}
+    for s in Study.objects.all() :
+        shortnames[s.pmid] = s.short_name
+    
+    for d in Dependency.objects.all() :
+        cgd = ( d.driver_id, d.target_id, d.histotype )
+        
+        if len(cgds[cgd]) > 1  :
+            studies = cgds[cgd].difference( d.study_id )
+            # d.multi_hit = ";".join(studies)            
+            d.multi_hit = ";".join( sorted( [shortnames[pmid] for pmid in studies] ) )
+            d.save()
+    return
 
 
-                
+def add_multihit_interactions1() :
+    cgds = defaultdict(set)
+    for d in Dependency.objects.select_related("driver__entrez_id", "target__entrez_id", "study__short_name").all() :
+        driver = d.driver.entrez_id
+        target = d.target.entrez_id
+        tissue = d.histotype
+        study = d.study.short_name                
+        cgd = (driver, target, tissue)
+        cgds[cgd].add(study)
+    
+    for d in Dependency.objects.select_related("driver__entrez_id", "target__entrez_id", "study__short_name").all() :
+        driver = d.driver.entrez_id
+        target = d.target.entrez_id
+        tissue = d.histotype
+        study = d.study.short_name
+        
+        if len(cgds[(driver, target, tissue)]) > 1  :
+            studies = cgds[(driver, target, tissue)].difference(study)
+            d.multi_hit = ";".join(studies)
+            d.save()
+    return
+    
 if __name__ == "__main__" :
-    with transaction.atomic():     
-        print("\nEmptying database tables")
-        for table in (Dependency, Study, Gene): 
+
+    with transaction.atomic():
+
+        progress("Emptying database tables")
+        for table in (Dependency, Study, Gene):
             table.objects.all().delete()
-        print("\nAdding Studies to Database")
+        progress("Adding Studies to Database")
         add_studies()
         
         # Add details to gene table
-        print("\nAdding Genes")
+        progress("Adding Genes")
         mapped_genes = add_gene_details()
         add_driver_details()
-        print("\nAdding Ensembl protein IDs to Gene table")
-        add_ensembl_proteinids()
-        print("\nAdding Inhibitor drugs to Gene table")
-        add_inhibitor_details()
-        print("\nAdding Entrez summaries to Gene table")
-        add_entrez_summaries()
 
         # Add dependencies
-        print("\nAdding Dependencies")
+        progress("Adding Dependencies")
         add_dependencies()
-        print("\nAdding String-DB Interactions to Dependency table")
-        add_string_interactions()
 
-        print("\nDeleting unused genes")
+        progress("Deleting unused genes")
         delete_unused_genes()
+
+        progress("Adding Ensembl protein IDs to Gene table")
+        add_ensembl_proteinids()
+        progress("Adding Inhibitor drugs to Gene table")
+        add_inhibitor_details()
+        progress("Adding Entrez summaries to Gene table")
+        add_entrez_summaries()
+
+        progress("Adding String-DB Interactions to Dependency table")
+        add_string_interactions()
         
-    print("\nOptmizing database")
+        progress("Adding multi-hit interactions to Dependency table")
+        add_multihit_interactions()
+
+        
+    progress("Optmizing database")
     optimize_database() # Is outside the transaction.atomic()
-    
-    print("\nFinished.")
+        
+    progress("Finished.")

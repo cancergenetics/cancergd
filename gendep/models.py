@@ -201,7 +201,10 @@ class Dependency(models.Model):
     # histotype   = models.ForeignKey(Histotype, verbose_name='Histotype', db_column='histotype', to_field='histotype', related_name='+', db_index=True, on_delete=models.PROTECT)
     # Now using a choices field instead of the above Foreign key to a separate table. 
     # could also add as a validator for a web form, eg: validators=[validate_histotype_choice],
-        
+    
+    # Store the Pubmed IDs of other studies where this same dependency occurs:
+    multi_hit = models.CharField('Multi-hit dependency', max_length=100, blank=True, default='')
+    
     boxplot_data = models.TextField('Boxplot data in CSV format', blank=True, default='') # The cell-lines and zscores for plotting the boxplot with javascript SVG.
     
     def is_valid_histotype(h): # was:    def is_valid_histotype(h):    

@@ -10,7 +10,7 @@ require(mixtools)
 
 
 # List of driver genes we care about (March 2017): "The rules for this list is that a gene must be present in our putative driver gene set (GDSC1000_cnv_exome_func_muts_v1) and also listed in either the Cancer Gene Census or a curated list from the Vogelstein lab. This results in a starting set of 256 genes. We then identify those genes that contain functional alterations in at least five cell lines in one study (ignoring tissue type) or in at least 3 cell lines in one study all of the same tissue type. This gives us a list of 53 driver genes." 
-cancergd_drivers_n5 <- read.csv("../input_data/NewAlterationDetails_from_Colm_March2017.csv")$Gene
+cancergd_drivers_n5 <- read.csv("../input_data/AlterationDetails.csv")$Gene
 
 
 # Function to read in data, find the intersecting
@@ -277,8 +277,7 @@ run_univariate_tests <- function(
 run_univariate_test_bytissue <- function(x, fileConn, writeheader){
   
   tissue_types <- colnames(x$tissues)
-  cat("\nTissue types:\n")
-  print(tissue_types)
+  cat("\nTissue types:\n", tissue_types, "\n")
 
   tissue <- NULL
   total_num_results <- 0

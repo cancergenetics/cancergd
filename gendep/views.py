@@ -638,7 +638,7 @@ def get_gene(entrez_id):
 def build_dependency_query(search_by, entrez_id, histotype_name, study_pmid, wilcox_p=0.05, order_by='wilcox_p', select_related=None):  # Now replaced by rawSQL query below.
     """ Builds the query used to extract the requested dependencies.
           search_by:      'driver' or 'target'
-          gene_name:      must be sepcified and in the Genes table
+          entrez_id:      must be sepcified and in the Genes table
           histotype_name: can be "ALL_HISTOTYPES" or a histotype in the model
           study_pmid:     can be "ALL_STUDIES" or a study pubmed id in the Study table
           wilcox_p:       the Dependency table only contains the rows with wilcox_p <=0.05 so must be same or less than 0.05
@@ -646,13 +646,14 @@ def build_dependency_query(search_by, entrez_id, histotype_name, study_pmid, wil
           select_related: can be None, or a string, or a list of strings (eg: ['driver__inhibitors', 'driver__ensembl_protein_id'] to efficiently select the inhibitors and protein_ids from the related Gene table in the one SQL query, rather than doing multiple SQL sub-queries later)
     """
     error_msg = ""
-    
-    if gene_name == "":
+
+    # Now changed to using entrez_id in the Dependency table so need to check Gene table for name (or send entrez_id from browser):    
+    if entrez_id == "":
         error_msg += 'Gene name is empty, but must be specified'
         return error_msg, None
 
-    # Using driver_id=gene_name (or target_id=gene_name) avoids table join of (driver = gene):
-    q = Dependency.objects.filter(driver_id=gene_name) if is_search_by_driver(search_by) else Dependency.objects.filter(target_id=gene_name)
+    # Using driver_id=entrez_id (or target_id=entrez_id) avoids table join of (driver = gene):
+    q = Dependency.objects.filter(driver_id=entrez_id) if is_search_by_driver(search_by) else Dependency.objects.filter(target_id=entrez_id)
         
     # As Query Sets are lazy, so can incrementally build the query, then it is evaluated once at end when it is needed:
     if histotype_name != "ALL_HISTOTYPES":
