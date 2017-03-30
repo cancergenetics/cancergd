@@ -34,7 +34,7 @@ PROJECT = 'cgdd'
 PROJECT_DIR = os.path.join(BASE_DIR,PROJECT)
 
 CACHE_DATA = True # Set to True to cache recent queries in the database 'gendep_cache_table' table.
-
+#CACHE_DATA = False
 
 
 if DEVELOPMENT:

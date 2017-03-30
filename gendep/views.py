@@ -710,17 +710,17 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
 
     select = 'target' if search_by=='driver' else 'driver'
 
-    columns = "D.id, D.%s AS entrez_id, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
+    columns = "D.id, D.%s AS entrez_id, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype, D.multi_hit" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
 
     # related_columns = ", G.inhibitors, G.ensembl_protein_id"
     # related_join = " INNER JOIN gendep_gene G ON (D.%s = G.gene_name)" %(select) # Used for both query_types.
     related_columns = ", G.gene_name, G.inhibitors, G.ensembl_protein_id"
-    related_join = " INNER JOIN gendep_gene G ON (D.%s = G.entrez_id)" %(select) # Used for both query_types.    
+    related_join = " INNER JOIN gendep_gene G ON (D.%s = G.entrez_id)" %(select) # Used for both query_types.
 
     if query_type == 'dependency_gene_study':
 #        related_columns += ", G.full_name, G.entrez_id, G.ensembl_id, G.prevname_synonyms, S.short_name, S.experiment_type, S.title"  # don't need 'study__pmid' (as is same as d.study_id)
         related_columns += ", G.full_name, G.ensembl_id, G.prevname_synonyms, S.short_name, S.experiment_type, S.title"  # don't need 'study__pmid' (as is same as d.study_id)
-        related_join += " INNER JOIN gendep_study S ON (D.pmid = S.pmid)"        
+        related_join += " INNER JOIN gendep_study S ON (D.pmid = S.pmid)"
     elif query_type != 'dependency_gene':
         error_msg += " ERROR: *** Invalid 'query_type': %s ***" %(query_type)
 
@@ -767,6 +767,7 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
     Returns JSON formatted data for the dependency search result table, or an error message in JSON format.
     GET request is faster than POST, as POST makes two http requests, GET makes one, the Django url parameters are a GET request.
     """
+    print("In get_dependencies: ",request, search_by, entrez_id, histotype_name, study_pmid)
     
     timing_array = []  # Using an array to preserve order of times on output.
     start = datetime.now()
@@ -844,7 +845,8 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     d.histotype,
                     d.study_id,
                     d.interaction + '#' + d.ensembl_protein_id,
-                    d.inhibitors
+                    d.inhibitors,
+                    d.multi_hit
                     ])
                             
       else: # Not RAW sql        
@@ -869,7 +871,8 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     d.histotype,
                     d.study_id,
                     interaction,
-                    inhibitors # Formatted above
+                    inhibitors, # Formatted above
+                    d.multi_hit
                     ])
                     
 
@@ -1195,8 +1198,8 @@ def contact(request):
 
 
 
-search_by_driver_column_headings_for_download = ['Dependency', 'Dependency description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Dependency synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']                                 
-search_by_target_column_headings_for_download = ['Driver', 'Driver description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Driver synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']
+search_by_driver_column_headings_for_download = ['Dependency', 'Dependency description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Dependency synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Multiple hit', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']                                 
+search_by_target_column_headings_for_download = ['Driver', 'Driver description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Driver synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Multiple hit', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']
 
 
 # ===========================================    
@@ -1377,6 +1380,7 @@ def write_csv_or_tsv_file(response, dependency_list, search_by_driver, query_tex
             Dependency.histotype_full_name(d.histotype),  # was: d.get_histotype_display()
             d.inhibitors,
             d.interaction,
+            d.multi_hit,
             d.short_name,  d.study_id,  d.experiment_type         
         ])
                 # d.study_id is same as 'd.study.pmid'        
@@ -1461,11 +1465,12 @@ def write_xlsx_file(response, dependency_list, search_by_driver, query_text, col
         ws.write_number(row,   8, d.zdiff,       two_decimal_places)
         ws.write_string(row,   9, Dependency.histotype_full_name(d.histotype))
         ws.write_string(row,  10, d.inhibitors)
-        ws.write_string(row,  11, d.interaction, align_center)
-        ws.write_string(row,  12, d.short_name)
-        ws.write_url(   row,  13, url=Study.url(d.study_id), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'
+        ws.write_string(row,  11, d.multi_hit)
+        ws.write_string(row,  12, d.interaction, align_center)
+        ws.write_string(row,  13, d.short_name)
+        ws.write_url(   row,  14, url=Study.url(d.study_id), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'
         # WAS:  ws.write_url(   row,  13, url=d.study.url(), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.study.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'            
-        ws.write_string(row,  14, d.experiment_type)
+        ws.write_string(row,  15, d.experiment_type)
         # ws.write_string(row, 15, d.study.summary)
         
         # ADD THE FULL STATIC PATH TO THE url = .... BELOW:

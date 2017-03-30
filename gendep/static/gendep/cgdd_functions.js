@@ -530,7 +530,7 @@ function populate_table(data,t0) {
 
 	// result array indexes:
 	// igene can be either driver or target depending on 'search_by'.
-	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, ihistotype=4, istudy_pmid=5, iinteraction=6, iinhibitors=7; // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
+	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, ihistotype=4, istudy_pmid=5, iinteraction=6, iinhibitors=7, imultihit=8; // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
 	// In javascript array indexes are represented internally as strings, so maybe using string indexes is a bit faster??
 	
 
@@ -571,7 +571,7 @@ var stopat=20;	// To stop table early for testing.
 	  else if (val <= 0.01)   {bgcolor=lightgreen_SBI_logo}
 	  else {bgcolor = '';}
 	  style = width100+"text-align:center;";
-	  if (bgcolor != '') {style += ' background-color: '+bgcolor;}
+	  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
 	  var wilcox_p_cell = '<td style="'+style+'">' + d[iwilcox_p].replace('e', ' x 10<sup>') + '</sup></td>';
 	  
 	  var val = parseFloat(d[ieffect_size]); // convert to float value
@@ -580,7 +580,7 @@ var stopat=20;	// To stop table early for testing.
 	  else if (val >= 70) {bgcolor=lightgreen_SBI_logo}
 	  else {bgcolor = '';}
 	  var style = width100+"text-align:center;";
-	  if (bgcolor != '') {style += ' background-color: '+bgcolor;}
+	  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
 	  var effectsize_cell = '<td style="'+style+'">' + d[ieffect_size] + '</td>';
 
 	  var val = parseFloat(d[izdelta]); // convert to float value
@@ -589,7 +589,7 @@ var stopat=20;	// To stop table early for testing.
 	  else if (val <= -1.0) {bgcolor=lightgreen_SBI_logo}
 	  else {bgcolor = '';}
 	  var style = width100+"text-align:center;";
-	  if (bgcolor != '') {style += ' background-color: '+bgcolor;}
+	  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
 	  var zdelta_cell = '<td style="'+style+'">' + d[izdelta] + '</td>';
 	  
 	  var interaction_cell;
@@ -603,7 +603,7 @@ var stopat=20;	// To stop table early for testing.
 	      case 'Medium':  bgcolor=lightgreen_SBI_logo; break;
 	      default: bgcolor = '';
         }
-	    if (bgcolor != '') {style += ' background-color: '+bgcolor;}
+	    if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
 
 		var string_protein = '';
 		if (interaction[1] == '') {
@@ -637,6 +637,19 @@ var stopat=20;	// To stop table early for testing.
 		  }
 		  inhibitor_cell = '<td style="'+style+' background-color: beige;">'+onclick_or_alink+'</td>';
 	  }
+	  
+      var style = width100+"text-align:center;";
+	  var multihit_cell;
+	  if (d[imultihit] == '') { multihit_cell = '<td style="'+style+'"></td>'; }
+	  else {
+	      var bgcolor = '';
+		  var num = d[imultihit].split(";").length;
+	      if (num > 2) {bgcolor=darkgreen_UCD_logo;}
+	      else if (num == 2) {bgcolor=midgreen_SBI_logo;}
+	      else {bgcolor=lightgreen_SBI_logo;}
+		  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
+   	      multihit_cell = '<td style="'+style+'" data-multihit="'+d[imultihit]+'">' + d[imultihit].substr(0,15) + '...</td>';
+		  }
 
 	  // In future could use the td class instead of style=... - but need to add on hoover colours, etc....
 	  html += '<tr>'
@@ -648,7 +661,8 @@ var stopat=20;	// To stop table early for testing.
 		+ '<td style="'+width100+'text-align:center;" data-study="'+d[istudy_pmid]+'">' + study_weblink(d[istudy_pmid],study) + '</td>' // but extra text in the table, and extra on hover events so might slow things down.
 		+ '<td style="'+width100+'text-align:center;" data-exptype="'+d[istudy_pmid]+'">' + study[iexptype] + '</td>' // experiment type. The 'data-exptype=""' is use by tooltips		
         + interaction_cell  		
-	    + inhibitor_cell  	
+	    + inhibitor_cell
+        + multihit_cell
 		+ '</tr>';  // The newline character was removed from end of each row, as the direct trigger update method complains about undefined value.
 	}
 

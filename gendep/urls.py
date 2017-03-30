@@ -11,6 +11,7 @@ app_name = 'gendep'
 # Optional parameters: http://stackoverflow.com/questions/14351048/django-optional-url-parameters
 
 cachetime = 60*60*24    # Cache time in seconds - so this view will be cached for 24 hours.
+#cachetime = 1
 
 urlpatterns = [
     
