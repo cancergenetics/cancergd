@@ -6,28 +6,28 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-  
+
 {# OR when running my laptop offline, temporarily using these local files instead of the above google server ones: #}
-{% comment %}        
+{% comment %}
   {# On PC: #}
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.2.js' %}"></script>
   <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.theme.min.css' %}" class="ui-theme" />
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4.custom/jquery-ui.min.js' %}"></script>
-  
+
   {# Or on MacBook: #}
   <script type="text/javascript" src="{% static 'gendep/jquery/jquery-1.12.4.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.theme.min.css' %}" class="ui-theme" />  
-  <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script> 
+  <link rel="stylesheet" href="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.theme.min.css' %}" class="ui-theme" />
+  <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script>
 {% endcomment %}
-  
+
   <link rel="stylesheet" href="{% static 'gendep/tablesorter/css/theme.blue.min.css' %}" class="theme blue" />
   <link rel="stylesheet" href="{% static 'gendep/fancybox/source/jquery.fancybox.css' %}" type="text/css" />
-  
+
 {% comment%}
-  <!-- DataTables - could use in future instead of jquery-scroller table -->  
+  <!-- DataTables - could use in future instead of jquery-scroller table -->
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/ju/jqc-1.12.0,dt-1.10.11,sc-1.4.1,se-1.1.2/datatables.min.css"/>
   <script type="text/javascript" src="https://cdn.datatables.net/t/ju/jqc-1.12.0,dt-1.10.11,sc-1.4.1,se-1.1.2/datatables.min.js"></script>
-{% endcomment %}  
+{% endcomment %}
 
 {% comment %}
   <!-- or local datatables when my computer is off internet -->
@@ -39,7 +39,7 @@
   <!--script src="gendep/static/gendep/saveSvgAsPng.js"></script-->
   <!-- script src="{% static 'gendep/saveSvgAsPng.js' %}"></script -->
   <!-- but will use the one below instead in future -->
-  
+
   <!-- or better for IE: -->
 		<!-- For the "toDataURI()" security exception in IE, need to use the "canvg" renderer: -->
         <!-- if IE -->
@@ -48,8 +48,8 @@
 		<!--script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/rgbcolor.js"></script-->
 		<!--script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/canvg.js"></script-->
 		<!-- Canvg Not on google code now -->
-		
-		<!-- script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script --> 
+
+		<!-- script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script -->
         <!-- script type="text/javascript" src="http://gabelerner.github.io/canvg/StackBlur.js"></script -->
         <!-- script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script -->
 		<!-- Canvg no longer on: gabelerner.github.io, so using static copy: -->
@@ -57,15 +57,15 @@
 		<script type="text/javascript" src="{% static 'gendep/rgbcolor.js' %}"></script>
         <!-- script type="text/javascript" src="https://github.com/canvg/StackBlur.js"></script -->
         <script type="text/javascript" src="{% static 'gendep/canvg.min.js' %}"></script>
-						
+
 		<!-- endif -->
    <!--script type="text/javascript" src="gendep/static/gendep/SVGtoDataURL/svg_todataurl.js"></script-->
    <script type="text/javascript" src="{% static 'gendep/SVGtoDataURL/svg_todataurl.js' %}"></script>
 
-   <script type="text/javascript" src="{% static 'gendep/cgdd_functions.js' %}"></script>  
-       
+   <script type="text/javascript" src="{% static 'gendep/cgdd_functions.js' %}"></script>
+
    <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}"></script>
-  
+
 {% endblock %}
 {% block scripts %}
 <style type="text/css">
@@ -81,7 +81,7 @@
    /* padding: 15px; */
    }
    /* #legend_table th td {border: 1px solid black;}*/
- 
+
   #legend_table tr:hover {background-color: #f5f5f5}
 
   .ui-tooltip {
@@ -96,7 +96,7 @@
 	http://stackoverflow.com/questions/18137877/fancy-box-z-index-and-overlapping-issues
 	http://stackoverflow.com/questions/11813813/z-index-greater-than-fancybox
 	*/
-	
+
 	z-index: 2147478001;  /* So will appear above the fancybox 2147478000*/
     font: bold 12px "Helvetica Neue", Sans-Serif;
   }
@@ -109,7 +109,7 @@
     /* outline: none; */
   }
 
-/* Or maybe:  
+/* Or maybe:
 
    li.ui-menu-item:hover{background-color:#92C747}
   OR:
@@ -117,11 +117,11 @@
       background: #C4FFC4;
       border: 1px solid #32BE61;
 }
-Because when you hover an item the jQuery adds the style "ui-state-focus" to the link.  
+Because when you hover an item the jQuery adds the style "ui-state-focus" to the link.
 */
-  
-  
-/*  
+
+
+/*
   .custom-tooltip-styling {
     font-size:14px;
     padding:20px auto;
@@ -142,7 +142,7 @@ var lightgreen_SBI_logo = '#CDF19C'; // was actually:'#ADD17C';
 
 
 // Global variables set by Django template engine's url() tag - need 'static' tag as their path changes if local dev server or pythonanywhere production server:
-var global_url_for_faq = "{% url 'gendep:faq' %}"; 
+var global_url_for_faq = "{% url 'gendep:faq' %}";
 var global_url_static_image_dir = "{% static 'gendep/images/' %}";
 var global_url_static_boxplot_dir = "{% static 'gendep/boxplots/' %}";
 //var global_url_for_dependency_search = "{  % url 'gendep:get_dependencies' search_by='mysearchby' gene_name='mygene' histotype_name='myhistotype' study_pmid='mystudy' %  }";
@@ -166,7 +166,7 @@ var global_url_for_cytoscape_get = "{% url 'gendep:cytoscape_get' required_score
 // The string interactive URL is now moved to the 'string_interactive_form' form at bottom of this "index.html", so need to set any options in that form's action:
 var stringdb_options="network_flavor=confidence&caller_identity=CGDD";  // &additional_network_nodes=0
 
-var stringdb_options_score400 = stringdb_options + "&required_score=400&limit=0"; // Used for the Driver + Target links (Medium, High, Highest); and only want these two proteins displayed so need limit=0.  
+var stringdb_options_score400 = stringdb_options + "&required_score=400&limit=0"; // Used for the Driver + Target links (Medium, High, Highest); and only want these two proteins displayed so need limit=0.
 
 // The string interactive URL is now moved to the 'string_interactive_form', so need to set any options in that form's action
 var stringdb_options_score700 = stringdb_options + "&required_score=700&limit=0"; // Used for overall view for all the dependencies.
@@ -179,17 +179,17 @@ var global_url_for_stringdb_one_network = "http://string-db.org/api/image/networ
 // Because of AJAX same origin policy (ie. no cross-site requests) so need to use pythonanywhere server as a proxy to get the string interaction list:
 var global_url_for_stringdb_interactionsList = "{% url 'gendep:get_stringdb_interactions' required_score='700' protein_list='myproteins' %}";
 
-var global_url_for_stringdb_interactive_networkList_score400 = 
+var global_url_for_stringdb_interactive_networkList_score400 =
 "http://string-db.org/newstring_cgi/show_network_section.pl?"+stringdb_options_score400+"&advanced_menu=yes&identifiers=";
 
 var global_max_stringdb_proteins_ids = 300; // Using POST now instead of GET(which had max of 73 proteins, as max GET in IE, and older browsers is 2000 charcters)
 
 
 
-// The currently selected driver gene:  
-var global_search_by = ''; 
-var global_selected_gene = ''; // The currently selected driver/target gene name, eg. ERBB2 
-var global_selected_entrez_id = ''; // The currently selected driver/target entrez_id, eg. 12345 
+// The currently selected driver gene:
+var global_search_by = '';
+var global_selected_gene = ''; // The currently selected driver/target gene name, eg. ERBB2
+var global_selected_entrez_id = ''; // The currently selected driver/target entrez_id, eg. 12345
 var global_selected_histotype = '';
 var global_selected_study = '';
 
@@ -207,7 +207,7 @@ var experimenttype_array = [
    {% for experimenttype in experimenttype_list %} {value: "{{ experimenttype.0 }}" }{% if not forloop.last %},{% endif %}
    {% endfor %}
 ];
-  
+
 // Using this preloaded array gives faster response than AJAX call - but in future the driver list may grow too big to preload quickly.
 // Normally needs a 'label' property, needs to contain the gene_name as it is the label that is searched for the characters pressed. Maybe add a separate description field.
 var driver_array = [
@@ -225,7 +225,7 @@ var target_array = [
 ]; // Maybe better to only populated by AJAX if user selects sets the 'search_by' to 'target'
 
 
-/* 
+/*
 // Could use a study hash:
 var study_hash = {
   {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ],
@@ -258,7 +258,7 @@ var histotype_display_hash = {
 function histotype_display(histotype) {
   switch (histotype) {
 	{% for histotype in histotype_list %}
-	case "{{ histotype.0 }}": return "{{ histotype.1 }}"; {% endfor %}	
+	case "{{ histotype.0 }}": return "{{ histotype.1 }}"; {% endfor %}
     // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
     case "ALL_HISTOTYPES": return "All tissues";// break;
     default: return 'Error: Histotype "'+histotype+'" Not Found';
@@ -281,14 +281,14 @@ function initialise_result_table_and_tooltips() {
   	// Initialise the Dependency Table:
     $("#result_table").tablesorter({
         // debug: true, // outputs to firebug console
-		
+
 		initialized : function(table){console.log("result_table: initialised")}, // do something after tablesorter has initialized.
 
 		showProcessing: true,
 		delayInit: false, // or true to display table a bit sooner
 		theme: 'blue',
-		widgets: ["filter", "scroller"], // "resizable", 
-		
+		widgets: ["filter", "scroller"], // "resizable",
+
 		widgetOptions: {
 			scroller_height: 400,
 			filter_functions: { // 0-based column indexes:
@@ -341,7 +341,7 @@ function initialise_result_table_and_tooltips() {
         at: "center top",
 	    using: function( position, feedback ) {
           $( this ).css( position );
-		  
+
 		  $( "<div>" )
             .addClass( "arrow" )
             .addClass( feedback.vertical )
@@ -349,7 +349,7 @@ function initialise_result_table_and_tooltips() {
             .appendTo( this );
         }
 	  },
-	  
+
       content: function(callback) {  // 'callback' function is called below with the data:
         var element = $( this );
         if ( element.is( "[data-gene]" ) ) {
@@ -362,7 +362,7 @@ function initialise_result_table_and_tooltips() {
             var url = global_url_gene_info_for_mygene.replace('mygene',gene_name);
             $.ajax({
               url: url,
-              dataType: 'json', 
+              dataType: 'json',
             })
             .done(function(data, textStatus, jqXHR) {  // or use .always(...)
               if (data['success']) {
@@ -390,7 +390,7 @@ function initialise_result_table_and_tooltips() {
         }
       else if ( element.is( "[data-multihit]" ) ) {
 	      return element.attr("data-multihit");
-        }		
+        }
       }    // end of 'content:'
    });  // end of tooltip
 }
@@ -403,45 +403,45 @@ $(document).ready(function() {
 
 var t0, log_timings = true;
 if (log_timings) {t0 = performance.now();}
-	
+
         if ( ! is_form_complete() ) {return false;}
 		show_message("search_button", "Searching..."); // So button changes for 3 seconds
-		
+
 		var search_by = $("#search_by").val();
 		global_search_by = search_by; // Store selected search_by (driver or target) as a global as needed by cgdd_functions.js(), etc.
-		
+
         var gene = $("#gene").val();
 		// global_selected_gene = gene; // Store selected driver/target as a global as needed by boxplot plot(), etc.
 		global_selected_gene = gene; // Store selected driver/target as a global as needed by boxplot plot(), etc.
-		
+
 		var entrez_id = '';
 		if (search_by == 'driver') {
 		   for (var i=0; i<driver_array.length; i++) {if (driver_array[i]['value']==gene) {entrez_id=driver_array[i]['entrez_id']} }
-		} else {		
-		   for (var i=0; i<target_array.length; i++) {if (target_array[i]['value']==gene) {entrez_id=target_array[i]['entrez_id']} }		
-		}				        
+		} else {
+		   for (var i=0; i<target_array.length; i++) {if (target_array[i]['value']==gene) {entrez_id=target_array[i]['entrez_id']} }
+		}
 		global_selected_entrez_id = entrez_id; // Store selected driver/target as a global as needed by boxplot plot(), etc.
-		
+
         var histotype = $("#histotype").val();
 		global_selected_histotype = histotype;
-		
+
         var study = $("#study").val();
 		global_selected_study = study;
-		
+
 		$("#result_div").hide();
 		$('#result_table').trigger('filterReset'); // Remove existing filter settings from the rows.
-		show_message("result_progress_div", "<b>Fetching data from server....</b>", 0); // 0 means not cleared by timer. 
-		
+		show_message("result_progress_div", "<b>Fetching data from server....</b>", 0); // 0 means not cleared by timer.
+
 		// var url = global_url_for_dependency_search.replace('mysearchby',search_by).replace('mygene',gene).replace('myhistotype',histotype).replace('mystudy',study);
 		var url = global_url_for_dependency_search.replace('mysearchby',search_by).replace('mygene',entrez_id).replace('myhistotype',histotype).replace('mystudy',study);
-		
+
 if (log_timings) {console.log("Setup: ",performance.now()-t0); t0 = performance.now();}
 		$.ajax({
             url: url,
-            dataType: 'json', 
+            dataType: 'json',
         })
         .done(function(data, textStatus, jqXHR) {
-        
+
 
 if (log_timings) {
   var timings = data['timings']; for (timing in timings) {console.log(timing);}
@@ -450,7 +450,7 @@ if (log_timings) {
 
 			//show_message("result_progress_div", "Data received from server. Building results table ....", 0); // 0 means not cleared by timer event.
 			console.log("Data received from server. Building results table ...."); // 0 means not cleared by timer event.
-			
+
   	        $("#welcome_div").hide(); // hide welcome text.
 
 			show_search_info(data);
@@ -458,26 +458,26 @@ if (log_timings) {
 if (log_timings) {console.log("Table populated: ",performance.now()-t0); t0 = performance.now();}
 			//show_message("result_progress_div", "Results table built."); // message clears after 3 seconds.
 			console.log("Results table built."); // message clears after 3 seconds.
-			
+
 			show_message("result_progress_div", "Formatting table....", 5); // clear message
 
             initialise_result_table_and_tooltips(); // Just want to do this once, ie: for the first search.
-	
-  $("#result_table").trigger("update"); 
-  
+
+  $("#result_table").trigger("update");
+
 
 
 // Not sorting for now:
-// var sorting = [[2,1],[0,0]]; // set sorting column and direction, this will sort on the first and third column. 
-// $("#result_table").trigger("sorton",[sorting]); 		
-	
+// var sorting = [[2,1],[0,0]]; // set sorting column and direction, this will sort on the first and third column.
+// $("#result_table").trigger("sorton",[sorting]);
+
             // OR: $("#result_table").trigger("updateRows", [ false, triggercallback ]); // let the plugin know that we made a update, updates the updates the cache from the tbody.  Can use "updateRows" instead. ("updateRows was added to work around the issue of using jQuery with the Prototype library. Triggering an "update" would make Prototype clear the tbody")
 	// or: .trigger( 'addRows', [ $row, resort, callback ] );
-			
-			
+
+
 			$("#result_div").show();
-if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = performance.now();}			
-			//$("#result_progress_div").html(""); // using timeout show_message() above, as table not yet visible here. 
+if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = performance.now();}
+			//$("#result_progress_div").html(""); // using timeout show_message() above, as table not yet visible here.
 		})
 		.fail(function(jqXHR, textStatus, errorThrown) {
 			show_message("result_progress_div", "Ajax Failed: '"+textStatus+"'  '"+errorThrown+"'", 0); // 0 means not cleared by timer.
@@ -491,7 +491,7 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
     $("#gene").autocomplete({
         source: {% if search_by == 'target' %}target_array{% else %}driver_array{% endif %},
 		// using the above array (but is reset to target_array if user selects search_by='target' - maybe better to use ajax if target_array as target array will be large.
-        // It is possible to format the list items using the focus and select functions and html, etc:	
+        // It is possible to format the list items using the focus and select functions and html, etc:
         minLength: 2,  // number of letters need to type for drop-down menu to appear.
         delay: 1,  // 1 millisecond delay before displaying list of items matching input characters.
         autoFocus: true, // To automatically focus the first menu item when menu opens.
@@ -505,59 +505,59 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
             .append( "<a><b>" + item.value + "</b> | " + item.synonyms + '<br/><font size="-2">' + "Entrez: <b>"+item.entrez_id + "</b> &nbsp; &nbsp; &nbsp; " + item.full_name + "</font></a>" )
             .appendTo( ul );
     };  // .val('SMAD4').data('autocomplete')._trigger('change');
-	
+
 	$( "#gene").blur(function() { // ie. when lose focus due to typing value rather than selecting from dropdown menu
-	   $("#gene").data("ui-autocomplete")._trigger("select"); 
+	   $("#gene").data("ui-autocomplete")._trigger("select");
     //var inputValue = $( "##gene" ).val();
     //var idx = jQuery.inArray(inputValue, availableTags);
     //if (idx == -1) {
-    //    $( "#tags" ).val("");           
+    //    $( "#tags" ).val("");
     });
-	
+
 	// alternatively this change can be within the above as: change: function(..)
 	// see: https://api.jqueryui.com/autocomplete/#event-change
     // WAS: $("#gene").on("autocompletechange", function( event, ui ) {
     // WAS: $("#gene").on( "autocompleteselect", ....
-	
+
 	//  or try: http://stackoverflow.com/questions/6406786/jquery-ui-autocomplete-how-to-get-change-event-to-fire-earlier
-	//this.value=ui.item.value; 
+	//this.value=ui.item.value;
     //$(this).trigger('change');
-	
+
 	// When the index page is loaded with "/gendep/driver/SMAD2/" so already has a driver selected, so need to set Tissue and Study menus to suit that driver:
 	if ($("#gene").val()!='') {
 	//$( "#gene" ).autocomplete({/* do whatever */}).val('Banana').data('autocomplete')._trigger('select');
 	  $("#gene").data("ui-autocomplete")._trigger("select"); // _trigger("change"); // alternatively.
 	  //$("#gene").trigger("autocompletechange");
-	  }	
-	
+	  }
+
 	// From: http://stackoverflow.com/questions/13508166/jquery-autocomplete-enter-keypress-action-in-firefox-not-working-properly
 	// Test this:
-	
+
 	function get_key(e) {
 	  e = e || window.event;
         //if (window.event && window.event.keyCode==13)  // IE
         // || (e.which && e.which==13)    // Netscape/Firefox/Opera
-      // var isEscape = ("key" in e) ? (e.key == "Escape" || e.key == "Esc") : (e.keyCode == 27);        
+      // var isEscape = ("key" in e) ? (e.key == "Escape" || e.key == "Esc") : (e.keyCode == 27);
       return ('which' in e) ? e.which : e.keyCode;
 	}
-	
-    // It is possible to add more autocomplete customisations, such as a combo-box button: http://jqueryui.com/autocomplete/#combobox	
+
+    // It is possible to add more autocomplete customisations, such as a combo-box button: http://jqueryui.com/autocomplete/#combobox
     // $("#gene").focus();  // Another way to force focus when move is: Assuming your combobox has id= combobox, the input generated is put in a span following the combobox. This should do the job: $('#combobox').next().find('input').focus()
 
 	function open_autocomplete_menu() {
 	  // Set the minLength to 0 and display the menu
       // if ($( "#gene" ).autocomplete( "option", "minLength" ) != 0) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search", "" );} // or could use the current contents for the search.
       // If don't specify a search string then uses the current input which is what we want:
-      // **** But need to test if is already open due to having entered two characters.            
+      // **** But need to test if is already open due to having entered two characters.
       // && $( "#gene" ).autocomplete( "option", "minLength" )!=0
-      if (! $("#gene").autocomplete('widget').is(':visible') ) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search" );} // or could use the current contents for the search.      
+      if (! $("#gene").autocomplete('widget').is(':visible') ) {$( "#gene" ).autocomplete( "option", "minLength", 0 ).autocomplete( "search" );} // or could use the current contents for the search.
 	}
-	
+
 	function close_autocomplete_menu() {
 	  // Reset the minLength to 2 as could have been changed by clicking the Show All button:
       if ($( "#gene" ).autocomplete( "option", "minLength" ) == 0) { $( "#gene" ).autocomplete("close").autocomplete( "option", "minLength", 2 ); }
 	}
-	
+
     $("#show_all_button").click(function(event){
       if ($( "#gene" ).autocomplete( "option", "minLength" ) == 0) {
         close_autocomplete_menu();
@@ -583,29 +583,29 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
         var k = get_key(e);
         if (k==38 || k==40) {open_autocomplete_menu();}  // Up-arrow, or Down-arrow.
     });
-    
+
     $("#gene").focus(function(e){close_autocomplete_menu();}); // close if click inside the gene input box.
     $("#gene").on( "autocompleteclose", function(e,ui) {if ($( "#gene" ).autocomplete( "option", "minLength" )==0) { $( "#gene" ).autocomplete( "option", "minLength", 2 );} });
-    $("html").click(function(e) { if ($(e.target).attr("class")!="ui-menu-item") {close_autocomplete_menu();} }); // Close if click outside the autocomplete menu.    
+    $("html").click(function(e) { if ($(e.target).attr("class")!="ui-menu-item") {close_autocomplete_menu();} }); // Close if click outside the autocomplete menu.
     $(document).on("keydown", function(e) {if (get_key(e) == 27) {close_autocomplete_menu();} }); // Close if press Escape when the autocomplete menu is visible.
     // Autocomplete API: ttps://api.jqueryui.com/autocomplete/
     // Removing space from buttons in Safari.
-    
+
 });
 
 
 function set_tissue_and_study_options(event, ui) {
-	  // $(this).val(b.item.value);	  
+	  // $(this).val(b.item.value);
 	  {% if search_by == 'target' %}
   	    var options_html = '<option value="ALL_HISTOTYPES" selected="selected">'+histotype_display("ALL_HISTOTYPES")+'</option>'
 		                  +'<option value="PANCAN">'+histotype_display("PANCAN")+'</option>';
         $("#histotype").empty().append(options_html);
-		
+
 		options_html = '<option value="ALL_STUDIES" selected="selected">'+study_info('ALL_STUDIES')[ishortname]+'</option>';
         $("#study").empty().append(options_html);
 		return;
 	  {% endif %}
-	  
+
         var item = ui.item;   // alternatively first test: if (ui.hasOwnProperty("item")) {..... but maybe less browser support and slower
 		// item is "The item selected from the menu, if any. Otherwise the property is null."
 		//console.log("Change .....");
@@ -625,10 +625,10 @@ function set_tissue_and_study_options(event, ui) {
         }
         // console.log(typeof item);
 		if ((typeof item  === 'undefined') || (item == null)) {return false;} // as not found in list, or is null if previously was set
-		
+
         var tissue_list = item['tissue_list'];  // 'ui.item' is the row object from the driver_array.
 		var available = tissue_list=='' ? [] : tissue_list.split(/[;,]/); // *** Temporary fix to allow for splitting for precomputed or live generated lists.
-		
+
 		var current_val = $("#histotype").val(); // the currently selected value if any.
 		if ((current_val === null) || ($.inArray(current_val, available) == -1)) {current_val = 'PANCAN';}
         // An alternative way is using the "new Option(...)"  see: http://www.javascriptkit.com/javatutors/selectcontent.shtml
@@ -646,15 +646,15 @@ function set_tissue_and_study_options(event, ui) {
 		//console.log(available);
 		var current_val = $("#study").val(); // the currently selected value if any.
 		if ((current_val === null) || ($.inArray(current_val, available) == -1)) {current_val = 'ALL_STUDIES';}
-		
+
 		var selected = "ALL_STUDIES"==current_val ? ' selected="selected"' : '';
 		var options_html = '<option value="ALL_STUDIES"'+selected+'>'+study_info('ALL_STUDIES')[ishortname]+'</option>';
 		for (var i=0; i<available.length; i++) {
-		   var selected = available[i]==current_val ? ' selected="selected"' : '';		
+		   var selected = available[i]==current_val ? ' selected="selected"' : '';
   	       options_html += '<option value="'+available[i]+'"'+selected+'>'+study_info(available[i])[ishortname]+'</option>';
 		}
         $("#study").empty().append(options_html);
-		//console.log("Study menu:",options_html);		
+		//console.log("Study menu:",options_html);
 	};
 
 
@@ -669,16 +669,16 @@ function set_tissue_and_study_options(event, ui) {
 	.fancybox-custom {
 		box-shadow: 0 0 50px #222;
 	}
-	
+
 </style>
 {% endblock %}
 {% block content %}
 <div id="welcome_div" {% if gene_name or search_by == 'target' %}style="display:none"{% endif %} >
-<p>Welcome to the cancer genetic dependencies database, which integrates results from loss-of-function <a href ="{% url 'gendep:studies' %}" title="Studies">screens</a> in cell line panels with mutational profiles to identify genetic dependencies associated with specific <a href="{% url 'gendep:drivers' %}" title="Driver genes">driver gene</a> mutations. These dependencies include oncogene addictions - e.g. cell lines with <i>ERBB2</i> amplification have an increased sensitivity to <i>ERBB2</i> inhibition - and non-oncogene addictions or synthetic lethalities - <i>e.g.</i> cell lines with <i>SMAD4</i> loss display an increased sensitivity to inhibition of multiple mitotic kinases. This resource currently includes dependencies identified using RNA interference approaches (siRNA and shRNA) but will be expanded in future to include results from CRISPR based screens.</p>
-
+<p>Welcome to CancerGD.org, which integrates results from loss-of-function <a href ="{% url 'gendep:studies' %}" title="Studies">screens</a> in cell line panels with mutational profiles to identify genetic dependencies associated with specific <a href="{% url 'gendep:drivers' %}" title="Driver genes">driver gene</a> mutations. These dependencies include oncogene addictions - e.g. cell lines with <i>ERBB2</i> amplification have an increased sensitivity to <i>ERBB2</i> inhibition - and non-oncogene addictions or synthetic lethalities - <i>e.g.</i> cell lines with <i>SMAD4</i> loss display an increased sensitivity to inhibition of multiple mitotic kinases. This resource currently includes dependencies identified using RNA interference approaches (siRNA and shRNA) but will be expanded in future to include results from CRISPR based screens.</p>
+<p>A preprint describing CancerGD.org is available <a href="http://biorxiv.org/content/early/2016/10/26/081992">here</a>. </p>
 <p>We welcome <a href="{% url 'gendep:contact' %}">your comments and queries.</a></p>
 
-<p>Enter your search criteria below. 
+<p>Enter your search criteria below.
 {# (Select search type ("Driver gene" or "Target gene"). Then in the driver/target search box, #}
 In the 'Driver gene' search box, typing two letters of a gene name will display a menu of matching gene names. The 'Tissue' and 'Study' menu options will be updated depending on gene selected.)</p>
 </div>
@@ -689,14 +689,14 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 <td>Search filter:</td>
 <td  style="padding-left:10px; padding-right:0;">
   <input name="search_by" id="search_by" value="{% if search_by == 'target' %}target{% else %}driver{% endif %}" type="hidden"/>
-  
+
 {% comment %}
   <select name="search_by" id="search_by" class="searchbox_dropdown">
     <option value="driver" {% if search_by != "target" %}selected="selected"{% endif %}>Driver gene:</option>
     <option value="target" {% if search_by == "target" %}selected="selected"{% endif %}>Target/Dependency gene:</option> <!-- If select target need to retreive target gene list, and set result table header to 'Driver' instead of 'Dependency'-->
   </select>
 {% endcomment %}
-  
+
   <label for="gene">Driver gene:</label>
 
   <input name="gene" id="gene" placeholder="Gene name (eg. ERBB2)"  value="{{ gene_name }}" autofocus/>   {# value= ... is when directed to this page by link from the Drivers or Targets page #}
@@ -723,7 +723,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 
 <td style="padding-left:10px;"><label for="study">Study:</label>
    <select name="study" id="study" style="width: 120px;">
-{# Unless a specific histotype_name parameter is passed, the tissue menu isn't populated until after the user selects a driver gene from the menu #}   
+{# Unless a specific histotype_name parameter is passed, the tissue menu isn't populated until after the user selects a driver gene from the menu #}
     {% if study_pmid != "" %}<option value="{{ study_pmid }}" selected="selected">{{ study_short_name }}</option>{% endif %}
 {% comment %}
       <option value="ALL_STUDIES" selected="selected">All studies</option>
@@ -744,7 +744,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 
 <div id ="result_progress_div"> &nbsp; <br/> &nbsp; <br/> &nbsp; <br/> &nbsp; <br/> </div>
 
-<div id="result_div" style="display:none;"> 
+<div id="result_div" style="display:none;">
 <table id="info_result_table" style="margin-left:auto; margin-right:auto;">
 <tr><td>
 
@@ -771,13 +771,13 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   <form id="download_excel_form" method="get">
     <input id="download_excel_button" type="submit" value="Download as Excel file" data-value="Download as Excel file"/>
   </form>
-</td>  
-<td>  
-  &nbsp; 
 </td>
 <td>
-  <!-- a href="javascript:void(0);" id="string_link" onclick="show_stringdb_image();" target="_blank">String images for all rows</a -->    
-  <input type="button" id="string_image" value="Stringdb Image" data-value="Stringdb Image" onclick="show_stringdb(stringdb_image);" />   
+  &nbsp;
+</td>
+<td>
+  <!-- a href="javascript:void(0);" id="string_link" onclick="show_stringdb_image();" target="_blank">String images for all rows</a -->
+  <input type="button" id="string_image" value="Stringdb Image" data-value="Stringdb Image" onclick="show_stringdb(stringdb_image);" />
 </td>
 <td>
   {# full string interactive URL is: http://string-db.org/newstring_cgi/show_network_section.pl?network_flavor=confidence&caller_identity=CGDD&required_score=700&limit=0&advanced_menu=yes&identifiers=..... "> #}
@@ -803,7 +803,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   </form>
 </td>
 <td>
-  &nbsp;   
+  &nbsp;
 </td>
 {% endcomment %}
 {% comment "Not using Enrichr at present" %}
@@ -812,7 +812,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
     <input type="hidden" id="enrichr_list" name="list"/>
     <input type="hidden" id="enrichr_description" name="description"/>
     <input type="submit" id="enrichr_submit_button" value="Enrichr" data-value="Enrichr" onclick="show_enrichr();" />
-  </form>	
+  </form>
 </td>
 <td>
  &nbsp;
@@ -827,7 +827,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   <th data-placeholder="Search" id="dependency_col_name" style="width:125px;" data-note="Genes with dependency on selected the gene. Click on a gene name to view boxplot">Dependency</th>
   <th data-placeholder="<0.05" class="filter-select sorter-pvalue" style="width:90px; text-align:center;" data-note="Wilcox p-value"> P-value </th>
   <th data-placeholder=">= 65.0" style="width:90px; text-align:center;" data-note="Common language effect size (see FAQ page for details)">Effect size (%)</th>
-  <th data-placeholder="< 0.0" style="width:90px; text-align:center;" data-note="Z-score difference (Mutant median - Wild Type median)">&Delta;Score</th>  
+  <th data-placeholder="< 0.0" style="width:90px; text-align:center;" data-note="Z-score difference (Mutant median - Wild Type median)">&Delta;Score</th>
   <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Tissue</th>
   <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Study</th>
   <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Experiment</br>Type</th>
@@ -845,13 +845,13 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 
 {% block links_bottom %}
 <!-- or better to use defer or async keywords, but for IE<10 need window.onload.... : http://stackoverflow.com/questions/436411/where-is-the-best-place-to-put-script-tags-in-html-markup -->
-  
+
  {# Table sorter, and optional widgets: #}
   <script type="text/javascript" src="{% static 'gendep/tablesorter/js/jquery.tablesorter.min.js' %}"></script>
   <!-- script type="text/javascript" src="{% static 'gendep/tablesorter/js/jquery.tablesorter.js' %}"></script -->
   <script type="text/javascript" src="{% static 'gendep/tablesorter/js/jquery.tablesorter.widgets.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'gendep/tablesorter/js/widgets/widget-scroller.js' %}"></script>
-  
+
   {# Fancybox: #}
   <script type="text/javascript" src="{% static 'gendep/fancybox/source/jquery.fancybox.pack.js' %}"></script>
 
@@ -867,8 +867,8 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
    ga('send', 'pageview');
   </script>
   {% endif %}
-  
+
   {# Added javascript tracker for awstats screen size, etc #}
-  <script language=javascript src="/static/gendep/awstats_misc_tracker.js"></script> 
-  
+  <script language=javascript src="/static/gendep/awstats_misc_tracker.js"></script>
+
 {% endblock %}
