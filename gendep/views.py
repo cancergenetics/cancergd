@@ -397,21 +397,23 @@ def build_driver_list(webpage):
     return driver_list
 
 
-def build_driver_histotype_study_list(webpage)
+def build_driver_histotype_study_list(webpage):
     if webpage == 'searchpage':
-        driver_histotype_study_list = Gene.objects.raw("SELECT G.gene_name, D.driver AS entrez_id, "
-                                      + group_concat('D.pmid') + " AS driver_histotype_study_list, "
+        driver_histotype_study_list = Gene.objects.raw("SELECT G.gene_name, D.driver AS entrez_id, D.histotype, "
+                                      + group_concat('D.pmid') + " AS study_list "
                                       + "FROM gendep_dependency D INNER JOIN gendep_gene G ON (D.driver = G.entrez_id) "  # Now using Entrez_id as primary key for Gene
                                       + "GROUP BY D.driver, D.histotype ORDER BY G.gene_name, D.histotype ASC"
                                       )
     #elif webpage == 'driverspage':                                      
     else: html_error("build_driver_histotype_study_list() Unexpected page: '%s'" %(webpage))
 
-    print(driver_histotype_study_list.query)    
+    print(driver_histotype_study_list.query)
+    #for d in driver_histotype_study_list:
+    #    print(d.gene_name,d.entrez_id,d.histotype,d.study_list)
     return driver_histotype_study_list
-                                          
-    
-    
+
+
+
 
 def sort_list(list):
     return ','.join( sorted(list.split(',')) )

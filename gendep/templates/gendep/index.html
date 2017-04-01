@@ -216,6 +216,18 @@ var driver_array = [
 ];
 
 
+// Associative array for setting the drop-down menu of Studies, after user selects Driver and Tissue:
+var driver_histotype_study_hash = {
+  {% for s in driver_histotype_study_list %} "{{s.gene_name}}:{{s.histotype}}": "{{s.study_list}}"{% if not forloop.last %},{% endif %}
+  {% endfor %}
+};
+
+function get_study_list_for_gene_histotype(gene,histotype) {
+   var key = gene+":"+histotype;
+   // return (key in driver_histotype_study_hash) ? driver_histotype_study_hash[key] : '';
+   return (typeof driver_histotype_study_hash[key] === "undefined") ? '' : driver_histotype_study_hash[key];
+}
+
 var target_array = [
 {% if search_by == 'target' %}
    {% for g in target_list %} {value: "{{g.gene_name}}", label: "{{g.gene_name}} | {{ g.prevname_synonyms }}", synonyms: "{{ g.prevname_synonyms }}", full_name: "{{g.full_name}}", entrez_id: "{{g.entrez_id}}"}{% if not forloop.last %},{% endif %}
@@ -225,44 +237,37 @@ var target_array = [
 ]; // Maybe better to only populated by AJAX if user selects sets the 'search_by' to 'target'
 
 
-/*
-// Could use a study hash:
+
+// Study hash:
+var ishortname=0, iexptype=1, isummary=2, idetails=3; // column indexes for above study_info().
 var study_hash = {
   {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ],
   {% endfor %}
   "ALL_STUDIES": [ "All studies", "All studies", "All studies", "<b>All studies</b>" ]
 };
-*/
 
-// But probably faster using a switch statement as just four studies:
 function study_info(pmid) {
-  switch (pmid) {
-   {% for s in study_list %}
-   case "{{s.pmid}}": return [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ]; // 'break;' not needed as return
-   {% endfor %}
-   case "ALL_STUDIES": return [ "All studies", "All studies", "All studies", "<b>All studies</b>" ];
-   default: return [ "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found" ];
-  }
+  // return (pmid in study_hash) ? study_hash[pmid] : [ "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found" ];
+  return (typeof study_hash[pmid] === "undefined") ? [ "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found" ] : study_hash[pmid];
 }
-var ishortname=0, iexptype=1, isummary=2, idetails=3; // column indexes for above study_info().
 
-/*
+function study_display_shortname(pmid) {
+  return study_info(pmid)[ishortname];
+}
+
+
+
 // A dictionary might be faster:
 var histotype_display_hash = {
  {% for histotype in histotype_list %} "{{ histotype.0 }}": "{{ histotype.1 }}",
- {% endfor %}
+ {% endfor %} 
   "ALL_HISTOTYPES": "All tissues"
 };  //    default: return 'Error: Histotype "'+histotype+'" Not Found';
-*/
+    // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
 
 function histotype_display(histotype) {
-  switch (histotype) {
-	{% for histotype in histotype_list %}
-	case "{{ histotype.0 }}": return "{{ histotype.1 }}"; {% endfor %}
-    // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
-    case "ALL_HISTOTYPES": return "All tissues";// break;
-    default: return 'Error: Histotype "'+histotype+'" Not Found';
-  }
+    // return (histotype in histotype_display_hash) ? histotype_display_hash[histotype] : 'Error: Histotype "'+histotype+'" Not Found';
+    return (typeof histotype_display_hash[histotype] === "undefined" ) ? 'Error: Histotype "'+histotype+'" Not Found' : histotype_display_hash[histotype];
 }
 
 
@@ -601,61 +606,65 @@ function set_tissue_and_study_options(event, ui) {
 		                  +'<option value="PANCAN">'+histotype_display("PANCAN")+'</option>';
         $("#histotype").empty().append(options_html);
 
-		options_html = '<option value="ALL_STUDIES" selected="selected">'+study_info('ALL_STUDIES')[ishortname]+'</option>';
+		options_html = '<option value="ALL_STUDIES" selected="selected">'+study_display_shortname('ALL_STUDIES')+'</option>';
         $("#study").empty().append(options_html);
 		return;
 	  {% endif %}
 
-        var item = ui.item;   // alternatively first test: if (ui.hasOwnProperty("item")) {..... but maybe less browser support and slower
+        var item = ui.item;  // 'ui.item' is the row object from the driver_array.  // alternatively first test: if (ui.hasOwnProperty("item")) {..... but maybe less browser support and slower
 		// item is "The item selected from the menu, if any. Otherwise the property is null."
 		//console.log("Change .....");
+		var gene;
         if (typeof item  === 'undefined') {
 		  // As this change is called because directly value was set by URL eg: "/genedep/driver/SMAD2/"
 		  // Otherwise get error about: "Uncaught TypeError: Cannot read property 'tissue_list' of undefined"
-          var val = $(this).val(); // should be same as: $("#gene").val(); whereas 'this.value' maybe is only the text when ititialised.
-		  // val.toUpperCase(); // in case entered in lower case, but some gene_names are partly lower case.
+          gene = $(this).val(); // should be same as: $("#gene").val(); whereas 'this.value' maybe is only the text when ititialised.
+		  // gene.toUpperCase(); // in case entered in lower case, but some gene_names are partly lower case.
 		  //var item_array = $("#gene").data("ui-autocomplete").source; // $(this).source;  // could be the driver_array or the target_array
 		  item_array = {% if search_by == 'target' %}target_array{% else %}driver_array{% endif %}; // Maybe use AJAX call.
 	      for (var i=0; i<item_array.length; i++) {
-	        if (item_array[i].value == val) {
+	        if (item_array[i].value == gene) {
 	        item = item_array[i];
 		    break;
 		    }
 	      }
         }
-        // console.log(typeof item);
-		if ((typeof item  === 'undefined') || (item == null)) {return false;} // as not found in list, or is null if previously was set
+    // console.log(typeof item);
+	if ((typeof item  === 'undefined') || (item == null)) {return false;} // as not found in list, or is null if previously was set
+    
+    set_menu_from_list( $("#histotype"), item['tissue_list'], 'PANCAN', histotype_display );  // Using 'PANCAN', as default as removed 'ALL_HISTOTYPES' which caused larger table so slow display and filtering.
+    set_menu_from_list( $("#study"), prefix_list('ALL_STUDIES',item['study_list']), 'ALL_STUDIES', study_display_shortname );
+    }
+	
+function prefix_list(prefix, list) {
+  return (list=='') ? prefix : prefix+','+list;
+}
+	
 
-        var tissue_list = item['tissue_list'];  // 'ui.item' is the row object from the driver_array.
-		var available = tissue_list=='' ? [] : tissue_list.split(/[;,]/); // *** Temporary fix to allow for splitting for precomputed or live generated lists.
+	
+function set_menu_from_list(menu, new_option_list, default_selection, display_function) {
+	var current_selection = menu.val(); // the currently selected value if any.
+	
+	var available = new_option_list=='' ? [] : new_option_list.split(/[;,]/); // *** Temporary fix to allow for splitting for precomputed or live generated lists.
 
-		var current_val = $("#histotype").val(); // the currently selected value if any.
-		if ((current_val === null) || ($.inArray(current_val, available) == -1)) {current_val = 'PANCAN';}
-        // An alternative way is using the "new Option(...)"  see: http://www.javascriptkit.com/javatutors/selectcontent.shtml
-		//var options_html = '<option value="ALL_HISTOTYPES">'+histotype_display('ALL_HISTOTYPES')+'</option>';
-		var options_html = ''; // removed 'All Tissues' as slow table display and filtering.
-		for (var i=0; i<available.length; i++) {
-		   var selected = available[i]==current_val ? ' selected="selected"' : '';
-  	       options_html += '<option value="'+available[i]+'"'+selected+'>'+histotype_display(available[i])+'</option>';
-		}
-        $("#histotype").empty().append(options_html);
-		//console.log("Tissue menu:",options_html);
+	if ((current_selection === null) || ($.inArray(current_selection, available) == -1)) {current_selection = default_selection;}
+    // An alternative way is using the "new Option(...)"  see: http://www.javascriptkit.com/javatutors/selectcontent.shtml
+	var options_html = '';
+	for (var i=0; i<available.length; i++) {
+	    var selected = 
+  	    options_html += '<option value="'+available[i]+'"' + (available[i]==current_selection ? ' selected="selected"' : '') + '>'+display_function(available[i])+'</option>';
+	}
+    menu.empty().append(options_html);
+	//console.log("Tissue menu:",options_html);
+    }
 
-        var study_list = item['study_list'];  // 'ui.item' is the row object from the driver_array.
-		var available = study_list=='' ? [] : study_list.split(/[;,]/); // *** Temporary fix to allow for splitting for precomputed or live generated lists.
-		//console.log(available);
-		var current_val = $("#study").val(); // the currently selected value if any.
-		if ((current_val === null) || ($.inArray(current_val, available) == -1)) {current_val = 'ALL_STUDIES';}
-
-		var selected = "ALL_STUDIES"==current_val ? ' selected="selected"' : '';
-		var options_html = '<option value="ALL_STUDIES"'+selected+'>'+study_info('ALL_STUDIES')[ishortname]+'</option>';
-		for (var i=0; i<available.length; i++) {
-		   var selected = available[i]==current_val ? ' selected="selected"' : '';
-  	       options_html += '<option value="'+available[i]+'"'+selected+'>'+study_info(available[i])[ishortname]+'</option>';
-		}
-        $("#study").empty().append(options_html);
-		//console.log("Study menu:",options_html);
-	};
+function set_study_menu_for_gene_histotype() {
+    // if ((typeof gene === 'undefined') || (gene == null)) {gene = $("#gene").val();}
+    // if ((typeof histotype === 'undefined') || (histotype==null)) {histotype = $("#histotype").val();}
+    var gene = $("#gene").val();
+    var histotype = $("#histotype").val();
+    set_menu_from_list( $("#study"), prefix_list('ALL_STUDIES',get_study_list_for_gene_histotype(gene,histotype)), 'ALL_STUDIES', study_display_shortname );		
+	}
 
 
 
@@ -709,7 +718,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 
 <td style="padding-left:10px;"><label for="histotype">Tissue type:</label>
    <!-- Could alternatively use the jQuery SelectMenu widget: http://jqueryui.com/selectmenu/ -->
-   <select name="histotype" id="histotype" style="width: 140px;" >
+   <select name="histotype" id="histotype" style="width: 140px;" onchange="set_study_menu_for_gene_histotype();" >
 {# Unless a specific histotype_name parameter is passed, the tissue menu isn't populated until after the user selects a driver gene from the menu #}
      {% if histotype_name != "" %}<option value="{{ histotype_name }}" selected="selected">{{ histotype.1 }}</option>{% endif %}
   {% comment %}

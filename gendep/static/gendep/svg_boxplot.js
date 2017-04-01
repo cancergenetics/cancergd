@@ -1187,7 +1187,6 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
   } // end of if (!svg_fancybox_loaded) { ....
 
   
-  var study = study_info(study_pmid);  
   $("#boxplot_driver_details").html(
      '<b><span data-gene="'+driver+'">'+driver+'</span></b>'
 	 + ' altered cell lines have an increased dependency upon'
@@ -1196,7 +1195,7 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
      + ' | effect size='+effect_size+'%'
      + ' | &Delta;Score='+zdelta_score
 	 + ' | Tissues='+ histotype_display(histotype)
-	 + ' | Source='+ study[ishortname]
+	 + ' | Source='+ study_display_shortname(study_pmid)
 	 + ')'
 	 );
 	

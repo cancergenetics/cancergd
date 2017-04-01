@@ -78,9 +78,9 @@ function study_url(study_pmid) {
 }
 
 
-function study_weblink(study_pmid, study) {
+function study_weblink(study_pmid) {
 //	if (typeof study === 'undefined') {
-		return sprintf('<a href="%s" target="_blank">%s</a>', study_url(study_pmid),study[ishortname]);
+		return sprintf('<a href="%s" target="_blank">%s</a>', study_url(study_pmid),study_display_shortname(study_pmid));
 		// not displaying this now: study = study_info(study_pmid); 	// returns: short_name, experiment_type, summary, "title, authors, journal, s.pub_date"
 //        }
 //    return sprintf('<a class="tipright" href="%s" target="_blank">%s<span>%s</span></a>', study_url(click()), study[0], study[3] );
@@ -290,7 +290,7 @@ function show_cytoscape() {
 function show_enrichr() {
 	show_message("enrichr_submit_button", "Fetching Enrichr..."); // was: "Fetching Enrichr "+gene_set_library+" enrichment ....");
 
-    var dependency_search = global_selected_gene+", "+histotype_display(global_selected_histotype)+", "+study_info(global_selected_study)[ishortname]+'.';
+    var dependency_search = global_selected_gene+", "+histotype_display(global_selected_histotype)+", "+study_display_shortname(global_selected_study)+'.';
     var gene_list_and_count = get_id_list_for_depenedencies("\n", 'gene');
 	if (gene_list_and_count[1]==0) {
 		alert("Sorry: No gene names found in this dependency table to submit to Enrichr")
@@ -662,7 +662,7 @@ var stopat=20;	// To stop table early for testing.
 		+ effectsize_cell
 		+ zdelta_cell
         // + '<td style="'+width100+'text-align:center;">' + histotype_display(d[ihistotype]) + '</td>'
-		+ '<td style="'+width100+'text-align:center;" data-study="'+d[istudy_pmid]+'">' + study_weblink(d[istudy_pmid],study) + '</td>' // but extra text in the table, and extra on hover events so might slow things down.
+		+ '<td style="'+width100+'text-align:center;" data-study="'+d[istudy_pmid]+'">' + study_weblink(d[istudy_pmid]) + '</td>' // but extra text in the table, and extra on hover events so might slow things down.
 		+ '<td style="'+width100+'text-align:center;" data-exptype="'+d[istudy_pmid]+'">' + study[iexptype] + '</td>' // experiment type. The 'data-exptype=""' is use by tooltips
 	    + multihit_cell
         + interaction_cell
