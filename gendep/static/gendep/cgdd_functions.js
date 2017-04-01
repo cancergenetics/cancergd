@@ -507,6 +507,8 @@ function populate_table(data,t0) {
 		default: alert("Invalid search_by: "+search_by);
 	}
 
+	var histotype = qi['histotype_name'];
+	
 	// Variables for links to string.org:
 	var search_gene_string_protein = '9606.'+global_selected_gene_info['ensembl_protein_id'];
 
@@ -530,7 +532,7 @@ function populate_table(data,t0) {
 
 	// result array indexes:
 	// igene can be either driver or target depending on 'search_by'.
-	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, ihistotype=4, istudy_pmid=5, iinteraction=6, iinhibitors=7, imultihit=8; // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
+	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, istudy_pmid=4, imultihit=5, iinteraction=6, iinhibitors=7; // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
 	// In javascript array indexes are represented internally as strings, so maybe using string indexes is a bit faster??
 
 
@@ -558,7 +560,7 @@ var stopat=20;	// To stop table early for testing.
       else {driver = d[igene];}
 
 	  // The "this"	parameter correctly doesn't have quotes:
-	  var plot_function = "plot('"+ id +comma+ driver + comma + target +comma+ d[ihistotype] +comma+ d[istudy_pmid] +comma+ d[iwilcox_p] +comma+ d[ieffect_size] +comma+ d[izdelta] +"');"; // +comma+ d[itarget_variant]
+	  var plot_function = "plot('"+ id +comma+ driver + comma + target +comma+ histotype +comma+ d[istudy_pmid] +comma+ d[iwilcox_p] +comma+ d[ieffect_size] +comma+ d[izdelta] +"');"; // +comma+ d[itarget_variant]
 
       // Another way to pouplatte table is using DocumentFragment in Javascript:
       //      https://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-B63ED1A3
@@ -592,6 +594,20 @@ var stopat=20;	// To stop table early for testing.
 	  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
 	  var zdelta_cell = '<td style="'+style+'">' + d[izdelta] + '</td>';
 
+	  var style = width100+"text-align:center;";
+	  var multihit_cell;
+	  if (d[imultihit] == '') { multihit_cell = '<td style="'+style+'"></td>'; }
+	  else {
+	      var bgcolor = '';
+		  var num = d[imultihit].split(";").length;
+	      if      (num > 2)  {bgcolor=darkgreen_UCD_logo;}
+	      else if (num == 2) {bgcolor=midgreen_SBI_logo;}
+	      else               {bgcolor=lightgreen_SBI_logo;}
+		  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
+   	      // WAS: multihit_cell = '<td style="'+style+'" data-multihit="'+d[imultihit]+'">' + d[imultihit].substr(0,15) + '...</td>';
+		  multihit_cell = '<td style="'+style+'" data-multihit="'+d[imultihit]+'"> Yes </td>';
+		  }  	  
+	  
 	  var interaction_cell;
 	  var style = width100+"text-align: center;";
 	  if (d[iinteraction] == '') {interaction_cell = '<td style="'+style+'"></td>';}
@@ -638,31 +654,19 @@ var stopat=20;	// To stop table early for testing.
 		  inhibitor_cell = '<td style="'+style+' background-color: beige;">'+onclick_or_alink+'</td>';
 	  }
 	  
-	  var style = width100+"text-align:center;";
-	  var multihit_cell;
-	  if (d[imultihit] == '') { multihit_cell = '<td style="'+style+'"></td>'; }
-	  else {
-	      var bgcolor = '';
-		  var num = d[imultihit].split(";").length;
-	      if (num > 2) {bgcolor=darkgreen_UCD_logo;}
-	      else if (num == 2) {bgcolor=midgreen_SBI_logo;}
-	      else {bgcolor=lightgreen_SBI_logo;}
-		  if (bgcolor != '') {style += ' background-color: '+bgcolor+';';}
-   	      multihit_cell = '<td style="'+style+'" data-multihit="'+d[imultihit]+'">' + d[imultihit].substr(0,15) + '...</td>';
-		  }
-
 	  // In future could use the td class instead of style=... - but need to add on hoover colours, etc....
+	  // Removed tissue column as is in the box above the table, and is same for all row of the table:
 	  html += '<tr>'
 	    + '<td id="'+id+'" style="'+width125+'text-align:left; cursor:pointer;" data-gene="'+d[igene]+'" data-epid="'+string_protein+'" onclick="'+plot_function+'">' + d[igene] + '</td>' // was class="tipright" 		
         + wilcox_p_cell
 		+ effectsize_cell
 		+ zdelta_cell
-        + '<td style="'+width100+'text-align:center;">' + histotype_display(d[ihistotype]) + '</td>'
+        // + '<td style="'+width100+'text-align:center;">' + histotype_display(d[ihistotype]) + '</td>'
 		+ '<td style="'+width100+'text-align:center;" data-study="'+d[istudy_pmid]+'">' + study_weblink(d[istudy_pmid],study) + '</td>' // but extra text in the table, and extra on hover events so might slow things down.
 		+ '<td style="'+width100+'text-align:center;" data-exptype="'+d[istudy_pmid]+'">' + study[iexptype] + '</td>' // experiment type. The 'data-exptype=""' is use by tooltips
+	    + multihit_cell
         + interaction_cell
 	    + inhibitor_cell
-	    + multihit_cell
 		+ '</tr>';  // The newline character was removed from end of each row, as the direct trigger update method complains about undefined value.
 	}
 

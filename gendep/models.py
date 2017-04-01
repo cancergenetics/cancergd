@@ -85,9 +85,9 @@ class Gene(models.Model):
 class Study(models.Model):
     """ Details for the research study papers """
     EXPERIMENTTYPE_CHOICES = (
-    ('kinome siRNA', 'kinome siRNA'),
-    ('genome-wide shRNA', 'genome-wide shRNA'),
-    ('CRISPR/Cas9', 'CRISPR/Cas9'),
+    ('siRNA',  'kinome siRNA'),
+    ('shRNA',  'genome-wide shRNA'),
+    ('CRISPR', 'genome-wide CRISPR/Cas9'),
     )
     class Meta:
         verbose_name_plural = "Studies" # Otherwise the Admin page just adds a 's', ie. 'Studys'

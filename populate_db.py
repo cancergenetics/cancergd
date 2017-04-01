@@ -355,14 +355,8 @@ def optimize_database() :
         progress("Unexpected database type: %s" %(connection.vendor))
 
 
-def add_multihit_interactions() :
-    """
-    Test counts:
-    Cowley multi 1146
-    Wang 178 
-    Marcotte 970
-    Campbell 144
-    """
+def add_multihit_interactions2() :
+    """" Avoid table joins is faster """
     cgds = defaultdict(set)
     for d in Dependency.objects.all() :
         cgd = ( d.driver_id, d.target_id, d.histotype )
@@ -382,8 +376,81 @@ def add_multihit_interactions() :
             d.save()
     return
 
+def add_multihit_interactions3() :
+    """ Using SQL GROUP_CONCAT() is fastest, but in sqlite cannot order the study names within the concatinated group, wherease can order in MySQL """ 
+    rawsql = """SELECT 
+        E.gene_name AS driver_genename,
+		D.driver AS driver_entrez,
+		T.gene_name AS target_genename, 
+		D.target AS target_entrez,
+		D.interaction AS interaction, 
+		D.histotype AS tissue, 
+		E.ensembl_id AS driver_ensembl, 
+        T.ensembl_id AS target_ensembl,
+		T.ensembl_protein_id AS target_ensembl_protein,
+		T.inhibitors AS inhibitors, 
+		COUNT(DISTINCT D.pmid) AS num_studies,
+        GROUP_CONCAT(DISTINCT S.short_name) AS studies
+        FROM gendep_dependency D INNER JOIN gendep_study S ON (D.pmid = S.pmid)
+	    INNER JOIN gendep_gene E ON (D.driver = E.entrez_id)
+		INNER JOIN gendep_gene T ON (D.target = T.entrez_id)
+		GROUP BY D.driver, D.target, D.histotype
+		HAVING num_studies > 1
+		ORDER BY D.driver, D.target, D.histotype ASC;"""
+
+    # In SQLite, to put the studies in order, need to do a sub select ordered by study short_name:
+    # Perhaps having an index on the short_name might make this sub query slightly faster?
+    rawsql = """SELECT
+        E.gene_name AS driver_genename,
+		D.driver AS driver_entrez,
+		T.gene_name AS target_genename, 
+		D.target AS target_entrez,
+		D.interaction AS interaction, 
+		D.histotype AS tissue, 
+		E.ensembl_id AS driver_ensembl, 
+        T.ensembl_id AS target_ensembl,
+		T.ensembl_protein_id AS target_ensembl_protein,
+		T.inhibitors AS inhibitors, 
+		COUNT(DISTINCT D.pmid) AS num_studies,
+        GROUP_CONCAT(DISTINCT D.short_name) AS studies
+        FROM (
+            SELECT
+	            D1.driver,
+	            D1.target,
+	            D1.interaction,
+                D1.histotype,
+                D1.pmid,
+	            S.short_name
+            FROM gendep_dependency D1 INNER JOIN gendep_study S ON (D1.pmid = S.pmid)
+            ORDER BY S.short_name
+            ) D
+        INNER JOIN gendep_gene E ON (D.driver = E.entrez_id)
+	    INNER JOIN gendep_gene T ON (D.target = T.entrez_id)
+	    GROUP BY D.driver, D.target, D.histotype
+	    HAVING num_studies > 1
+	    ORDER BY D.driver, D.target, D.histotype ASC;"""
+    
+    # Can't do join with an update in sqlite, so culd try CLE instead, but need to se the last where clause the following is incorrect as updates multi_hit in all rows with the same value:
+    """ WITH B(driver,target,histotype,num_studies,studies) AS (SELECT 
+		D.driver,
+		D.target,
+		D.histotype,
+		COUNT(DISTINCT D.pmid) AS num_studies,
+        GROUP_CONCAT(DISTINCT S.short_name) AS studies
+        FROM gendep_dependency D INNER JOIN gendep_study S ON (D.pmid = S.pmid)
+		GROUP BY D.driver, D.target, D.histotype
+		HAVING num_studies > 1)
+UPDATE gendep_dependency
+  SET multi_hit = (select studies from B where driver=gendep_dependency.driver AND target=gendep_dependency.target AND histotype=gendep_dependency.histotype)
+  WHERE driver=1029 and target=11338 and histotype='HAEMATOPOIETIC_AND_LYMPHOID_TISSUE';"""
+  
+    
+
+
+    
 
 def add_multihit_interactions1() :
+    """ Using select_related() to avoid a separate SQL query being run for each dependency row """
     cgds = defaultdict(set)
     for d in Dependency.objects.select_related("driver__entrez_id", "target__entrez_id", "study__short_name").all() :
         driver = d.driver.entrez_id
@@ -438,7 +505,7 @@ if __name__ == "__main__" :
         add_string_interactions()
         
         progress("Adding multi-hit interactions to Dependency table")
-        add_multihit_interactions()
+        add_multihit_interactions2()
 
         
     progress("Optmizing database")

@@ -372,7 +372,7 @@ def build_driver_list(webpage):
 #                                      + "GROUP BY D.driver_entrez ORDER BY G.entrez_id ASC" # <-- Maybe should use this if always 1-to-1 mapping of entrez_id to driver_name
                                       + "GROUP BY D.driver ORDER BY G.gene_name ASC"   
                                       )
-
+                                      
     elif webpage == 'driverspage':
         # (1) With precomputed lists in model.py:
         # driver_list = Gene.objects.filter(is_driver=True).order_by('gene_name')  # Needs: (is_driver=True), not just: (is_driver)
@@ -397,6 +397,21 @@ def build_driver_list(webpage):
     return driver_list
 
 
+def build_driver_histotype_study_list(webpage)
+    if webpage == 'searchpage':
+        driver_histotype_study_list = Gene.objects.raw("SELECT G.gene_name, D.driver AS entrez_id, "
+                                      + group_concat('D.pmid') + " AS driver_histotype_study_list, "
+                                      + "FROM gendep_dependency D INNER JOIN gendep_gene G ON (D.driver = G.entrez_id) "  # Now using Entrez_id as primary key for Gene
+                                      + "GROUP BY D.driver, D.histotype ORDER BY G.gene_name, D.histotype ASC"
+                                      )
+    #elif webpage == 'driverspage':                                      
+    else: html_error("build_driver_histotype_study_list() Unexpected page: '%s'" %(webpage))
+
+    print(driver_histotype_study_list.query)    
+    return driver_histotype_study_list
+                                          
+    
+    
 
 def sort_list(list):
     return ','.join( sorted(list.split(',')) )
@@ -413,11 +428,13 @@ def index(request, search_by = 'driver', gene_name='', histotype_name='', study_
     
     if is_search_by_driver(search_by):
         driver_list = build_driver_list('searchpage')
+        driver_histotype_study_list = build_driver_histotype_study_list('searchpage')
         target_list = []
     else: 
         # This needs: (is_target=True), not just: (is_target)
-        target_list = Gene.objects.filter(is_target=True).only("gene_name", "entrez_id", "full_name", "prevname_synonyms").order_by('gene_name')
+        target_list = Gene.objects.filter(is_target=True).only("gene_name", "entrez_id", "full_name", "prevname_synonyms").order_by('gene_name')        
         driver_list = []
+        driver_histotype_study_list = []
 
     # From testing the three different methods give the sample results
     #print(driver_list.query)
@@ -455,7 +472,7 @@ def index(request, search_by = 'driver', gene_name='', histotype_name='', study_
     current_url =  request.META['HTTP_HOST']
 
     # Set the context dictionary to pass to the template. (Alternatively could add locals() to the context to pass all local variables, eg: return render(request, 'app/page.html', locals())
-    context = {'search_by': search_by, 'gene_name': gene_name, 'histotype_name': histotype_name, 'study_pmid': study_pmid, 'study_short_name': study_short_name, 'driver_list': driver_list, 'target_list': target_list,'histotype_list': histotype_list, 'study_list': study_list, 'experimenttype_list': experimenttype_list, 'current_url': current_url , 'settings_GOOGLE_ANALYTICS_KEY': settings.GOOGLE_ANALYTICS_KEY}
+    context = {'search_by': search_by, 'gene_name': gene_name, 'histotype_name': histotype_name, 'study_pmid': study_pmid, 'study_short_name': study_short_name, 'driver_list': driver_list, 'driver_histotype_study_list': driver_histotype_study_list, 'target_list': target_list, 'histotype_list': histotype_list, 'study_list': study_list, 'experimenttype_list': experimenttype_list, 'current_url': current_url , 'settings_GOOGLE_ANALYTICS_KEY': settings.GOOGLE_ANALYTICS_KEY}
     return render(request, 'gendep/index.html', context)
 
 
@@ -710,7 +727,7 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
 
     select = 'target' if search_by=='driver' else 'driver'
 
-    columns = "D.id, D.%s AS entrez_id, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.histotype, D.multi_hit" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
+    columns = "D.id, D.%s AS entrez_id, D.wilcox_p, D.effect_size, D.zdiff, D.interaction, D.pmid, D.multi_hit" %(select)  # Raw query must include the primary key (D.id). Should entrez_id be added now as is primary key to Gene table now?
 
     # related_columns = ", G.inhibitors, G.ensembl_protein_id"
     # related_join = " INNER JOIN gendep_gene G ON (D.%s = G.gene_name)" %(select) # Used for both query_types.
@@ -719,7 +736,7 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
 
     if query_type == 'dependency_gene_study':
 #        related_columns += ", G.full_name, G.entrez_id, G.ensembl_id, G.prevname_synonyms, S.short_name, S.experiment_type, S.title"  # don't need 'study__pmid' (as is same as d.study_id)
-        related_columns += ", G.full_name, G.ensembl_id, G.prevname_synonyms, S.short_name, S.experiment_type, S.title"  # don't need 'study__pmid' (as is same as d.study_id)
+        related_columns += ", D.histotype, G.full_name, G.ensembl_id, G.prevname_synonyms, S.short_name, S.experiment_type, S.title"  # don't need 'study__pmid' (as is same as d.study_id)
         related_join += " INNER JOIN gendep_study S ON (D.pmid = S.pmid)"
     elif query_type != 'dependency_gene':
         error_msg += " ERROR: *** Invalid 'query_type': %s ***" %(query_type)
@@ -842,11 +859,11 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     format(d.wilcox_p, ".0e").replace("e-0", "e-"),
                     format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
                     format(d.zdiff,".2f"), # Usually negative. two decomal places
-                    d.histotype,
+                    # d.histotype,
                     d.study_id,
+                    d.multi_hit,
                     d.interaction + '#' + d.ensembl_protein_id,
-                    d.inhibitors,
-                    d.multi_hit
+                    d.inhibitors
                     ])
                             
       else: # Not RAW sql        
@@ -868,11 +885,11 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     format(d.wilcox_p, ".0e").replace("e-0", "e-"),
                     format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
                     format(d.zdiff,".2f"), # Usually negative. two decomal places
-                    d.histotype,
+                    # d.histotype,
                     d.study_id,
+                    d.multi_hit,
                     interaction,
-                    inhibitors, # Formatted above
-                    d.multi_hit
+                    inhibitors # Formatted above
                     ])
                     
 
@@ -1198,11 +1215,10 @@ def contact(request):
 
 
 
-search_by_driver_column_headings_for_download = ['Dependency', 'Dependency description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Dependency synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Multiple hit', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']                                 
-search_by_target_column_headings_for_download = ['Driver', 'Driver description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Driver synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Inhibitors', 'String interaction', 'Multiple hit', 'Study', 'PubMed Id', 'Experiment Type', 'Boxplot link']
+search_by_driver_column_headings_for_download = ['Dependency', 'Dependency description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Dependency synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Study', 'PubMed Id', 'Experiment Type', 'Multiple hit', 'String interaction', 'Inhibitors', 'Boxplot link']                                 
+search_by_target_column_headings_for_download = ['Driver', 'Driver description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Driver synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue',  'Study', 'PubMed Id', 'Experiment Type', 'Multiple hit', 'String interaction', 'Inhibitors', 'Boxplot link']
 
 
-# ===========================================    
 def download_dependencies_as_csv_file(request, search_by, entrez_id, histotype_name, study_pmid, delim_type='csv'):
     """ Creates then downloads the current dependency result table as a tab-delimited file.
     The download get link needs to contain: serach_by, gene, tissue, study parameters.
@@ -1378,19 +1394,19 @@ def write_csv_or_tsv_file(response, dependency_list, search_by_driver, query_tex
             format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
             format(d.zdiff,".2f"), # Usually negative
             Dependency.histotype_full_name(d.histotype),  # was: d.get_histotype_display()
-            d.inhibitors,
+            d.short_name,  d.study_id,  d.experiment_type,
+            d.multi_hit,            
             d.interaction,
-            d.multi_hit,
-            d.short_name,  d.study_id,  d.experiment_type         
+            d.inhibitors
         ])
                 # d.study_id is same as 'd.study.pmid'        
         # Could add weblinks to display the SVG boxplots by pasting link into webbrowser:
         # this 'current_url' is a temporary fix: (or use: StaticFileStorage.url )
         # 'http://'+current_url+'/static/gendep/boxplots/'+d.boxplot_filename()
 
-            
+        
     # Finally slose the StringIO file:
-    file_description = "A total of %d dependencies were found for: " %(count) + query_text    
+    file_description = "A total of %d dependencies were found for: " %(count) + query_text
     # Start with a comma or tab to add an extra first column so Excel knows from first row that is CSV.
     # The "\n" could be "\r\n" if windows dialect of csv writer was used:
     response.write( ("," if delim_type=='csv' else "\t") + file_description + "\n" + response_stringio.getvalue() )   # getvalue() similar to:  response_stringio.seek(0); response_stringio.read()
@@ -1448,12 +1464,13 @@ def write_xlsx_file(response, dependency_list, search_by_driver, query_text, col
     # Now write the dependency rows:
     count = 0
     for d in dependency_list:  # Not using iteractor() as count() above will already have run the query, so is cached, as the rawsql doesn't support iterator()
-        count+=1        
+        count+=1
         # If could use 'target AS gene' or 'driver AS gene' in the django query then would need only one output:        
         # Cannot use 'gene_id' as variable, as that will refer to the primary key of the Gene table, so returns a tuple.
         # gene_symbol = d.target_id if search_by_driver else d.driver_id  # d.target_id but returns name as a tuple, # same as: d.target.gene_name
                 
         row += 1
+
         ws.write_string(row,   0, d.gene_name, bold)
         ws.write_string(row,   1, d.full_name)
         ws.write_string(row,   2, d.entrez_id)
@@ -1464,22 +1481,22 @@ def write_xlsx_file(response, dependency_list, search_by_driver, query_text, col
         ws.write_number(row,   7, d.effect_size, percent_format)
         ws.write_number(row,   8, d.zdiff,       two_decimal_places)
         ws.write_string(row,   9, Dependency.histotype_full_name(d.histotype))
-        ws.write_string(row,  10, d.inhibitors)
-        ws.write_string(row,  11, d.multi_hit)
-        ws.write_string(row,  12, d.interaction, align_center)
-        ws.write_string(row,  13, d.short_name)
-        ws.write_url(   row,  14, url=Study.url(d.study_id), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'
-        # WAS:  ws.write_url(   row,  13, url=d.study.url(), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.study.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'            
-        ws.write_string(row,  15, d.experiment_type)
-        # ws.write_string(row, 15, d.study.summary)
+        ws.write_string(row,  10, d.short_name)
+        ws.write_url(   row,  11, url=Study.url(d.study_id), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'
+        # WAS:  ws.write_url(   row,  11, url=d.study.url(), string=d.study_id, tip='PubmedId: '+d.study_id+' : '+d.study.title)  # cell_format=bg_yellow  # d.study_id is same as 'd.study.pmid'
+        ws.write_string(row,  12, d.experiment_type)
+        ws.write_string(row,  13, d.multi_hit)
+        ws.write_string(row,  14, d.interaction, align_center)
+        ws.write_string(row,  15, d.inhibitors)
+        # WAS: ws.write_string(row, 16, d.study.summary)
         
         # ADD THE FULL STATIC PATH TO THE url = .... BELOW:
         # ws.write_url(   row, 14, url = 'gendep/boxplots/'+d.boxplot_filename, string=d.boxplot_filename, tip='Boxplot image')
         # ws.insert_image(row, col, STATIC.....+d.boxplot_filename [, options]) # Optionally add the box-plots to excel file.
-            
+
     # Finally: 
     file_description = "A total of %d dependencies were found for: " %(count) + query_text
-    
+
     # Close the Excel file:
     ws.write_string( description_row, 1, file_description )
     workbook.set_properties({
