@@ -120,10 +120,12 @@ class Study(models.Model):
         # Fix the problem with reverse() later.
         pmid = self_or_studyid if isinstance(self_or_studyid, str) else self_or_studyid.pmid        
         return ('/gendep/study/%s/' if pmid[0:7]=='Pending' else 'http://www.ncbi.nlm.nih.gov/pubmed/%s') %(pmid)
-        
-    def weblink(self):
-        return '<a class="tipright" href="%s" target="_blank">%s<span>%s, %s et al, %s, %s</span></a>' %(self.url(), self.short_name, self.title, self.authors[0:30], self.journal, self.pub_date)
 
+    # def weblink(self):
+    #    return '<a class="tipright" href="%s" target="_blank">%s<span>%s, %s et al, %s, %s</span></a>' %(self.url(), self.short_name, self.title, self.authors[0:30], self.journal, self.pub_date)
+
+    def study_detail(self):
+        return '"%s", %s....et al, <i>%s, %s</i>' %(self.title, self.authors[:30], self.journal, self.pub_date)
 
 # This histotype class is now a choices tuple within the Dependency class:
 # class Histotype(models.Model):

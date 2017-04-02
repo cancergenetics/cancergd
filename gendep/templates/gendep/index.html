@@ -243,15 +243,14 @@ var target_array = [
 
 
 
-// Study hash:
+// Studies:
 var ishortname=0, iexptype=1, isummary=2, idetails=3; // column indexes for above study_info().
 var study_hash = {
-  {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ],
+  {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '{{ s.study_detail|safe }}' ],
   {% endfor %} "ALL_STUDIES": [ "All studies", "All studies", "All studies", "<b>All studies</b>" ]
 };
 
 function study_info(pmid) {
-  // return (pmid in study_hash) ? study_hash[pmid] : [ "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found" ];
   return (typeof study_hash[pmid] === "undefined") ? [ "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found", "Error: Study Not Found" ] : study_hash[pmid];
 }
 
@@ -260,16 +259,13 @@ function study_display_shortname(pmid) {
 }
 
 
-
-// A dictionary might be faster:
+// Histotypes:
 var histotype_display_hash = {
  {% for histotype in histotype_list %} "{{ histotype.0 }}": "{{ histotype.1 }}",
  {% endfor %} "ALL_HISTOTYPES": "All tissues"
-};  //    default: return 'Error: Histotype "'+histotype+'" Not Found';
-    // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
+};  // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
 
 function histotype_display(histotype) {
-    // return (histotype in histotype_display_hash) ? histotype_display_hash[histotype] : 'Error: Histotype "'+histotype+'" Not Found';
     return (typeof histotype_display_hash[histotype] === "undefined" ) ? 'Error: Histotype "'+histotype+'" Not Found' : histotype_display_hash[histotype];
 }
 
