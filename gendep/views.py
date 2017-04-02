@@ -1199,12 +1199,14 @@ def studies(request):
     # Could also add driver names lists in this query:
     study_list = Study.objects.raw("SELECT S.pmid, S.title, S.authors, S.experiment_type, S.journal, S.pub_date, S.num_targets, "
                                  + "COUNT(DISTINCT D.driver) AS num_drivers, "  # Or change to driver_entrez ?
-                                 + "COUNT(DISTINCT D.histotype) AS num_histotypes, "
+                                 + "COUNT(DISTINCT D.histotype) AS num_histotypes, "                                 
+                                 + group_concat('D.histotype') + " AS histotype_list, "
                                  + "COUNT(DISTINCT D.target) AS num_targets_in_db "  # Not displayed at present
                                  + "FROM gendep_dependency D INNER JOIN gendep_study S ON (D.pmid = S.pmid) "
                                  + "GROUP BY D.pmid ORDER BY S.pmid ASC"
                                  )
-    context = {'study_list': study_list}
+    histotype_list = Dependency.HISTOTYPE_CHOICES                                 
+    context = {'study_list': study_list, 'histotype_list': histotype_list}
     return render(request, 'gendep/studies.html', context)
 
 def faq(request):

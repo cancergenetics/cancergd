@@ -1,23 +1,146 @@
 {% extends 'gendep/base.html' %}
 {% load staticfiles %}
+{% block links_top %}
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" class="ui-theme" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
+<style type="text/css">
+  .ui-tooltip {
+    padding: 5px 5px;
+    background: #ffffc0;
+	/*color: white; */
+    border-radius: 10px;	
+	z-index: 2147478001;  /* So will appear above the fancybox 2147478000*/
+    font: bold 12px "Helvetica Neue", Sans-Serif;
+  }
+</style>
+
+
+<script type="text/javascript">
+
+// Convert the histotypes to display names, eg:.
+// In future could sort displaynames into alphabetic order, as not sorted by the SQLite database query (but should be by the MySQL query)
+function histotypes_to_displaynames(histotype_list) {
+  var displaynames = "";
+  var histotypes = histotype_list.split(",");
+  for (var i=0; i<histotypes.length; i++) {
+    if (displaynames !== "") {displaynames += ", ";}
+    switch (histotypes[i]) {
+      case "": break;
+      {% for histotype in histotype_list %}
+      case "{{ histotype.0 }}": displaynames += "{{ histotype.1 }}"; break; {% endfor %}	
+      // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
+      case "ALL_HISTOTYPES": displaynames += "All tissues"; break; // Not needed.
+      default: displaynames+= 'Error: Histotype "'+histotypes[i]+'" Not Found';
+    }
+  }
+  return displaynames;
+}
+
+
+
+  function add_tooltips_to_driver_table() {
+	// Initialise the Tooltips
+	$('#study_table_tbody').tooltip({
+	  items: "[data-authors], [data-experiment_type], [data-histotype_list]",
+	  show: false, // effect
+	  hide: false,
+      track: true, // follow mouse
+	  position: {
+        my: "center+15% bottom-20",  // this center+10% should match the ".arrow.left {left: 40%;} in 'style.css' file
+        at: "center top",
+	    using: function( position, feedback ) {
+          $( this ).css( position );
+		  
+		  $( "<div>" )
+            .addClass( "arrow" )
+            .addClass( feedback.vertical )
+            .addClass( feedback.horizontal )
+            .appendTo( this );
+        }
+	  },
+	  
+      content: function(callback) {  // 'callback' function is called below with the data:
+        var element = $( this );
+/*
+        if ( element.is( "[data-study_list]" ) ) {
+          var gene_name = element.attr("data-gene");  // was: = element.text();
+		  if (gene_name in gene_info_cache) {
+			var result = format_gene_info_for_tooltip(gene_info_cache[gene_name]);
+			callback(result);
+			}
+		  else {
+            var url = global_url_gene_info_for_mygene.replace('mygene',gene_name);
+            $.ajax({
+              url: url,
+              dataType: 'json', 
+            })
+            .done(function(data, textStatus, jqXHR) {  // or use .always(...)
+              if (data['success']) {
+			  	gene_info_cache[gene_name] = data; // cache to retrieve faster next time.
+			    result = format_gene_info_for_tooltip(data);
+			    callback(result);
+				}
+			  else {callback("Error: "+data['message'])}
+		    })
+		    .fail(function(jqXHR, textStatus, errorThrown) {
+			  callback("Ajax Failed: '"+textStatus+"'  '"+errorThrown+"'");
+            })
+		  }
+        }
+*/        
+ 
+        if ( element.is( "[data-authors]" ) ) {
+          return element.attr("data-authors");
+        }
+        if ( element.is( "[data-authors]" ) ) {
+          return element.attr("data-authors");
+        }				
+        else if ( element.is( "[data-experiment_type]" ) ) {
+//	      var study_list = study_info(element.attr("data-study").split(',') );
+//        return '<b>'+study[iexptype]+':</b> '+study[isummary];
+//          return '<b>'+study[ishortname]+':</b> '+study[idetails];
+          return element.attr("data-experiment_type");
+        }
+        else if ( element.is( "[data-histotype_list]" ) ) {
+// Convert the histotypes to their full_names:      
+//        var histotype_list = element.attr("data-histotype_list").split(',');
+          return histotypes_to_displaynames(element.attr("data-histotype_list"));   // was: .replace(/,/g, ', ');
+        }
+      }    // end of 'content:'
+   });  // end of tooltip
+}
+
+
+$(document).ready(function() {
+    add_tooltips_to_driver_table();
+    }) 
+    
+</script>
+{% endblock %}
+
+
 {% block content %}
 <p>Studies included in this database:<p/>
 {% endblock %}
 {% block table %}
-<table cellpadding="3" class="tabler">
+<table cellpadding="3" class="tabler" id="study_table">
 <thead><tr><th>Link</th><th>PubMed ID</th><th>Title:</th><th>Authors</th><th>Experiment type</th><th>Journal</th>{#<th>Publication date</th>#}<th>Drivers</th><th>Tissues</th><th>Targets</th>{#<th>Num targets in database</th>#}</tr></thead>
-<tbody>
+<tbody id="study_table_tbody">
 {% for study in study_list %}
 <tr>
 <td>{{ study.weblink|safe }}</td>
-<td>{{ study.pmid }}</td>
+<td style="text-align:center">{{ study.pmid }}</td>
 <td>{{ study.title }}</td>
-<td><a class="tip" href="#">{{ study.authors|slice:":30" }} et al<span>{{ study.authors }}</span></a></td>
-<td><a class="tip" href="#">{{ study.experiment_type }}<span>{{ study.summary }}</span></a></td>
+<td data-authors="{{ study.authors }}">{{ study.authors|slice:":30" }} et al</td>
+<td style="text-align:center" data-experiment_type="{{ study.summary }}">{{ study.experiment_type }}</td>
 <td>{{ study.journal }}</td>
 {#<td>{{ study.pub_date }}</td>#}
 <td style="text-align:center">{{ study.num_drivers }}</td>
-<td style="text-align:center">{{ study.num_histotypes }}</td>
+<td style="text-align:center" data-histotype_list="{{ study.histotype_list }}">{{ study.num_histotypes }}</td>
 <td style="text-align:center">{{ study.num_targets }}</td>
 {# <td style="text-align:center">{{ study.num_targets_in_db }}</td> #}
 </tr>

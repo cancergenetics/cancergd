@@ -6,7 +6,6 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-
 {# OR when running my laptop offline, temporarily using these local files instead of the above google server ones: #}
 {% comment %}
   {# On PC: #}
@@ -101,14 +100,24 @@
     font: bold 12px "Helvetica Neue", Sans-Serif;
   }
 
-  /* .ui-autocomplete */
+
+  /* .ui-autocomplete: */
+  .ui-autocomplete {
+    max-height: 500px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+  }
   li.ui-menu-item.ui-state-focus {
-    /* color: green; */
+     color: white;
     /* background: #96B202; */
-    background: #92C747;
+    /* background: #92C747; */
+	background: #ACCEF7;
     /* outline: none; */
   }
-
+ 
+  
+  
 /* Or maybe:
 
    li.ui-menu-item:hover{background-color:#92C747}
@@ -205,26 +214,22 @@ var boxplot_cache = {}; // Used by the "svg_boxplots.js" script to cache boxplot
 
 var experimenttype_array = [
    {% for experimenttype in experimenttype_list %} {value: "{{ experimenttype.0 }}" }{% if not forloop.last %},{% endif %}
-   {% endfor %}
-];
+   {% endfor %} ];
 
 // Using this preloaded array gives faster response than AJAX call - but in future the driver list may grow too big to preload quickly.
 // Normally needs a 'label' property, needs to contain the gene_name as it is the label that is searched for the characters pressed. Maybe add a separate description field.
 var driver_array = [
   {% for g in driver_list %}{value: "{{g.gene_name}}", label: "{{g.gene_name}} | {{ g.prevname_synonyms }}", synonyms: "{{ g.prevname_synonyms }}", full_name: "{{g.full_name}}", entrez_id: "{{g.entrez_id}}", tissue_list: "{{g.driver_histotype_list}}", study_list: "{{g.driver_study_list}}" }{% if not forloop.last %},{% endif %}
-  {% endfor %}
-];
+  {% endfor %} ];
 
 
 // Associative array for setting the drop-down menu of Studies, after user selects Driver and Tissue:
 var driver_histotype_study_hash = {
   {% for s in driver_histotype_study_list %} "{{s.gene_name}}:{{s.histotype}}": "{{s.study_list}}"{% if not forloop.last %},{% endif %}
-  {% endfor %}
-};
+  {% endfor %} };
 
 function get_study_list_for_gene_histotype(gene,histotype) {
    var key = gene+":"+histotype;
-   // return (key in driver_histotype_study_hash) ? driver_histotype_study_hash[key] : '';
    return (typeof driver_histotype_study_hash[key] === "undefined") ? '' : driver_histotype_study_hash[key];
 }
 
@@ -232,9 +237,9 @@ var target_array = [
 {% if search_by == 'target' %}
    {% for g in target_list %} {value: "{{g.gene_name}}", label: "{{g.gene_name}} | {{ g.prevname_synonyms }}", synonyms: "{{ g.prevname_synonyms }}", full_name: "{{g.full_name}}", entrez_id: "{{g.entrez_id}}"}{% if not forloop.last %},{% endif %}
    {% endfor %}
-{% endif %}
+{% endif %}  ];
 // For targets, there is no: , tissue_list: "{{target.target_histotype_list}}", study_list: "{{target.target_study_list}}"
-]; // Maybe better to only populated by AJAX if user selects sets the 'search_by' to 'target'
+// Maybe better to only populated by AJAX if user selects sets the 'search_by' to 'target'
 
 
 
@@ -242,8 +247,7 @@ var target_array = [
 var ishortname=0, iexptype=1, isummary=2, idetails=3; // column indexes for above study_info().
 var study_hash = {
   {% for s in study_list %}"{{s.pmid}}": [ "{{s.short_name}}", "{{s.experiment_type}}", "{{s.summary}}", '"{{s.title}}", {{s.authors|slice:"0:30"}}....et al, <i>{{s.journal}}, {{s.pub_date}}</i>' ],
-  {% endfor %}
-  "ALL_STUDIES": [ "All studies", "All studies", "All studies", "<b>All studies</b>" ]
+  {% endfor %} "ALL_STUDIES": [ "All studies", "All studies", "All studies", "<b>All studies</b>" ]
 };
 
 function study_info(pmid) {
@@ -260,8 +264,7 @@ function study_display_shortname(pmid) {
 // A dictionary might be faster:
 var histotype_display_hash = {
  {% for histotype in histotype_list %} "{{ histotype.0 }}": "{{ histotype.1 }}",
- {% endfor %} 
-  "ALL_HISTOTYPES": "All tissues"
+ {% endfor %} "ALL_HISTOTYPES": "All tissues"
 };  //    default: return 'Error: Histotype "'+histotype+'" Not Found';
     // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
 
@@ -507,7 +510,7 @@ if (log_timings) {console.log("Showed result div: ",performance.now()-t0); t0 = 
 	    // Add the item's value as a data attribute on the <li>
 		// see: https://api.jqueryui.com/autocomplete/#method-_renderItem
         return $( "<li>" )
-            .append( "<a><b>" + item.value + "</b> | " + item.synonyms + '<br/><font size="-2">' + "Entrez: <b>"+item.entrez_id + "</b> &nbsp; &nbsp; &nbsp; " + item.full_name + "</font></a>" )
+            .append( "<div><a><b>" + item.value + "</b> | " + item.synonyms + '<br/><font size="-2">' + "Entrez: <b>"+item.entrez_id + "</b> &nbsp; &nbsp; &nbsp; " + item.full_name + "</font></a></div>" )
             .appendTo( ul );
     };  // .val('SMAD4').data('autocomplete')._trigger('change');
 
