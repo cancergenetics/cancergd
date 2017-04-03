@@ -93,23 +93,23 @@ function gene_external_links(id, div, all) {
   // was previously in 'models.py'
   // Note the above sprinf() returns empty string if variable is undefined.
   // console.log("external_links ids=",id)
-//links  = '<a class="tip" href="http://www.genecards.org/cgi-bin/carddisp.pl?gene='+id['gene_name']+'" target="_blank">GeneCards<span>Genecards: '+id['gene_name']+'</span></a> ';
-  links  = '<a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene='+id['gene_name']+'" target="_blank" title="Genecards: '+id['gene_name']+'">GeneCards</a> ';
-  if (id['entrez_id'] != '') {links += div+' <a class="tip" href="https://www.ncbi.nlm.nih.gov/gene/'+id['entrez_id']+'" target="_blank">Entrez<span>Entrez Gene at NCBI: '+id['entrez_id']+'</span></a> ';}
-  if (id['ensembl_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=%s" target="_blank">Ensembl<span>Ensembl Gene: %s</span></a> ', id['ensembl_id'], id['ensembl_id']);}
-    // Ensembl_protein not needed now: if (all && (id['ensembl_protein_id'] != '')) {links += div + sprintf(' <a class="tip" href="http://www.ensembl.org/Homo_sapiens/protview?peptide=%s" target="_blank">Ensembl_protein<span>Ensembl Protein: %s</span></a> ', id['ensembl_protein_id'],id['ensembl_protein_id']);}
-  // Hiding HGNC to save space: if (id['hgnc_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=%s" target="_blank">HGNC<span>HUGO Gene Nomenclature Committee: %s</span></a> ', id['hgnc_id'], id['hgnc_id']);}
+//links  = '<a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene='+id['gene_name']+'" target="_blank" data-link="Genecards: '+id['gene_name']+'">GeneCards</a> ';
+  links  = '<a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene='+id['gene_name']+'" target="_blank" data-link="Genecards: '+id['gene_name']+'">GeneCards</a> ';
+  if (id['entrez_id'] != '') {links += div+' <a href="https://www.ncbi.nlm.nih.gov/gene/'+id['entrez_id']+'" target="_blank" data-link="Entrez Gene at NCBI: '+id['entrez_id']+'">Entrez</a> ';}
+  if (id['ensembl_id'] != '') {links += div + sprintf(' <a href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=%s" target="_blank" data-link="Ensembl Gene: %s">Ensembl</a> ', id['ensembl_id'], id['ensembl_id']);}
+    // Ensembl_protein not needed now: if (all && (id['ensembl_protein_id'] != '')) {links += div + sprintf(' <a href="http://www.ensembl.org/Homo_sapiens/protview?peptide=%s" target="_blank" data-link="Ensembl Protein: %s">Ensembl_protein</a> ', id['ensembl_protein_id'],id['ensembl_protein_id']);}
+  // Hiding HGNC to save space: if (id['hgnc_id'] != '') {links += div + sprintf(' <a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=%s" target="_blank" data-link="HUGO Gene Nomenclature Committee: %s">HGNC</a> ', id['hgnc_id'], id['hgnc_id']);}
   if (all) {
-    // No loner showing VEGA: if (id['vega_id'] != '') {links += div + sprintf(' <a class="tip" href="http://vega.sanger.ac.uk/Homo_sapiens/Gene/Summary?g=%s" target="_blank">Vega<span>Vertebrate Genome Annotation: %s</span></a> ', id['vega_id'], id['vega_id']);}
-    if (id['omim_id'] != '') {links += div + sprintf(' <a class="tip" href="http://www.omim.org/entry/%s" target="_blank">OMIM<span>Online Mendelian Inheritance in Man: %s</span></a> ', id['omim_id'], id['omim_id']);}
-    links += div + sprintf(' <a class="tip" href="http://www.cancerrxgene.org/translation/Search?query=%s" target="_blank">CancerRxGene<span>CancerRxGene search: %s</span></a> ', id['gene_name'],id['gene_name']);
+    // No loner showing VEGA: if (id['vega_id'] != '') {links += div + sprintf(' <a href="http://vega.sanger.ac.uk/Homo_sapiens/Gene/Summary?g=%s" target="_blank" data-link="Vertebrate Genome Annotation: %s">Vega</a> ', id['vega_id'], id['vega_id']);}
+    if (id['omim_id'] != '') {links += div + sprintf(' <a href="http://www.omim.org/entry/%s" target="_blank" data-link="Online Mendelian Inheritance in Man: %s">OMIM</a> ', id['omim_id'], id['omim_id']);}
+    links += div + sprintf(' <a href="http://www.cancerrxgene.org/translation/Search?query=%s" target="_blank" data-link="CancerRxGene search: %s">CancerRxGene</a> ', id['gene_name'],id['gene_name']);
 	}
-  links += div + sprintf(' <a class="tip" href="http://www.cbioportal.org/ln?q=%s" target="_blank">cBioPortal<span>cBioPortal for Cancer Genomics: %s</span></a> ', id['gene_name'],id['gene_name']);
-  if (id['cosmic_id'] != '') {links += div + sprintf(' <a class="tip" href="http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=%s" target="_blank">COSMIC<span>Catalogue of Somatic Mutations in Cancer: %s</span></a> ', id['cosmic_id'],id['cosmic_id']);}
-  if (id['uniprot_id'] != '') {links += div + sprintf(' <a class="tip" href="https://cansar.icr.ac.uk/cansar/molecular-targets/%s/" target="_blank">CanSAR<span>CanSAR: %s</span></a> ', id['uniprot_id'],id['uniprot_id']);}  // CanSAR uses UniProt ids
-  if (all && (id['uniprot_id'] != '')) {links += div + sprintf(' <a class="tip" href="http://www.uniprot.org/uniprot/%s" target="_blank">UniProtKB<span>UniProtKB: %s</span></a> ', id['uniprot_id'],id['uniprot_id']);}
-  if (id['entrez_id'] != '') {links += div + ' <a class="tip" href="http://www.genomernai.org/genedetails/' +id['entrez_id'] + '" target="_blank">GenomeRNAi<span>GenomeRNAi - phenotypes from RNA interference</span></a> ';}  // as links are eg:  http://www.geneomernai.org/genedetails/2064
-  if (id['ensembl_id'] != '') {links += div + ' <a class="tip" href="https://www.targetvalidation.org/target/' +id['ensembl_id'] + '" target="_blank">Open Targets<span>Open Targets</span></a> ';}  // as links are eg:https://www.targetvalidation.org/target/ENSG00000047936
+  links += div + sprintf(' <a href="http://www.cbioportal.org/ln?q=%s" target="_blank" data-link="cBioPortal for Cancer Genomics: %s">cBioPortal</a> ', id['gene_name'],id['gene_name']);
+  if (id['cosmic_id'] != '') {links += div + sprintf(' <a href="http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=%s" target="_blank" data-link="Catalogue of Somatic Mutations in Cancer: %s">COSMIC</a> ', id['cosmic_id'],id['cosmic_id']);}
+  if (id['uniprot_id'] != '') {links += div + sprintf(' <a href="https://cansar.icr.ac.uk/cansar/molecular-targets/%s/" target="_blank" data-link="CanSAR: %s">CanSAR</a> ', id['uniprot_id'],id['uniprot_id']);}  // CanSAR uses UniProt ids
+  if (all && (id['uniprot_id'] != '')) {links += div + sprintf(' <a href="http://www.uniprot.org/uniprot/%s" target="_blank" data-link="UniProtKB: %s">UniProtKB</a> ', id['uniprot_id'],id['uniprot_id']);}
+  if (id['entrez_id'] != '') {links += div + ' <a href="http://www.genomernai.org/genedetails/' +id['entrez_id'] + '" target="_blank" data-link="GenomeRNAi - phenotypes from RNA interference: '+id['entrez_id']+'">GenomeRNAi</a> ';}  // as links are eg:  http://www.geneomernai.org/genedetails/2064
+  if (id['ensembl_id'] != '') {links += div + ' <a href="https://www.targetvalidation.org/target/' +id['ensembl_id'] + '" target="_blank" data-link="Open Targets: '+id['ensembl_id']+'">Open Targets</a> ';}  // as links are eg:https://www.targetvalidation.org/target/ENSG00000047936
 
   return links;
 }

@@ -49,9 +49,8 @@ var svgWidth=500, svgHeight=500;
 var XscreenMin=50,  XscreenMax=(svgWidth-10); // To allow for a margin of 50px at left, and 10px at right
 var YscreenMin=(svgHeight-50), YscreenMax=10; // To allow a margin of 50px at bottom, and small 10px margin at top
 var wtxc=1.6, muxc=3.8, boxwidth=1.8;
-var svg, xscale, yscale, Yscreen0, lines;
+var svg, xscale, yscale, Yscreen0, points;
 var tissue_lists={};
-var cellline_count;
 
 var collusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
 var PointRadius = 5; // Radius of Circle on the SVG plot.
@@ -69,9 +68,32 @@ var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=nul
 
 // Array indexes for the 7-number boxplot_stats():
 var ilowerwhisker=1, ilowerhinge=2, imedian=3, iupperhinge=4, iupperwhisker=5; // also: ilowest=0, ihighest=6
-  
 
-    
+
+
+function parse_boxplot_csv_data_into_points_array(boxplot_csv) {
+  var data_lines = boxplot_csv.split(";");
+  //console.log("data_lines.length = "+data_lines.length);
+
+  points = []; // 'points' is global array used by the tooltip on hoover, etc.
+  points.push(data_lines[0].split(","));  // The first line is: cellline_count, y-axis_min, y-axis_max, and wt & mu box stats.
+
+  var NA_total = 0; // count of lines with y='NA'
+  for (var i=1; i<data_lines.length; i++) {  
+    var col = data_lines[i].split(",");	
+    if (col[iy]=='NA') {console.log("Skipping "+col[icellline]+" "+tissue+" as y='"+col[iy]+"'"); NA_total++; continue;}
+    if (col[itissue]=="OSTEOSARCOMA") {col[itissue]="BONE";}  // BONE is "OSTEOSARCOMA" in the tissue_colours array.
+	points.push(col);
+  }    
+
+  var cellline_count = parseInt(points[0][0]) - NA_total; // Ignore these 'NA' points.
+  
+  // The "cellline_count" is the number of cell_lines. So add 1 lines for first points(cellline_count,range,wt_box,mu_box).
+  if (points.length-1 != cellline_count) {alert( "Boxplot data length mismatch: "+(points.length-1)+" != "+cellline_count+" -NA_total")}  
+  }
+
+
+  
 function draw_svg_boxplot(driver, target, boxplot_data) {
   if ((typeof boxplot_data !== 'undefined') && (boxplot_data!='')) {boxplot_csv=boxplot_data;} // so this function was called by AJAX success.
   
@@ -80,15 +102,9 @@ function draw_svg_boxplot(driver, target, boxplot_data) {
 
   remove_existing_svg_elems();
   
-  lines = boxplot_csv.split(";"); // 'lines' is global as is used by the tooltip on hoover
-  var col = lines[0].split(",");  // y-axis range and wt & mu box stats
-  
-  cellline_count = parseInt(col[0]); // is global variable. // .split(",")[1]
-  // The "cellline_count" is the number of cell_lines. So add 1 lines for first svg_line(cellline_count,range,wt_box,mu_box).
-  
-  if (lines.length-1 != cellline_count) {alert( "Boxplot data length mismatch: "+(lines.length-1)+" != "+cellline_count )}
+  parse_boxplot_csv_data_into_points_array(boxplot_csv);
 
-  var ymin = parseInt(col[1]), ymax = parseInt(col[2]);
+  var ymin = parseInt(points[0][1]), ymax = parseInt(points[0][2]);
 
   // These are global:
   // From: http://www.i-programmer.info/programming/graphics-and-imaging/3254-svg-javascript-and-the-dom.html
@@ -103,16 +119,16 @@ function draw_svg_boxplot(driver, target, boxplot_data) {
 
   // Instead of using the box_stats calculated by the R script:
   // To match my javascript boxplot_stats() which return 7 numbers, starting at position 1 (as zero should be the lowest extreme point)   
-  // var wt_boxstats = []; for (var i=0; i<5; i++) {wt_boxstats[i+1] = parseFloat(col[iwtbox+i]);}
-  // var mu_boxstats = []; for (var i=0; i<5; i++) {mu_boxstats[i+1] = parseFloat(col[imubox+i]);}
+  // var wt_boxstats = []; for (var i=0; i<5; i++) {wt_boxstats[i+1] = parseFloat(points[0][iwtbox+i]);}
+  // var mu_boxstats = []; for (var i=0; i<5; i++) {mu_boxstats[i+1] = parseFloat(points[0][imubox+i]);}
   // Store the boxplot lines and rectangle in global array, so can adjust position later:
   // wt_boxplot_elems = boxplot( wtxc, boxwidth, wt_boxstats, "wtbox1", wt_boxplot_elems);
   // mu_boxplot_elems = boxplot( muxc, boxwidth, mu_boxstats, "mubox1", mu_boxplot_elems);
   // Can calculate box_stats (false means don't check the tissue checkboxes):
   update_boxplots(false); // sets wt_boxplot_elems and mu_boxplot_elems arrays, and creates/updates the boxplot box and whisker positions.
 	
-  // beeswarm(lines, wtxc-1*boxwidth, muxc-2*boxwidth, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
-  beeswarm(lines, wtxc, muxc, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
+  // beeswarm(points, wtxc-1*boxwidth, muxc-2*boxwidth, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
+  beeswarm(points, wtxc, muxc, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
 
   add_target_info_to_boxplot(target); // this gene info and ncbi_summary is returned with the boxplot_data from the AJAX call.
 
@@ -213,39 +229,65 @@ function highlight_mutant_points(alteration_code, polygon_class) {
     //   "2" = copy number (is one a deletion and one an amplification?)
 	// test on driver: ARID1B, target: PIK3R2
 	//console.log("highlight_mutant_points: "+alteration_code+" r:"+stroke_width);
-    for (var i=1; i<lines.length; i++) { // corectly starts at i=1, as lines[0] is the boxplot dimensions.	
-        var col = lines[i].split(",");
-        if (col[iy]=='NA') {continue;}
-		//console.log("i"+i.toString()+" col[]:"+col[imutant]);
-	    if (col[imutant]==alteration_code) {
+    for (var i=1; i<points.length; i++) { // correctly starts at i=1, as points[0] is the boxplot dimensions.	
+	    if (points[i][imutant]==alteration_code) {
 			e = document.getElementById("c"+i.toString());
-			//console.log("e:"+e.id+" set polygon_class:"+polygon_class);
 	        // e.setAttribute("stroke-width", stroke_width);  // This didn't work as is over-ruled by the polygon class which has stroke-width of 1px, so change the class instead:
-            //console.log("class before:"+e.getAttribute('class'));
 			e.setAttribute('class', polygon_class);
-            //console.log("class after:"+e.getAttribute('class'));			
 		    }
 	    }
     }	
 	
 
 function mutation_legend_Over(e)   {mutation_legend.setAttribute('class',"bold");   highlight_mutant_points("1", "bold");} // see: polygon:hover class below.
-function mutation_legend_Out(e)    {mutation_legend.setAttribute('class',null);     highlight_mutant_points("1", null);}   // ie. back to the default polygon.
+function mutation_legend_Out(e)    {mutation_legend.setAttribute('class',null);     highlight_mutant_points("1", null);  }   // ie. back to the default polygon.
 function copynumber_legend_Over(e) {copynumber_legend.setAttribute('class',"bold"); highlight_mutant_points("2", "bold");}
-function copynumber_legend_Out(e)  {copynumber_legend.setAttribute('class',null);   highlight_mutant_points("2", null);}
+function copynumber_legend_Out(e)  {copynumber_legend.setAttribute('class',null);   highlight_mutant_points("2", null);  }
 	
+function highlight_tissue_points(tissue, newclass) {
+	//console.log("highlight_tissue_points: "+tissue);
+    for (var i=1; i<points.length; i++) { // correctly starts at i=1, as points[0] is the boxplot dimensions.	
+	    if (points[i][itissue]==tissue) {
+			e = document.getElementById("c"+i.toString());
+	        // e.setAttribute("stroke-width", stroke_width);  // This didn't work as is over-ruled by the polygon class which has stroke-width of 1px, so change the class instead:
+			e.setAttribute('class', newclass);
+		    }
+	    }
+    }	
 
+function tissue_legend_Over(e) {
+	e = e || window.event;  // Need: window.event for IE <=8 
+    var tissue_legend = e.target || e.srcElement;
+    var tissue = tissue_legend.id.substring(3); /// the tissue colour cell name is the 'tb_'+tissue.
+	
+	// tissue_legend.setAttribute(); // eg. set border thicker line ?
+	highlight_tissue_points(tissue, "bold"); // In the SVG I've defined 'bold' class has been defined for both circle and polygon.
+    // return false; // does true mean event was handled?	
+	}
+
+function tissue_legend_Out(e)  {
+	e = e || window.event;  // Need: window.event for IE <=8 
+    var tissue_legend = e.target || e.srcElement;
+    var tissue = tissue_legend.id.substring(3); /// the tissue colour cell name is the 'tb_'+tissue.
+	
+	// tissue_legend.setAttribute(); // eg. set border thicker line ?
+	highlight_tissue_points(tissue, null);
+    // return false; // does true mean event was handled?	
+    }
+
+	
+	
 	
 function mouseOver(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
-	var target = e.target || e.srcElement;	
+	var target = e.target || e.srcElement;
 	target.setAttribute("r", "10");   // "r" only applies to circles.
     }
 
 
 function mouseOut(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
-	var target = e.target || e.srcElement;	
+	var target = e.target || e.srcElement;
 	target.setAttribute("r", "5");
     }
 
@@ -445,7 +487,7 @@ function diamond_points(x,y) {
 
 
 
-function beeswarm(lines,wtxc,muxc,boxwidth) {
+function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
   // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
   var wt_points=[],mu_points=[];
@@ -454,23 +496,19 @@ function beeswarm(lines,wtxc,muxc,boxwidth) {
   var tissue_count=0;
   var wtleft=[], wtright=[], muleft=[], muright=[]; // To avoid overlapping points.
   var wt_tissue_counts = {}, mu_tissue_counts = {};
-  var NA_total = 0; // count of lines with y='NA'
   
-  for (var i=1; i<lines.length; i++) { // corectly starts at i=1, as lines[0] is the boxplot dimensions.
-    var col = lines[i].split(",");
-    var tissue = col[itissue];
-	// if (tissue=="BONE") {tissue="OSTEOSARCOMA"; col[itissue]=tissue; lines[i]=col.join(',');} // BONE is "OSTEOSARCOMA" in the tissue_colours array.
-	if (tissue=="OSTEOSARCOMA") {tissue="BONE"; col[itissue]=tissue; lines[i]=col.join(',');} // BONE is "OSTEOSARCOMA" in the tissue_colours array.	
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
+    var tissue = points[i][itissue];
+		
 
-	var isWT = col[imutant]=="0";  // Wildtype rather than mutant.
+	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
 	
-    if (col[iy]=='NA') {console.log("Skipping "+col[icellline]+" "+tissue+" as y='"+col[iy]+"'"); NA_total++; continue;}
 
-if (isWT) {wt_points.push(parseFloat(col[iy]))}
-else {mu_points.push(parseFloat(col[iy]))}
+if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
+else {mu_points.push(parseFloat(points[i][iy]))}
 
-//    var y = tohalf(Yscreen0 + parseFloat(col[iy]) * yscale, 1);
-    var y = Yscreen0 + parseFloat(col[iy]) * yscale;
+//    var y = tohalf(Yscreen0 + parseFloat(points[i][iy]) * yscale, 1);
+    var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
 
     var Yi = Math.round(y / collusionTestRadius);
 
@@ -482,7 +520,7 @@ else {mu_points.push(parseFloat(col[iy]))}
 	//   1 = mutation
     //   2 = copy number (is one a deletion and one an amplification?)    
     if (!isWT) {
-	  switch (col[imutant]) {		  
+	  switch (points[i][imutant]) {		  
 	    case "1":
 		  // pointType = "square";   svgType = "rect"; break; // Square not drawn correctly yet.
 		  pointType = "diamond";  svgType = "polygon"; break;		  
@@ -494,7 +532,7 @@ else {mu_points.push(parseFloat(col[iy]))}
 //	    case "3":		
 //      case "4":
 //	    case "5":
-	    default: alert("Invalid point type: '"+col[imutant]+"'")
+	    default: alert("Invalid point type: '"+points[i][imutant]+"'")
 	  }
 	}
 	
@@ -517,7 +555,7 @@ else {mu_points.push(parseFloat(col[iy]))}
 	  mu_tissue_counts[tissue]=0;
 	  tissue_count++;
 	  }
-	if (col[imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
+	if (points[i][imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
 	else {mu_tissue_counts[tissue]++}
 
 	if (isWT) { // Wild type
@@ -559,8 +597,8 @@ else {mu_points.push(parseFloat(col[iy]))}
     switch(pointType) {
 	  case "circle":
 	    //add the xcentre after the above calculations 	
-	    e.setAttribute("cx", tohalf(x,1).toString() ); // or: e.cx.baseVal.value =  parseFloat(col[2]) * xscale );	
-	    e.setAttribute("cy", tohalf(y,1).toString() ); // or: e.cy.baseVal.value = parseFloat(col[3]) * yscale );				
+	    e.setAttribute("cx", tohalf(x,1).toString() ); // or: e.cx.baseVal.value =  parseFloat(points[i][2]) * xscale );	
+	    e.setAttribute("cy", tohalf(y,1).toString() ); // or: e.cy.baseVal.value = parseFloat(points[i][3]) * yscale );				
 	    e.setAttribute("r", PointRadius.toString()); // Firefox and IE don't use the 'r' in the 'circle' class (whereas Chrome does)  e.r.baseVal.value = PointRadius.toString(); set in the 'circle' class
 		break;
 	
@@ -596,11 +634,11 @@ else {mu_points.push(parseFloat(col[iy]))}
 	svg.appendChild(e);
     }
     
-   create_legend_table(wt_tissue_counts,mu_tissue_counts, NA_total);
+   create_legend_table(wt_tissue_counts,mu_tissue_counts);
 }
 
 
-function create_legend_table(wt_tissue_counts,mu_tissue_counts, NA_total) {
+function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
     // Creates the tissue legend table, with totals and check-boxes to show/hide points.
 	var legend_thead = '<thead><tr><th rowspan="2">Show</th><th rowspan="2">Tissue</th><th colspan="3">Cell lines</th></tr><tr style="font-size: 95%"><th>Wild type</th><th>Altered</th><th>Total</th></tr></thead>';
   	
@@ -641,13 +679,17 @@ function create_legend_table(wt_tissue_counts,mu_tissue_counts, NA_total) {
 		  
 	$("#legend_table").html( legend_thead + legend_tbody + legend_tfoot );
 	
-	if ( (wt_total+mu_total+NA_total) != cellline_count) {alert("cellline_count mismatch: "+(wt_total+mu_total+NA_total)+" != "+cellline_count)}
+	if ( (wt_total+mu_total) != points.length-1) {alert("cellline_count mismatch: "+(wt_total+mu_total)+" != "+points.length-1);}  // The -1 is because point[0] stores the cell_count (before subtracting NA_total), ymin,ymax, etc
 	
 	// The inline onchange="..." tag doesn't pass the event in all browsers, which is needed, so instead attach these events using javascript:
     for (tissue in tissue_lists) {
 		// showhide_cell_clicked:
-		document.getElementById("td_"+tissue).onclick=showhide_cell_clicked;
-		document.getElementById("cb_"+tissue).onchange=showhide_tissue;
+		var e = document.getElementById("td_"+tissue);
+		e.onclick=showhide_cell_clicked;
+		e.onmouseover = tissue_legend_Over;
+	    e.onmouseout  = tissue_legend_Out;
+		
+		document.getElementById("cb_"+tissue).onchange=showhide_tissue;	
 		}
 
 }
@@ -655,8 +697,8 @@ function create_legend_table(wt_tissue_counts,mu_tissue_counts, NA_total) {
 
 function add_tooltips() {
   // Add the tooltips to the SVG points and the driver info text section of the boxplot.
-  $("#mysvg, #boxplot_driver_details").tooltip({  // was $(document).tooltip(....
-    items: "circle, rect, polygon, [data-gene]",
+  $("#mysvg, #boxplot_driver_details, #ncbi_summary_showhide_link, #boxplot_target_links").tooltip({  // was $(document).tooltip(....
+    items: "circle, rect, polygon, [data-gene], [data-link]",
 	position: { my: "left+28 center", at: "center center+10" }, // at: "right center" }
 	show: false, // instead of animated show/hide: { effect: "", duration: 0, delay: 0}, see: http://webduos.com/tooltip-using-jquery-ui-library/#.Vvb48uKLSih
 	hide: false, 
@@ -667,10 +709,9 @@ function add_tooltips() {
 	    var id = element.attr("id");
 		if ((typeof id === "undefined") || (id.substring(0,1)!='c')) {return "";} // As can be a 'rect' that forms the boxplot box.
         var i = parseInt(id.substring(1)); // remove the starting 'c'
-	    var col = lines[i].split(",");  // or could encode the tissue and cellline in the ID.
 		
-        var tissue = col[itissue];
-		var mutant = col[imutant];
+        var tissue = points[i][itissue];
+		var mutant = points[i][imutant];
 
         var mutant_type='';
         
@@ -684,8 +725,11 @@ function add_tooltips() {
 		else {mutant_type="Unexpected mutant_type (type "+mutant+")</br>"}
 		
         // To add the mutation type, use: +(mutant!="0" ? "MutantType....<br/>" : "")
-        return '<b>'+col[icellline]+'</b><br/>'+mutant_type+histotype_display(tissue)+'<br/>Z-score: '+col[iy]; // '<br/>y: '+y+'<br/>Yi: '+Yi+
+        return '<b>'+points[i][icellline]+'</b><br/>'+mutant_type+histotype_display(tissue)+'<br/>Z-score: '+points[i][iy]; // '<br/>y: '+y+'<br/>Yi: '+Yi+
 	    }
+      else if ( element.is( "[data-link]" ) ) {
+	      return element.attr("data-link");
+        }		
       else if ( element.is( "[data-gene]" ) ) { // To display the target genes in the boxplot_title.
         var gene_name = element.attr("data-gene");  // was: = element.text();
 		if (gene_name in gene_info_cache) {
@@ -816,22 +860,20 @@ function update_boxplots(check_tissue_checkbox_is_checked) {
   // Sets or updates the boxplot rectangle and whiskers when tissues are made hidden or made visible by clicking the checkboxes in the legend table.
   
   var wt_points=[],mu_points=[];	
-  for (var i=1; i<lines.length; i++) { // corectly starts at i=1, as lines[0] is the boxplot dimensions.
-    var col = lines[i].split(",");
-    if (col[iy]=='NA') {continue;}
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
 	
     // Check if that tissue's checkbox is checked (so point is visible).
     if (check_tissue_checkbox_is_checked) { // When drawing the initial full boxplot, don't need to check if tissue visible
-      var tissue = col[itissue];
+      var tissue = points[i][itissue];
 	  var checkbox = document.getElementById('cb_'+tissue);
 	  if (! checkbox.checked) {continue}
       // Could alternatively check if point itself is visible:
       //    if (document.getElementById("c"+i.toString()).getAttribute("visibility")=="hidden") {continue}   // "c" for circle or cell_line.  // otherwise: "visible"	  
 	  }
 
-	var isWT = col[imutant]=="0";  // Wildtype rather than mutant.
-    if (isWT) {wt_points.push(parseFloat(col[iy]))}
-    else {mu_points.push(parseFloat(col[iy]))}
+	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
+    if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
+    else {mu_points.push(parseFloat(points[i][iy]))}
     }	
   	
   // The boxplot lines and rectangles are stored in two global arrays, so can adjust position later:
@@ -1091,7 +1133,7 @@ function add_target_info_to_boxplot(target)	{
 	 
   var ncbi_summary = target_info['ncbi_summary']; // Not all genes have a summary in Entrez  
   if ((typeof ncbi_summary !=="undefined") && (ncbi_summary!=="")) {
-	target_details += ' <a id="ncbi_summary_showhide_link" href="javascript:void(0);" onclick="showhide_ncbi_summary();">(Gene Description)</a>'; // The ncbi_summary_link
+	target_details += ' <a id="ncbi_summary_showhide_link" href="javascript:void(0);" onclick="showhide_ncbi_summary();" data-link="Show Entrez gene summary">(Gene Description)</a>'; // The ncbi_summary_link
 	
     $("#boxplot_ncbi_summary").html('<b>Entrez summary for '+target+':</b> '+ncbi_summary);
   }
@@ -1129,19 +1171,21 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
 
   if (!svg_fancybox_loaded) {  // so this function was called by clicking on dependency table cell, rather than by Previous/Next boxplot button.
 
+    // Need the [CDATA[ tag as SVG can contain extra '<' characters that can confuse HTML parsers.
     var mycontent = '<table align="center" style="padding:0; border-collapse: collapse; border-spacing: 0; border-bottom: solid 1px black;">'
       + '<tr><td rowspan="2" style="padding:0;">'
       + '<svg id="mysvg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'+svgWidth.toString()+'" height="'+svgHeight.toString()+'">'
-      + '<style>'
-      + ' line{stroke-opacity: 1.0;}'
-      + ' rect{fill: none; stroke: black; stroke-width: 1px; stroke-opacity: 1.0;}'
-      + ' circle {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
-      + ' polygon {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
-      + ' polygon.bold {stroke-width: 5px; stroke: black;}'
-      + ' polygon:hover {stroke-width: 5px; stroke: black;}'	  
-      + ' circle:hover  {stroke-width: 5px; opacity: 0.9; stroke: black;}'
-      + ' text {font-family: sans-serif; word-spacing: 2; text-anchor: middle;}'
-      + '</style>'
+      + '<style type="text/css"><![CDATA['
+      + '  line{stroke-opacity: 1.0;}'
+      + '  rect{fill: none; stroke: black; stroke-width: 1px; stroke-opacity: 1.0;}'
+      + '  circle {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
+      + '  polygon {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
+      + '  polygon.bold  {stroke-width: 5px; stroke: black;}'
+      + '  polygon:hover {stroke-width: 5px; stroke: black;}'
+      + '  circle.bold   {stroke-width: 5px; opacity: 0.9; stroke: black;}'	  
+      + '  circle:hover  {stroke-width: 5px; opacity: 0.9; stroke: black;}'	  
+      + '  text {font-family: sans-serif; word-spacing: 2; text-anchor: middle;}'
+      + ']]></style>'
       + '<rect id="background_rect" x="0" y="0" width="'+svgWidth.toString()+'" height="'+svgHeight.toString()+'" style="fill:white;stroke-width:0;fill-opacity:1.0;"/>'
       + 'Sorry, your browser does not support inline SVG.'
       + '</svg>'

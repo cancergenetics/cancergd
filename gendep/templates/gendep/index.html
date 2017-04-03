@@ -335,8 +335,8 @@ function initialise_result_table_and_tooltips() {
 
 
 	// Initialise the Tooltips
-	$('#result_table_tbody, #result_table_thead').tooltip({
-	  items: "[data-gene], [data-study], [data-exptype], [data-note], [data-multihit]",
+	$('#result_table_tbody, #result_table_thead, #gene_weblinks').tooltip({
+	  items: "[data-gene], [data-study], [data-exptype], [data-note], [data-multihit], [data-link]",
 	  show: false, // effect
 	  hide: false,
       track: true, // follow mouse
@@ -392,8 +392,8 @@ function initialise_result_table_and_tooltips() {
       else if ( element.is( "[data-note]" ) ) {
 	      return element.attr("data-note");
         }
-      else if ( element.is( "[data-multihit]" ) ) {
-	      return element.attr("data-multihit");
+      else if ( element.is( "[data-link]" ) ) {
+	      return element.attr("data-link");
         }
       }    // end of 'content:'
    });  // end of tooltip
@@ -838,7 +838,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   <th data-placeholder="< 0.0" style="width:90px; text-align:center;" data-note="Z-score difference (Mutant median - Wild Type median)">&Delta;Score</th>
   <!-- th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Tissue</th -->
   <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Study</th>
-  <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Experiment</br>Type</th>
+  <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;">Experiment<br/>Type</th>
   <th class="filter-select filter-onlyAvail" style="width:90px; text-align:center;" data-note="This dependency is observed in more than one study">Multiple Hit</th>  
   <th class="filter-select" style="width:90px; text-align:center;" data-note="Known functional interaction between driver and target/dependent gene, from string-db.org (Score &gt;400:Medium, &gt;700:High; &gt;900:Highest). Click on score see string image">String<br>Interaction</th>
   <th class="filter-select" style="width:140px; text-align:center;" data-note="Inhibitors from DGIdb">Inhibitors</th>
