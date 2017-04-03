@@ -65,7 +65,7 @@ var SquareCornerXY = 0.5*Math.sqrt(Math.PI)*PointRadius; // So square has same a
 
 var DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*PointRadius; // So diagonal has same are as circle with radius PointRadius.
 
-var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[];
+var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=null, copynumber_legend=null;
 
 // Array indexes for the 7-number boxplot_stats():
 var ilowerwhisker=1, ilowerhinge=2, imedian=3, iupperhinge=4, iupperwhisker=5; // also: ilowest=0, ihighest=6
@@ -126,6 +126,7 @@ function remove_existing_svg_elems() {
 	  tissue_lists[tissue] = remove_array_of_elements(tissue_lists[tissue]); // remove any existing points.
     }
   tissue_lists={};
+  mutation_legend = null;  copynumber_legend = null;    // Are in the axes_elems below.
   axes_elems = remove_array_of_elements(axes_elems);    // Delete the old axes elems.
   wt_boxplot_elems = remove_array_of_elements(wt_boxplot_elems);
   mu_boxplot_elems = remove_array_of_elements(mu_boxplot_elems); 
@@ -179,7 +180,14 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
 	e.setAttribute("points",diamond_points(x,Yscreen0+y-5));   // yscreen = Yscreen0 + y*yscale;
     svg.appendChild(e);
     elems.push(e);
-    elems.push( svg_text( (x+28)/xscale ,y/yscale,11,false, "Mutation") );
+	e.onmouseover = mutation_legend_Over;
+	e.onmouseout  = mutation_legend_Out;
+	mutation_legend = e; // Global variable for now.	
+   
+	e = svg_text( (x+28)/xscale ,y/yscale,11,false, "Mutation");
+	e.onmouseover = mutation_legend_Over;
+	e.onmouseout  = mutation_legend_Out;
+	elems.push(e);
 	
 	var y = ymin*yscale+30;
 	e = document.createElementNS(svgNS, "polygon");
@@ -187,24 +195,60 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
 	e.setAttribute("points", triangle_points(x, Yscreen0+y-2));   // yscreen = Yscreen0 + y*yscale;
 	svg.appendChild(e);
 	elems.push(e);
-    elems.push( svg_text( (x+40)/xscale, y/yscale,11,false, "Copy number") );
+	e.onmouseover = copynumber_legend_Over;
+	e.onmouseout  = copynumber_legend_Out;
+	copynumber_legend = e; // Global variable for now.
+    e = svg_text( (x+40)/xscale, y/yscale,11,false, "Copy number");
+	e.onmouseover = copynumber_legend_Over;
+	e.onmouseout  = copynumber_legend_Out;	
+	elems.push(e);
 	
     return elems;
     }
 
 
+function highlight_mutant_points(alteration_code, polygon_class) {
+    // alteration_code is either "0" for or "1" for ...  ("0" is Wildtype)	
+	//   "1" = mutation
+    //   "2" = copy number (is one a deletion and one an amplification?)
+	// test on driver: ARID1B, target: PIK3R2
+	//console.log("highlight_mutant_points: "+alteration_code+" r:"+stroke_width);
+    for (var i=1; i<lines.length; i++) { // corectly starts at i=1, as lines[0] is the boxplot dimensions.	
+        var col = lines[i].split(",");
+        if (col[iy]=='NA') {continue;}
+		//console.log("i"+i.toString()+" col[]:"+col[imutant]);
+	    if (col[imutant]==alteration_code) {
+			e = document.getElementById("c"+i.toString());
+			//console.log("e:"+e.id+" set polygon_class:"+polygon_class);
+	        // e.setAttribute("stroke-width", stroke_width);  // This didn't work as is over-ruled by the polygon class which has stroke-width of 1px, so change the class instead:
+            //console.log("class before:"+e.getAttribute('class'));
+			e.setAttribute('class', polygon_class);
+            //console.log("class after:"+e.getAttribute('class'));			
+		    }
+	    }
+    }	
+	
+
+function mutation_legend_Over(e)   {mutation_legend.setAttribute('class',"bold");   highlight_mutant_points("1", "bold");} // see: polygon:hover class below.
+function mutation_legend_Out(e)    {mutation_legend.setAttribute('class',null);     highlight_mutant_points("1", null);}   // ie. back to the default polygon.
+function copynumber_legend_Over(e) {copynumber_legend.setAttribute('class',"bold"); highlight_mutant_points("2", "bold");}
+function copynumber_legend_Out(e)  {copynumber_legend.setAttribute('class',null);   highlight_mutant_points("2", null);}
+	
+
+	
 function mouseOver(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
 	var target = e.target || e.srcElement;	
-	target.setAttribute("r", "10");
+	target.setAttribute("r", "10");   // "r" only applies to circles.
     }
 
 
 function mouseOut(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
 	var target = e.target || e.srcElement;	
-	target.setAttribute("r", "5");	
+	target.setAttribute("r", "5");
     }
+
 
 
 function search_rows_above_and_below(which_row,row,row_above,row_below,row_twoabove,row_twobelow) {
@@ -537,7 +581,7 @@ else {mu_points.push(parseFloat(col[iy]))}
 	    e.setAttribute("points",diamond_points(x,y));
         break;
 		
-      default:
+      //default:
 				
 	}
 	
@@ -1093,7 +1137,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
       + ' rect{fill: none; stroke: black; stroke-width: 1px; stroke-opacity: 1.0;}'
       + ' circle {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
       + ' polygon {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
-      + ' polygon:hover {stroke-width: 5px; stroke: black;}'
+      + ' polygon.bold {stroke-width: 5px; stroke: black;}'
+      + ' polygon:hover {stroke-width: 5px; stroke: black;}'	  
       + ' circle:hover  {stroke-width: 5px; opacity: 0.9; stroke: black;}'
       + ' text {font-family: sans-serif; word-spacing: 2; text-anchor: middle;}'
       + '</style>'
