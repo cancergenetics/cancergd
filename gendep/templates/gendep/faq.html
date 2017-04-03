@@ -1,18 +1,26 @@
 {% extends 'gendep/base.html' %}
 {% load staticfiles %}
-{% block content %}   
+{% block content %}
 <h1>Frequently Asked Questions</h1>
 
 <ul>
+<li><a href="#manuscript">Is there a manuscript describing CancerGD?</a></li>
 <li><a href="#effectsize">How should I interpret the effect size?</a></li>
 <li><a href="#boxplots">How should I interpret the box plots?</a></li>
 <li><a href="#dependencies">What dependencies are included?</a></li>
 <li><a href="#gene_altered">When is a driver gene considered 'altered'?</a></li>
 <li><a href="#genotyping">Where does the genotyping data come from?</a></li>
+<li><a href="#matrix">Where can I get details of the genes considered altered in each cell line?</a></li>
+<li><a href="#string">Why are some dependencies absent from STRING?</a></li>
+<li><a href="#multihit">What does the <i>Multiple Hit</i> column indicate?</a></li>
+<li><a href="#datasets">How can I contribute a loss-of-function screen to CancerGD?</a></li>
 <li><a href="#json">How can I access this data from scripts, as JSON web service?</a></li>
 <li><a href="#downloaddb">How can I download the whole CancerGD database to interrogate locally?</a></li>
 </ul>
 
+<a name="manuscript"></a><h2>Is there a manuscript describing CancerGD?</h2>
+
+<p>A preprint describing CancerGD is available <a href="http://biorxiv.org/content/early/2016/10/26/081992">here</a>.</p>
 
 <a name="effectsize"></a><h2>How should I interpret the effect size?</h2>
 
@@ -37,10 +45,31 @@
 <a name="genotyping"><h2>Where does the genotyping data come from?</h2></a>
 
 <p> Exome data for ~1,000 cell lines are obtained from the <a href="http://www.cancerrxgene.org/gdsc1000/GDSC1000_WebResources/Home.html">GDSC resource</a>. Copy number data for the same set of cell lines is obtained from <a href = "http://www.cancerrxgene.org/downloads">CancerRXGene</a>. We use the gene level copy number scores which are derived from PICNIC analysis of Affymetrix SNP6.0 array data. An oncogene is considered amplified if the entire coding sequence has 8 or more copies while a tumour suppressor is considered deleted if any part of the coding sequence has a copy number of 0. </p>
-  
+
+<a name="matrix"><h2>Where can I get details of the genes considered altered in each cell line?</h2></a>
+
+<p> The alteration matrix, indicating whether or not each driver gene is altered in each cell line, can be downloaded <a href="{% static 'gendep/GDSC1000_cnv_exome_func_muts_v1.txt' %}">here</a>. </p>
+
+<a name="string"><h2>Why are some dependencies not sent to STRING?</h2></a>
+
+<p> A maximum of 300 genes are sent to the STRING database for drawing the dependencies network. If more then 300 genes are present in the dependencies table, then the top 300 highest ranked genes will be sent to STRING. By default this means the 300 genes with the lowest associated p-values will be sent to STRING, but it is possible to sort the table based on other columns using the toggles in the column headers. This enables the use of STRING to visualize the 300 dependencies with the highest effect sizes or the biggest difference in scores.</p>
+
+<a name="multihit"><h2>What does the <i>Multiple Hit</i> column indicate?</h2></a>
+
+<p> The Multiple Hit column indicates whether a specific dependency has been observed in more than one dataset. For example, in breast cancer, <i>ERBB2</i> amplification has been associated with an increased dependency upon ERBB3 in three individual screens (Campbell <i>et al</i> 2016, Marcotte <i>et al</i> 2016, Cowley<i> et al</i> 2014) so is indicated with a <i>Yes</i> in the Multiple Hit column. Note that a dependency is only considered a Mulitple Hit if the same driver was associated with the same dependency in the same cancer type (or Pan-Cancer in both screens). A dependency seen in one dataset in lung cancer and in another in breast cancer would not be considered a Multiple Hit. You can download all multiple hit dependencies <a href="{% static 'gendep/multihit_dependencies.csv' %}">here.</a> </p>
+
+<a name="datasets"><h2>How can I contribute a loss-of-function screen to CancerGD?</h2></a>
+
+<p> We would be delighted to host additional loss-of-function screens in CancerGD. We have a preferred format for screens (outlined below) but will be happy to work with you to get your data into CancerGD. Click <a href="http://www.cancergd.org/gendep/contact/">here</a> to send us a mail. </p>
+
+<p> To enable easy inclusion of future screens in CancerGD we request that data be provided as a tab-delimited table with each row representing a particular cell line and each column representing reagents targeting a specific gene. Cell line names should preferably follow the Cancer Cell Line Encyclopaedia naming convention (NAME_TISSUE all in uppercase) but COSMIC IDs are also acceptable. Genes should preferably be identified using ENTREZ IDs but other unique IDs (ENSEMBL Gene IDs) are acceptable. Due to regular changing and updating, gene symbols alone should not be used as unique gene identifiers. We favour SYMBOL_ENTREZID as gene IDs (e.g KRAS_3846) for ease of use but this is not required. In cases where multiple distinct scores are provided for a specific gene, as happens with scores from the ATARIS algorithm, we request that they be identified using distinct suffixes (e.g. KRAS_3846_1, KRAS_3846_2). Individual entries in the table should be quantitative scores indicating how sensitive a specific cell line is to perturbation of a particular gene. As different scoring procedures are used to quantify the results of screens using different experimental approaches (e.g. ATARIS (Shao et al., 2013) and zGARP (Marcotte et al., 2012) for shRNA screens, Z-score for siRNA screens (Campbell et al., 2016)) we do not require the scores to be in any standard format or range. However, we follow the convention in the field and suggest that increasingly negative scores should indicate greater inhibition of cell growth. A sample screen from Campbell et al (Campbell et al., 2016) is provided in the appropriate format <a href="http://www.cancergd.org/static/gendep/Campbell_cancergd.txt">here</a>.
+
+
+</p>
 
 <a name="json"><h2>How can I access this data from scripts as a JSON web service?</h2></a>
 
+<p> We are still developing the JSON API and welcome feedback or requests for alternative features. Click <a href="http://www.cancergd.org/gendep/contact/">here</a> to send us a mail. </p>
 <p>(1) This dependency data can also be obtained in JSON format for input into scripts. The data in the dependency table can be obtained, using a URL of the format:
 <pre class="script">
 {# http://{{current_url}}{ % url 'gendep:get_dependencies'  search_by='driver' gene_name='GENE' histotype_name='TISSUE' study_pmid='STUDY' % } #}
@@ -120,5 +149,5 @@ http://{{current_url}}{% url 'gendep:get_boxplot' dataformat='csv' driver_name='
 
 <p>Where '2064' is entrez_id for 'ERBB2'. If you make changes to the data, then you need to either cancel ("Revert Changes" button) or save ("Write Changes" button) at top left to Cancel or Save your changes</p>
 {% endcomment %}
-	
+
 {% endblock %}
