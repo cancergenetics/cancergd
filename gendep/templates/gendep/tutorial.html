@@ -1,31 +1,91 @@
 {% extends 'gendep/base.html' %}
 {% load staticfiles %}
 {% block content %}   
-<h1>Tutorial</h1>
-<p> The Cancer Genetic Dependencies Database (CancerGD) provides a search interface to genetic dependencies identified in loss-of-function screens in panels of tumour cell lines. A genetic dependency is identified when there is a statistical association in a panel of cell lines between the presence of a particular mutation and the sensitivity to the inhibition of a gene. These dependencies are identified by integrating large-scale loss-of-function screens in panels of cell lines with genotype data for the same cell lines. We store all nominally significant dependencies (P &lt; 0.05) with a common language effect size &gt; 65%. In order to facilitate follow on studies we have annotated all dependencies in the database according to the availaibility of inhibitors for the target genes. A goal of this database is to help understand genetic dependencies in the context of known functional interaction networks (e.g. protein-protein interactions). Towards this end we have developed simple functionality to identify those genetic dependencies that occur <strong>within pathways</strong> (i.e. where the driver gene and the target dependency belong to the same pathway) and <strong>between pathways</strong> (i.e. where the dependencies associated with a given driver gene belong to the same complex or pathway as each other). This is inspired by <a href="http://www.ncbi.nlm.nih.gov/pubmed/15877074" title="Yeast Genetic Interaction Interpretation">work in yeast</a> that used the same categories to interpret genetic interactions. </p>
+<h1>Tutorial (20 minutes)</h1>
 
-<p> Here we provide a walk through of the database, showing the steps required to identify and interpret the dependencies associated with <em>ERBB2</em> amplification in <a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7" title="Campbell, Ryan et al, Cell Reports">Campbell <i> et al.</i></a> resource published in Cell Reports<p>
+<h2>Overview:</h2>
 
-<p> First type <em>'ERBB2'</em> into the <b>Driver gene</b> field. Select <i/>'Pan cancer'</i> as the <b>Tissue Type</b> and <i>'Campbell(2016)'</i> as the <b>Study</b>. Clicking 'Search' will then retrieve all of the dependencies associated with <i>ERBB2</i> amplification from the <a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7" title="Campbell, Ryan et al, Cell Reports">Campbell <i> et al.</i> </a> resource published in Cell Reports. </p>
+<p>CancerGD.org provides a search interface for genetic dependencies identified in loss-of-function screens in panels of tumor cell lines. A genetic dependency is identified when there is a statistical association between the presence of a particular mutation and increased sensitivity to the inhibition of a specific gene. These dependencies are identified by integrating large-scale loss-offunction screens in panels of cell lines with genotype data for the same cell lines. In CancerGD we store all nominally significant dependencies (P &lt; 0.05) with a <a href="{% url 'gendep:faq' %}#effectsize">common language effect size</a> &gt; 65%. A goal of this resource is to help understand genetic dependencies in the context of known functional interaction networks (e.g. protein-protein interactions). Towards this end we have developed simple functionality to identify those genetic dependencies that occur <strong>within pathways</strong> (i.e. where the driver gene and the target dependency belong to the same pathway) and <strong>between pathways</strong> (i.e. where the dependencies associated with a given driver gene belong to the same complex or pathway as each other).  This is inspired by <a href="http://www.ncbi.nlm.nih.gov/pubmed/15877074" title="Yeast Genetic Interaction Interpretation">work in yeast</a> that used the same categories to interpret genetic interactions. To further facilitate follow on studies we have also annotated all dependencies in the database according to the availability of inhibitors for the target genes.</p>
 
-<center><img src="{% static 'gendep/images/Tutorial1.png' %}" alt="Tutorial Image 1" border="3"/></center>
+<p>Here we provide a simple tutorial that takes the user through the main functionality of <a href="{% url 'gendep:home' %}">www.cancergd.org</a>. We show how CancerGD can be used to browse and analyse the dependencies associated with <em>ERBB2</em> amplification in the <a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7" title="Campbell, Ryan et al, Cell Reports">Campbell <i> et al.</i></a> paper published in Cell Reports (2016). This tutorial should take approximately 20 minutes to complete.</p>
 
-<p> The resulting table displays the nominally significant (p &lt; 0.05) dependencies associated with the selected driver gene (<i>ERBB2</i>) in the selected tissue (pan-cancer, i.e. across all tissue types) from the selected study (Campbell <em>et al</em>). You can sort this table by clicking the toggles in the header row. For most columns it is also possible to filter using the plain text forms or drop-down menus at the top of the table. You can download this table as a CSV file (which you can open with Excel or similar application) by clicking the 'Download as CSV file' button above the table.  </p> 
+&nbsp;
+<h2>Step 1 – Retrieving the dependencies associated with a driver gene</h2>
 
-<center><img src="{% static 'gendep/images/Tutorial2.png' %}" alt="Tutorial Image 2" border="3"/></center>
+<p>On the <a href="{% url 'gendep:home' %}">main search page</a>, in the search <b>Driver gene</b> field type '<i>ERBB2</i>', in the <b>Tissue type</b> dropdown select '<i>Pan cancer</i>', and in the <b>Study</b> dropdown please select '<i>Campbell(2016)</i>'. Click the <b>Search</b> button.</p>
 
-<p> Clicking on any gene name in the table opens up a box-plot displaying the data supporting the association between the driver alteration and that gene. Below we show the box plot associated with <i>MAP2K3</i> (third line in the table). For a full explanation of these box plots please see the FAQ. Each circle in the box plot represents a cell line and colour indicates tissue of origin, as described in the legend to the right of the box plot. It is possible to hide/show the cell lines from specific tissue types by checking/unchecking the tick box beside each tissue in the legend table. Hovering over a circle in the box plot will show the name of that cell line. A high-resolution image containing the box plot can be downloaded by clicking on the Download boxplot as <b>' PNG image'</b> button, and an accompanying legend downloaded by clicking Download legend for <b>'selected tissues'</b>. The data supporting the dependency (RNAi sensitivity scores and mutational status for each cell line) can be downloaded by clicking the Download boxplot as <b>'CSV file'</b> button.  </p>
+  <center><img src="{% static 'gendep/images/Tutorial_Searchbar_Image1.png' %}" alt="Search bar" border="3"/></center>
 
-<center><img src="{% static 'gendep/images/Tutorial3.png' %}" alt="Tutorial Image 3" border="3"/></center>
+<p>You will be presented with a table of results resembling the below image. The top of the page provides details (gene synonyms, a gene description, links to the gene on external resources) for the selected driver gene (<i>ERBB2</i>). The bottom of the page is a table displaying all of the nominally significant (p &lt; 0.05) dependencies associated with the selected driver gene (<i>ERBB2</i>) in the selected tissue (<i>pan-cancer</i>, i.e. across all tissue types) from the selected study (<a href="http://www.cell.com/cell-reports/fulltext/S2211-1247(16)30126-7" title="Campbell, Ryan et al, Cell Reports">Campbell <i> et al.</i></a>). You can optionally sort this table by clicking the toggles in the header row. For most columns it is also possible to filter using the plain text forms or drop-down menus at the top of the table. You can also optionally download this table as a CSV file (which you can open with Excel or similar application) by clicking the '<i>Download as CSV file</i>' button above the table.</p>
 
-<p> One of the goals of this database is to facilitate the interpretation of genetic dependencies and to develop filters to prioritise promising candidates for follow up studies. The simplest approach is to focus on dependencies that have a known relationship with the driver gene. To identify these - choose <em>'Any'</em> in the <em>'String Interaction'</em> column. This will filter the table to show only the genetic dependencies that have a functional relationship (e.g. protein-protein interaction) with the driver-gene. These functional relationships are obtained from the <a href="http://string-db.org/" title="STRING-db">STRING database</a>. Clicking on text inside this column (e.g. <em>Highest</em>) will bring the user to the STRING database where the data supporting the functional interaction between the driver gene and the dependency will be displayed.</p>
+  <center><img src="{% static 'gendep/images/Tutorial_ERBBdependencies_Image2.png' %}" alt="ERBB2 dependencies" border="3"/></center>
 
-<center><img src="{% static 'gendep/images/Tutorial4.png' %}" alt="Tutorial Image 4" border="3"/></center>
+<p>Clicking on any gene name in the '<i>Dependency</i>' column will present the user with a view of the evidence supporting that dependency. Click on <i>MAP2K3</i> (left column, fourth row in the table) to proceed to the next step.</p>
 
-<p> An alternative to identifying the known functional interactions betwen the driver gene and the dependencies is to try to understand the interactions between all of the dependencies. In this way it may be possible to identify pathways or protein complexes that the the driver gene is associated with an increased dependency upon. For this analysis we rely on the <a href="http://string-db.org/" title="STRING-db">STRING database</a>. To view all of the interactions between the dependencies associated with a given driver gene click on the <b>'Strindb Image'</b> button above the table. In this example this will retrieve an image showing the high-confidence functional interactions between the genes identified as <em>ERBB2</em> dependencies. You can see that <em>ERBB2</em> amplification is associated with an increased dependency upon a group of kinases functionally related to <em>ERBB2</em> and <em>PI3K</em> signaling, as well as a group of genes involved in map kinase signaling. </p>
+&nbsp;
+<h2>Step 2 – Viewing the data supporting individual dependencies</h2>
 
-<center><img src="{% static 'gendep/images/Tutorial5.png' %}" alt="Tutorial Image 5" border="3"/></center>
+<p>You will be presented with a window resembling the below image. This view presents the data supporting the association between <i>ERBB2</i> amplification and sensitivity to RNAi reagents targeting <i>MAP2K3</i>.</p>
 
-<p> You can explore the STRING interaction network further on the STRING site. This will allow you see the evidence supporting the links between each of the dependencies, and also to filter the network to display higher/lower confidence interactions. To do this click on the 'Stringdb Interactive' button and you will be brought to the STRING site. </p>
+  <center><img src="{% static 'gendep/images/Tutorial_Boxplot_Image3.png' %}" alt="Boxplot MAP2K3 vs ERBB2" border="3"/></center> 
+  
+<p>This is an <a href="{% url 'gendep:faq' %}#boxplots">interactive box plot</a> that displays the sensitivity of cell lines partitioned according to <i>ERBB2</i> status to RNAi reagents targeting <i>MAP2K3</i>. The cell lines featuring an alteration of <i>ERBB2</i> are displayed on the right and the cell lines without the alteration are on the left. Each colored shape (circle, diamond or triangle) represents a cell line and the position along the y-axis indicates how sensitive that cell line is to the RNAi reagents targeting the gene indicated (<i>MAP2K3</i>). A lower position on the y-axis indicates greater sensitivity. The colors indicate the tissue of origin for each cell line, as indicated in the legend on the right hand side. Toggle check-boxes in the legend facilitate hiding or displaying cell lines from specific histologies. To see how the dependency between <i>ERBB2</i> and <i>MAP2K3</i> appears when breast cell lines are removed uncheck the box beside '<i>Breast</i>' in the legend.</p>
 
-{% endblock%}
+  <center><img src="{% static 'gendep/images/Tutorial_Boxplot_Image4.png' %}" alt="Boxplot annotated" border="3"/></center>
+
+<p>To download a high-resolution copy of this image click '<i>Download boxplot as: <b>PNG image</b></i>'. To download the raw data supporting this dependency in a comma separated text file, click '<i>Download boxplot as: <b>CSV file</b></i>'. This can be opened with Microsoft Excel or similar applications.</p>
+
+<p>To see the details associated with a specific cell line hover your cursor over the shape corresponding to that cell line (e.g. above we hover over the cell line with the greatest sensitivity to <i>MAP2K3</i> inhibition).</p>
+
+<p>Click the <b>X</b> in the top right to close this image and return to the table that lists genetic dependencies.</p>
+
+&nbsp;
+<h2>Step 3 – Filtering dependencies with a known functional relationship to the driver gene</h2>
+
+<p>One of the goals of this resource is to facilitate the interpretation of genetic dependencies and to develop filters to prioritize promising candidates for follow up studies. The simplest approach is to focus on dependencies that have a known relationship (e.g. a protein-protein interaction) with the driver gene. To identify these - choose '<i>Any</i>' in the '<i>String Interaction</i>' column. This will filter the table to show only the genetic dependencies that have a functional relationship (e.g. protein-protein interaction) with <i>ERBB2</i> as displayed below.</p>
+
+  <center><img src="{% static 'gendep/images/Tutorial_StringColumn_Image5.png' %}" alt="String column" border="3"/></center>
+
+<p>This identifies the <i>ERBB2</i> downstream effector <i>PIK3CA</i> and the <i>ERBB2</i> binding partner <i>ERBB3</i> among others. These functional relationships are obtained from the <a href="http://string-db.org/">STRING database</a>. Clicking on text inside the <i>String Interaction</i> column (e.g. <i>Highest</i>) will bring the user to the STRING database where the data supporting the functional interaction between the driver gene and the dependency will be displayed.</p>
+
+&nbsp;
+<h2>Step 4 – Identifying interactions between the dependencies associated with a driver gene</h2>
+
+<p>An alternative to identifying the known functional interactions between a driver gene and its dependencies is to try to understand the relationship between all of the dependencies associated with a given driver gene. In this way it may be possible to identify pathways or protein complexes that the driver gene is associated with an increased dependency upon. For this analysis we again rely on the <a href="http://string-db.org/">STRING database</a>. To view all of the interactions between the dependencies associated with <i>ERBB2</i> click on the '<b>Stringdb Image</b>' button above the dependencies table.</p>
+
+  <center><img src="{% static 'gendep/images/Tutorial_StringButton_Image6.png' %}" alt="String button" border="3"/></center>
+
+<p>This will take a moment to retrieve an image similar to that below showing high-confidence functional interactions between the genes identified as <i>ERBB2</i> dependencies. You can see that <i>ERBB2</i> amplification is associated with an increased dependency upon a group of kinases functionally related to <i>ERBB2</i> and <i>PI3K</i> signaling, as well as a group of genes involved in map kinase signaling.</p>
+
+  <center><img src="{% static 'gendep/images/Tutorial_StringNetwork_Image7.png' %}" alt="String network" border="3"/></center>
+
+<p> Click the <b>X</b> in the top right of the Stringdb image to close the image and return to the table listing dependencies. By selecting '<b>Stringdb Interactive</b>' instead of '<b>Stringdb image</b>' you can view an interactive version of this network on the STRING website. This will allow you to view the evidence supporting each functional interactions, to alter the layout of the network, and to filter the network in different ways.</p>
+
+&nbsp;
+<h2>Step 5 – Identifying dependencies that can be exploited with existing inhibitors</h2>
+
+<p>A further goal of CancerGD is to facilitate follow on experimentation. One means to further explore or validate a dependency is to see if the same effect is observed using small molecule inhibitors rather than RNAi reagents. To that end we annotate all of our dependencies according to the availability of inhibitors. To view genes with available inhibitors, select '<i>Any</i>' in the '<i>Inhibitors</i>' column toggle. You will see a view resembling the below.</p>
+
+   <center><img src="{% static 'gendep/images/Tutorial_InhibitorsColumn_Image8.png' %}" alt="Inhibitors column" border="3"/></center>
+
+<p>This filters the dependencies so that only those genes with known inhibitors are presented. The mapping from genes to inhibitors is taken from the <a href="http://dgidb.genome.wustl.edu/">DGIdb resource</a>. Clicking on any inhibitor name in the Inhibitors column will bring the user to DGIdb, where details on the inhibitor are provided. For some genes there are more inhibitors available than can be presented in the <i>Inhibitors</i> column. These are indicated with the text <i>[more]</i>. Clicking on <i>[more]</i> in any entry in the <i>Inhibitors</i> column will display the full list of inhibitors associated with that gene in a window like that shown below:</p>
+
+   <center><img src="{% static 'gendep/images/Tutorial_InhibitorsBox_Image9.png' %}" alt="Inhibitors box" border="3"/></center>
+
+<p>Clicking any inhibitor name within this window will bring the user to DGIdb, where details on the inhibitor are provided. Click the <b>X</b> to close this window.</p>
+
+&nbsp;
+<h2>Step 6 – Identifying dependencies that have been observed in multiple datasets</h2>
+
+<p>A dependency observed in any one screen may be a statistical artefact, a context specific dependency, or a false positive resulting from the off-target effects of gene targetting reagents. Those dependencies observed in multiple independent datasets may make more promising candidates as they are less likely to be artefacts or false positive effects. To prioritise these for further validation, CancerGD allows easy filtering of the dependencies observed independently in multiple datasets. To view dependencies that have been associated with the same driver gene in the same tissue type, select '<i>Yes</i>' in the '<i>Multiple Hit</i>' column toggle. You will see a view resembling the below.</p>
+
+   <center><img src="{% static 'gendep/images/Tutorial_MultihitColumn_Image10.png' %}" alt="Multi-hit column" border="3"/></center>
+
+<p>Hover over the '<i>Yes</i>' text in the '<i>Multiple Hit</i>' column to see the details of the screens that a specific gene has been identified as a dependency in.</p>
+
+&nbsp;
+<h2>Conclusion</h2>
+
+<p>You have now completed a tour of the main <a href="{% url 'gendep:home' %}">www.cancergd.org</a> functionality. Further information is available on the <a href="{% url 'gendep:faq' %}">FAQ page</a>. We welcome feedback through the <a href="{% url 'gendep:contact' %}">contact page</a>.</p>
+
+{% endblock %}

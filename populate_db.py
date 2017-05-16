@@ -12,7 +12,7 @@ import warnings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cgdd.settings")
 django.setup()
 from gendep.models import Study, Gene, Dependency 
-# from django.conf import settings
+from django.conf import settings  # To get the current database engine type (sqlite or mysql).
 
 """In the SQLite database (used for development locally), the max_length parameter for fields
 is ignored as the "numeric arguments in parentheses that following the type name (ex: "VARCHAR(255)")
@@ -23,15 +23,54 @@ so loss of unique primary key) so need to check for data truncation, as it jsut 
 To convert the MySQL data truncation (due to field max_length being too small) into raising an exception
 we use :"""
 
-
 warnings.filterwarnings('error', 'Data truncated .*')
+
+
 
 def progress(message): 
     """ To print progress messages to both stdout, and to stderr, as stdout usually redirected to a log file as large volume of output """ 
     if not sys.stdout.isatty(): print(message, file=sys.stderr)
-    print("\n"+message)
-    
+    print("\n")
+    print(message)
 
+
+# Doing "bulk_create()" in smaller batches of 200 as on MySQL on PythonAnwhere.com, as trying to bulk insert many gives error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away').
+# 999 is the default for the bulk_create() batch_size parameter in sqlite.
+DB_BATCH_SIZE = 999 if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' else 200   # 'django.db.backends.mysql'
+            
+def db_bulk_insert(table, rows) :
+    """
+    Uses one SQL query to add multiple rows, so is faster than individual inserts.
+    From Django docs: 
+        The batch_size parameter controls how many objects are created in single query. 
+        The default is to create all objects in one batch, except for SQLite where the default is such that at most 999 variables per query are used.
+    """
+    print("** STARTING BULK_CREATE of ",len(rows),"rows....")
+    try:
+        if isinstance(rows, dict): # Dictionary of lists
+            table.objects.bulk_create(rows.values())
+            #rows = {}
+        else: # Assume is list or tuple
+            table.objects.bulk_create(rows)
+            #rows = []
+    except Warning as warning:  # To report the row causing any data truncation error.
+        # From the warning should be able to retrieve the row number, then just output that row:  Error: 1265 SQLSTATE: 01000 (WARN_DATA_TRUNCATED)  Message: Data truncated for column '%s' at row %ld
+        # eg. regexp: "Data truncated for column '[^']+' at row \d+"   into vars: colname, irow
+        # But just output all the rows array/dict for now:
+        progress("\n***ERROR***:"+warning)
+        print(warning.args)     # arguments stored in .args
+        matches = re.match(r"Data truncated for column '([^']+)' at row (\d+)", warning, flags=0)
+        if matches:
+          print( "data truncation: Column %s Row %s" % (matches.group(1),matches.group(2)) )
+          
+        #for key,val in row.items():
+        #    progress(key + ":" + val)
+        progress(rows)
+        progress("\n")
+        raise warning
+
+
+    
 def add_gene_details() :
     """
     Populates the Gene table of the database. Adds names / symbols
@@ -39,6 +78,7 @@ def add_gene_details() :
     Data is sourced from the HGNC complete set.
     """
     entrez_to_symbol = {}
+    rows = []
     # The hgnc_complete_set.txt file contains unicode characters in the 'name' column, eg. the Greek symbols for Alpha and Beta, etc, so need to open it with utf-8 encoding:
     with open_file("./input_data/hgnc_complete_set.txt") as f :
         reader = csv.DictReader(f,delimiter="\t")
@@ -47,28 +87,28 @@ def add_gene_details() :
                 synonyms = [] if row['alias_symbol']=='' else row['alias_symbol'].split("|")
                 prev_names = [] if row['prev_symbol']=='' else row['prev_symbol'].split("|") # Need to check for empty prev_names, otherwise get [ '' ] then synonym_string becomes, eg: " | RHEB2 " or "PI3K | "
                 synonym_string = " | ".join(list(set(synonyms).union(prev_names)))
-                try:
-                    g = Gene.objects.create(
-                         gene_name = row['symbol'], # eg. ERBB2
-                         full_name  = row['name'], # eg. erb-b2 receptor tyrosine kinase 2
-                         prevname_synonyms = synonym_string, # eg: NGL  (plus)  NEU|HER-2|CD340|HER2
-                         entrez_id  = row['entrez_id'], # eg: 2064
-                         ensembl_id = row['ensembl_gene_id'], # eg: ENSG00000141736
-                         vega_id = row['vega_id'], # eg: OTTHUMG00000179300
-                         hgnc_id = row['hgnc_id'].split(':')[1],
-                         omim_id = row['omim_id'].split('|')[0], # eg. omim_id: 312095|465000
-                         cosmic_id = row['cosmic'],
-                         uniprot_id = row['uniprot_ids'].split('|')[0]
-                         )
-                except Warning as warning:  # To report the row causing any data truncation error.
-                    progress("\nERROR:")
-                    for key,val in row.items():
-                        progress(key + ":" + val)
-                    progress("\n")
-                    raise warning
-                    
+                rows.append( Gene(
+                    gene_name = row['symbol'], # eg. ERBB2
+                    full_name  = row['name'], # eg. erb-b2 receptor tyrosine kinase 2
+                    prevname_synonyms = synonym_string, # eg: NGL  (plus)  NEU|HER-2|CD340|HER2
+                    entrez_id  = row['entrez_id'], # eg: 2064
+                    ensembl_id = row['ensembl_gene_id'], # eg: ENSG00000141736
+                    vega_id = row['vega_id'], # eg: OTTHUMG00000179300
+                    hgnc_id = row['hgnc_id'].split(':')[1],
+                    omim_id = row['omim_id'].split('|')[0], # eg. omim_id: 312095|465000
+                    cosmic_id = row['cosmic'],
+                    uniprot_id = row['uniprot_ids'].split('|')[0]
+                    ) )
+                if len(rows) >= DB_BATCH_SIZE:
+                    db_bulk_insert(Gene, rows)  # Inserting in batches of eg. 100 is faster than one by one.
+                    rows = []
                 entrez_to_symbol[row['entrez_id']] = row['symbol']
+                
+        if len(rows)>0:
+            db_bulk_insert(Gene, rows)  # Inserting any remaining as didn't reach 100.
+
     return entrez_to_symbol
+
 
 def add_driver_details() :
     """
@@ -174,12 +214,14 @@ def add_studies() :
     """
     Adds details of the screens included
     """
+    rows=[]
     with open("input_data/ScreenDescriptions.txt","rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
-            Study.objects.create(pmid=row["PMID"], code = row['Code'], short_name = row['ShortName'], title = row["Title"], 
+            rows.append( Study(pmid=row["PMID"], code = row['Code'], short_name = row['ShortName'], title = row["Title"], 
                 authors = row["Authors"], abstract = row["Abstract"], summary = row["Summary"], experiment_type = row["Type"], 
-                journal = row["Journal"], pub_date = row["Date"], num_targets = row["Targets"])
+                journal = row["Journal"], pub_date = row["Date"], num_targets = row["Targets"]) )
+    if len(rows)>0: db_bulk_insert(Study, rows)
     return 
     
 def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
@@ -197,7 +239,9 @@ def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
     except ObjectDoesNotExist :
         progress("ERROR, STUDY %s does not exist" %(study))
         return
-
+    
+    rows = []  # For bulk inserts.
+    cgd_dict = {} # For tracking duplicates without needing slower sql db query.
     with open("./R_scripts/outputs/%s" % filename,"rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
@@ -221,8 +265,19 @@ def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
                 if not target.is_target :
                     target.is_target=True
                     target.save()
-                if duplicates and Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists() :
-                    existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
+            except ObjectDoesNotExist :
+                print("Skipping row",row['marker'],row['target']) # As driver or marker not in the HGNC list of genes that were inserted into Gene table.
+                continue
+
+            if duplicates: # Check if this dependency exists already
+#                existing_cgd = None
+                key="%s:%s:%s:%s" %(driver, target, tissue, study)                
+#                if key in cgd_dict:  # in the batch update dictionary
+#                    existing_cgd = cgd_dict[key]
+#                elif Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists(): # or saved in the table
+#                    existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
+                existing_cgd = cgd_dict.get(key, None)
+                if existing_cgd is not None:
                     if existing_cgd.wilcox_p > wilcox_p :
                         existing_cgd.za = za
                         existing_cgd.zb = zb
@@ -230,15 +285,25 @@ def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
                         existing_cgd.zdiff = zdiff
                         existing_cgd.effect_size = cles
                         existing_cgd.boxplot_data = row["boxplot_data"]
-                        existing_cgd.save()
-                else :
-                    # No longer using "bulk_update" as with MySQL, can get error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away') because try to add too many at once. Could add in batches of 500 but adds extra complexity.
-                    dependency = Dependency.objects.create(driver = driver, target = target, wilcox_p = wilcox_p, za = za, zb = zb, zdiff = zdiff,
-                        effect_size=cles, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
                         
-            except ObjectDoesNotExist :
-                print("Skipping row",row['marker'],row['target'])
-
+                        if existing_cgd.pk is not None: # Only save if already previously saved (ie. bulk_insert()'ed already) in the database (ie. has a primary key)
+#                        if key not in cgd_dict:
+                            existing_cgd.save()
+                    continue
+                    
+            #print(key)
+            dep = Dependency(driver = driver, target = target, wilcox_p = wilcox_p, za = za, zb = zb, zdiff = zdiff,
+                            effect_size=cles, histotype = tissue, study = study, boxplot_data = row["boxplot_data"])
+            if duplicates: cgd_dict[key] = dep
+            rows.append(dep)
+            if len(rows) >= DB_BATCH_SIZE:
+                db_bulk_insert(Dependency, rows)  # Inserting in batches of eg. 100 is faster than one by one.
+                rows = []
+                
+    if len(rows) >= 0:
+        db_bulk_insert(Dependency, rows) # Inserting any remaining rows.
+        #rows = []
+        
     return
 
 
@@ -261,7 +326,7 @@ def add_dependencies() :
             exclude_tissues = row['ExcludeTissues'].strip()
             exclude_tissues = [] if exclude_tissues == '' else exclude_tissues.split(';')
             for s in screens :
-                progress("Adding dependencies from %s, Duplicates: %s, ExcludeTissues: %s" %(s,duplicates,exclude_tissues) )
+                progress("   %s, Duplicates: %s, ExcludeTissues: %s" %(s,duplicates,exclude_tissues) )
                 add_dependency_file(pmid,s,duplicates,exclude_tissues)
     return
         
@@ -311,7 +376,8 @@ def add_string_interactions() :
                     stored_interactions[genes] = score  # Would gene1+'_'+gene2 be faster as the key?
                     
     progress("   Num stored_interaction: %d.  Adding interactions to table ..." %(len(stored_interactions)) )
-    for d in Dependency.objects.select_related("driver__ensembl_protein_id", "target__ensembl_protein_id").all() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_id.
+    # for d in Dependency.objects.select_related("driver", "target").all() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_protein_id's.
+    for d in Dependency.objects.select_related("driver", "target").only("interaction","driver__ensembl_protein_id","target__ensembl_protein_id",).iterator() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_protein_id's.  Use only() as otherwise query data grows to ver 500Mb
         gene1 = d.driver.ensembl_protein_id
         gene2 = d.target.ensembl_protein_id
         if gene1 == gene2 :
@@ -358,15 +424,15 @@ def optimize_database() :
 def add_multihit_interactions2() :
     """" Avoid table joins is faster """
     cgds = defaultdict(set)
-    for d in Dependency.objects.all() :
+    for d in Dependency.objects.iterator() :
         cgd = ( d.driver_id, d.target_id, d.histotype )
         cgds[cgd].add( d.study_id )
     
     shortnames = {}
-    for s in Study.objects.all() :
+    for s in Study.objects.iterator() :
         shortnames[s.pmid] = s.short_name
     
-    for d in Dependency.objects.all() :
+    for d in Dependency.objects.iterator() :
         cgd = ( d.driver_id, d.target_id, d.histotype )
         
         if len(cgds[cgd]) > 1  :
@@ -378,6 +444,25 @@ def add_multihit_interactions2() :
 
 def add_multihit_interactions3() :
     """ Using SQL GROUP_CONCAT() is fastest, but in sqlite cannot order the study names within the concatinated group, wherease can order in MySQL """ 
+
+    """" Avoid table joins is faster """
+    shortnames = {}
+    for s in Study.objects.iterator() :
+        shortnames[s.pmid] = s.short_name
+    
+    multi_hits = Dependency.objects.raw("""SELECT D.id,
+        COUNT(DISTINCT D.pmid) AS num_studies,
+        GROUP_CONCAT(DISTINCT D.pmid) AS studies
+        FROM gendep_dependency D
+		GROUP BY D.driver, D.target, D.histotype
+		HAVING num_studies > 1
+		ORDER BY D.id ASC;""")
+    # To put the studies list in order by short_name, need to do a split, convert pmids to short_names, sort and join:
+    for m in multi_hits : 
+        Dependency.objects.filter(id = m.id).update(multi_hit= ",".join( sorted( [shortnames[pmid] for pmid in m.studies.split(',')] ) ))
+
+
+def test() :
     rawsql = """SELECT 
         E.gene_name AS driver_genename,
 		D.driver AS driver_entrez,
@@ -398,6 +483,7 @@ def add_multihit_interactions3() :
 		HAVING num_studies > 1
 		ORDER BY D.driver, D.target, D.histotype ASC;"""
 
+        
     # In SQLite, to put the studies in order, need to do a sub select ordered by study short_name:
     # Perhaps having an index on the short_name might make this sub query slightly faster?
     rawsql = """SELECT
@@ -475,7 +561,7 @@ def add_multihit_interactions1() :
 if __name__ == "__main__" :
 
     with transaction.atomic():
-
+        """
         progress("Emptying database tables")
         for table in (Dependency, Study, Gene):
             table.objects.all().delete()
@@ -488,7 +574,7 @@ if __name__ == "__main__" :
         add_driver_details()
 
         # Add dependencies
-        progress("Adding Dependencies")
+        progress("Adding Dependencies:")
         add_dependencies()
 
         progress("Deleting unused genes")
@@ -500,12 +586,12 @@ if __name__ == "__main__" :
         add_inhibitor_details()
         progress("Adding Entrez summaries to Gene table")
         add_entrez_summaries()
-
+        
         progress("Adding String-DB Interactions to Dependency table")
         add_string_interactions()
-        
+        """
         progress("Adding multi-hit interactions to Dependency table")
-        add_multihit_interactions2()
+        add_multihit_interactions3()
 
         
     progress("Optmizing database")

@@ -560,7 +560,7 @@ var stopat=20;	// To stop table early for testing.
       else {driver = d[igene];}
 
 	  // The "this"	parameter correctly doesn't have quotes:
-	  var plot_function = "plot('"+ id +comma+ driver + comma + target +comma+ histotype +comma+ d[istudy_pmid] +comma+ d[iwilcox_p] +comma+ d[ieffect_size] +comma+ d[izdelta] +"');"; // +comma+ d[itarget_variant]
+	  var plot_function = "plot('"+ id +comma+ driver + comma + target +comma+ histotype +comma+ d[istudy_pmid] +comma+ d[iwilcox_p] +comma+ d[ieffect_size] +comma+ d[izdelta] +"');";
 
       // Another way to pouplatte table is using DocumentFragment in Javascript:
       //      https://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-B63ED1A3
@@ -762,8 +762,8 @@ function previous_dependency(this_td) {
   }
 
 
-function plot(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score, target_variant) { // The index number of the dependency in the array
-  show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score, target_variant); // the 'target_info' (including 'ncbi_summary') is now retrieved with the boxplot_data.
+function plot(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score) { // The index number of the dependency in the array
+  show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score); // the 'target_info' (including 'ncbi_summary') is now retrieved with the boxplot_data.
   return false; // Return false to the caller so won't move on the page as is called from a href="...
 }
 

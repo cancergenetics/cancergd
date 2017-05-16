@@ -97,7 +97,7 @@ class Study(models.Model):
     short_name  = models.CharField('Short Name', max_length=50) # eg. 'Campbell (2016)'
     title       = models.CharField('Title', max_length=250)
     authors     = models.TextField('Authors')
-    experiment_type = models.CharField('Experiment type', max_length=20, choices=EXPERIMENTTYPE_CHOICES, db_index=True)
+    experiment_type = models.CharField('Experiment type', max_length=20, choices=EXPERIMENTTYPE_CHOICES) # No longer indexed: db_index=True
     abstract    = models.TextField('Abstract')
     summary     = models.TextField('Summary') # Short summary line to use on the results table
     journal     = models.CharField('Journal', max_length=100)
@@ -169,6 +169,8 @@ class Dependency(models.Model):
         
         unique_together = (('driver', 'target', 'histotype', 'study'),) # Note: needs the comma at end to keep it as tuple of tuples.
         # The 'target_variant' is no longer part of unique key, as only keeping the variant with the lowest wilcox_p value
+        # Alternatively: index_together = [   ["pub_date", "deadline"], ]
+        
         verbose_name_plural = "Dependencies" # Otherwise the Admin page just adds a 's', ie. 'Dependencys'
 
     # driver_name = models.ForeignKey(Gene, verbose_name='Driver gene name', db_column='driver_name', to_field='gene_name', related_name='+', db_index=True, on_delete=models.PROTECT)
@@ -177,14 +179,14 @@ class Dependency(models.Model):
     driver = models.ForeignKey(Gene, verbose_name='Driver entrez', db_column='driver', to_field='entrez_id', related_name='+', db_index=True, on_delete=models.PROTECT)
     target = models.ForeignKey(Gene, verbose_name='Target entrez', db_column='target', to_field='entrez_id', related_name='+', db_index=True, on_delete=models.PROTECT)
         
-    target_variant = models.CharField('Achilles gene variant_number', max_length=2, blank=True) # As Achilles has some genes entered with 2 or 3 variants.
+    # target_variant = models.CharField('Achilles gene variant_number', max_length=2, blank=True) # As Achilles has some genes entered with 2 or 3 variants.
     mutation_type = models.CharField('Mutation type', max_length=10)  # Set this to 'Both' for now.
     wilcox_p    = models.FloatField('Wilcox P-value', db_index=True)  # WAS: DecimalField('Wilcox P-value', max_digits=12, decimal_places=9). Index on wilcox_p because this is the order_by clause for the dependency result query.
     effect_size = models.FloatField('Effect size', db_index=True)
     
-    za = models.FloatField('zA', db_index=True, default=-999.99)
-    zb = models.FloatField('zB', db_index=True, default=-999.99)
-    zdiff = models.FloatField('zDelta Score', db_index=True, default=-999.99)
+    za = models.FloatField('zA', default=-999.99) # No longer indexed: db_index=True,
+    zb = models.FloatField('zB', default=-999.99) # No longer indexed: db_index=True, 
+    zdiff = models.FloatField('zDelta Score', default=-999.99) # No longer indexed: db_index=True, (but might if do service side sorting of a dynamically loaded web table)
     
     # Change this later to a Character when next rebuild table, as can't alter table columns in SQLite
     # interaction = models.NullBooleanField('Functional interaction', db_index=True, ) # True if there is a known functional interaction between driver and target (from string-db.org interaction database). Allows null (ie. for unknown) values

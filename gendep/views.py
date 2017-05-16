@@ -743,7 +743,7 @@ def build_rawsql_dependency_query(search_by, entrez_id, histotype_name, study_pm
     elif query_type != 'dependency_gene':
         error_msg += " ERROR: *** Invalid 'query_type': %s ***" %(query_type)
 
-    # Not searching for: gendep_dependency.driver, gendep_dependency.target_variant, gendep_dependency.mutation_type, gendep_dependency.boxplot_data, etc
+    # Not searching for: gendep_dependency.driver, gendep_dependency.mutation_type, gendep_dependency.boxplot_data, etc
 
     rawsql = ("SELECT " + columns + related_columns +
               " FROM gendep_dependency D" + related_join +
@@ -1269,7 +1269,7 @@ Query SQL:
 Raw SQL would be:
 
 SELECT 
-  "gendep_dependency"."id", "gendep_dependency"."driver_name", "gendep_dependency"."target_name", "gendep_dependency"."target_variant", "gendep_dependency"."mutation_type", "gendep_dependency"."wilcox_p", "gendep_dependency"."effect_size", "gendep_dependency"."za", "gendep_dependency"."zb", "gendep_dependency"."zdiff", "gendep_dependency"."interaction", "gendep_dependency"."pmid", "gendep_dependency"."study_table", "gendep_dependency"."histotype", "gendep_dependency"."boxplot_data",
+  "gendep_dependency"."id", "gendep_dependency"."driver_name", "gendep_dependency"."target_name", "gendep_dependency"."mutation_type", "gendep_dependency"."wilcox_p", "gendep_dependency"."effect_size", "gendep_dependency"."za", "gendep_dependency"."zb", "gendep_dependency"."zdiff", "gendep_dependency"."interaction", "gendep_dependency"."pmid", "gendep_dependency"."study_table", "gendep_dependency"."histotype", "gendep_dependency"."boxplot_data",
   T3."gene_name", T3."original_name", T3."is_driver", T3."is_target", T3."full_name", T3."ensembl_id", T3."ensembl_protein_id", T3."entrez_id", T3."cosmic_id", T3."cancerrxgene_id", T3."omim_id", T3."uniprot_id", T3."vega_id", T3."hgnc_id", T3."prevname_synonyms", T3."driver_num_studies", T3."driver_study_list", T3."driver_num_histotypes", T3."driver_histotype_list", T3."driver_num_targets", T3."target_num_drivers", T3."target_num_histotypes", T3."inhibitors", T3."ncbi_summary",
   "gendep_study"."pmid", "gendep_study"."code", "gendep_study"."short_name", "gendep_study"."title", "gendep_study"."authors", "gendep_study"."experiment_type", "gendep_study"."abstract", "gendep_study"."summary", "gendep_study"."journal", "gendep_study"."pub_date", "gendep_study"."num_drivers", "gendep_study"."num_histotypes", "gendep_study"."num_targets"
 FROM "gendep_dependency"

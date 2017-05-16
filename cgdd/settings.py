@@ -60,7 +60,7 @@ SECRET_KEY_FILE = os.path.join(PROJECT_DIR,'key.txt')
 GOOGLE_ANALYTICS_KEY_FILE = os.path.join(PROJECT_DIR,'google_analytics_key.txt')
 
 # When DEBUG is False, need to specify the allowed hosts:
-ALLOWED_HOSTS = [ USERNAME+'.pythonanywhere.com', 'www.cancergd.org', 'cancergd.org' ]  # If you are using your own domain name, put that in this list instead.
+ALLOWED_HOSTS = [ USERNAME+'.pythonanywhere.com', 'www.cancergd.org', 'cancergd.org', '127.0.0.1' ]  # If you are using your own domain name, put that in this list instead.
 #ALLOWED_HOSTS = []
 
 # ===============================================================================================================

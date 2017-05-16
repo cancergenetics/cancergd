@@ -1162,8 +1162,8 @@ function set_previous_next_boxplot_buttons(jq_button, mtext, dependency_td) {
 
 
   
-function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score,  target_variant) {
-  // Displays the boxplot in the fancybox popup window
+function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score) {
+  // Displays the boxplot in the fancybox popup window. Removed parameter 'target_variant' as only one target variant stored for Cowley data.
   
   drawing_svg = false;
   boxplot_csv = '';
@@ -1237,7 +1237,7 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
 		// "..afterShow would make way more sense to use if you plan on adding any events, whereas afterLoad fires as soon as it's ready to load before it shows anything at all""
 		afterShow: function(current, previous) {  // Otherwise might draw before fancybox is ready 	
 			svg_fancybox_loaded = true;
-			draw_svg_boxplot(driver,target,boxplot_csv)   // ,histotype, study_pmid, wilcox_p, effect_size, zdelta_score,  target_variant);
+			draw_svg_boxplot(driver,target,boxplot_csv)   // ,histotype, study_pmid, wilcox_p, effect_size, zdelta_score); // target_variant
 			return true;
 		},		
 		afterClose: function() {  // There is also a "beforeClose()" event
