@@ -173,7 +173,7 @@ var global_url_for_cytoscape_get = "{% url 'gendep:cytoscape_get' required_score
 
 // String-db options:
 // The string interactive URL is now moved to the 'string_interactive_form' form at bottom of this "index.html", so need to set any options in that form's action:
-var stringdb_options="network_flavor=confidence&caller_identity=CGDD";  // &additional_network_nodes=0
+var stringdb_options="network_flavor=confidence&species=9606&caller_identity=CGDD";  // &additional_network_nodes=0
 
 var stringdb_options_score400 = stringdb_options + "&required_score=400&limit=0"; // Used for the Driver + Target links (Medium, High, Highest); and only want these two proteins displayed so need limit=0.
 
