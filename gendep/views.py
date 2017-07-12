@@ -1004,7 +1004,7 @@ def stringdb_interactions(required_score, protein_list):
     This function creates a request in format: http://string-db.org/api/psi-mi-tab/interactionsList?network_flavor=confidence&limit=0&required_score=700&identifiers=9606.ENSP00000269571%0D9606.ENSP00000357883%0D9606.ENSP00000345083
     """
     
-    stringdb_options="network_flavor=confidence&limit=0&required_score="+required_score;    
+    stringdb_options="network_flavor=confidence&species=9606&limit=0&required_score="+required_score;    
     # The online interactive stringdb uses: "required_score" 400, and "limit" 0 (otherwise by default string-db will add 10 more proteins).  Optionally add parameter:  &additional_network_nodes=0
     
     protein_list = protein_list.replace(';', '%0D')  # Replace semicolon with the url encoded newline character that String-db expects between protein ids.
