@@ -1362,7 +1362,7 @@ def write_csv_or_tsv_file(response, dependency_list, search_by_driver, query_tex
     count = 0
     for d in dependency_list:  # Not using iteractor() as count() above will already have run the query, so is cached, as the rawsql doesn't support iterator()
         count+=1        
-        # If could use 'target AS gene' or 'driver AS gene' in the django query then would need only one output:        
+        # If could use 'target AS gene' or 'driver AS gene' in the django query then would need only one output:
         # Cannot use 'gene_id' as variable, as that will refer to the primary key of the Gene table, so returns a tuple.
 #        gene_symbol = d.target_id if search_by_driver else d.driver_id  # d.target_id but returns name as a tuple, # same as: d.target.gene_name
 #        gene_symbol = d.target_name_id if search_by_driver else d.driver_name_id  # d.target_id but returns name as a tuple, # same as: d.target.gene_name        
@@ -1428,11 +1428,11 @@ def write_xlsx_file(response, dependency_list, search_by_driver, query_text, col
     # Also can add formatting, better url links, and include box-plot images.
     # Can write directly to the response which is a file-like object. (Alternatively can write to io.stringio first.
     workbook = xlsxwriter.Workbook(response, {'in_memory': True})
-    # As output is small, {'in_memory': True} avoids using temp files on server, and avoids the error: "HttpResponse has no attribute seek"        
+    # As output is small, {'in_memory': True} avoids using temp files on server, and avoids the error: "HttpResponse has no attribute seek"
     # or: with xlsxwriter.Workbook(iobytes_output, {'in_memory': True}) as workbook: (then don't need to close() it)
         
     # From: https://groups.google.com/forum/#!topic/python-excel/0vWPLht7K64
-    # Change the default font from Calibri 11 to Arial 10 (as Mac Numbers app doesn't have Calibri so needs to convert to MS font): 
+    # Change the default font from Calibri 11 to Arial 10 (as Mac Numbers app doesn't have Calibri so needs to convert to MS font):
     workbook.formats[0].font_name = 'Arial'
     workbook.formats[0].font_size = 10
            
