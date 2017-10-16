@@ -30,6 +30,8 @@ urlpatterns = [
     # Alternatively add the "csrf_protect" decorator, but doesn't seem to be permitted within this url() syntax:
     # url(r'^contact/$', cache_page(cachetime) csrf_protect() views.contact, name='contact'), # Don't cache this contact form, as uses a csrf_token, and need it protected, see: https://docs.djangoproject.com/en/1.10/ref/csrf/#caching  
     
+    url(r'^contact/$', views.contact, name='contact'), # Don't cache this contact form, as uses a csrf_token, and need it protected, see: https://docs.djangoproject.com/en/1.10/ref/csrf/#caching  
+    
     url(r'^log_comment/', views.log_comment, name='log_comment'),  # Don't cache this log_comment.
 
     url(r'^get_drivers/', views.get_drivers, name='get_drivers'),

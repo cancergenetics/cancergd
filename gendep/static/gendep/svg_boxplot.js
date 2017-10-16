@@ -32,8 +32,19 @@ var tissue_colours = {
 
 // In Achilles R input data Aug 2016:
 // "OTHER"                         
-  "PLEURA": "slategray"  // Occurs in the PANCAN samples, as no longer merging with LUNG
+  "PLEURA": "slategray",  // Occurs in the PANCAN samples, as no longer merging with LUNG
+
+  // The following are added for the DRIVE_ATARiS data:
+  "AUTONOMIC_GANGLIA": "goldenrod",  // so is similar to CENTRAL_NERVOUS_SYSTEM
+  "BILIARY_TRACT": "",
+  "EYE": "",
+  "GASTROINTESTINAL_TRACT_(SITE_INDETERMINATE)": "",
+  "LIVER": "",
+  "THYROID":  "",
+  "UPPER_AERODIGESTIVE_TRACT": "seagreen"
   };
+
+
 
 
 var current_dependency_td; // To store the html table cell that this boxplot represents.
@@ -45,10 +56,11 @@ var svgNS="http://www.w3.org/2000/svg"; // Name space needed for SVG.
 // Boxplot dimensions and scaling:
 var irange=0, iwtbox=3, imubox=8;
 var itissue=0, icellline=1, iy=2, imutant=3;  // was: ix=2, 
-var svgWidth=500, svgHeight=500;
+var svgWidth=700, svgHeight=550;  // Sept2017 : increased width of SVG plot from 500 to 700, then to 1000 in Oct 2017
+
 var XscreenMin=50,  XscreenMax=(svgWidth-10); // To allow for a margin of 50px at left, and 10px at right
 var YscreenMin=(svgHeight-50), YscreenMax=10; // To allow a margin of 50px at bottom, and small 10px margin at top
-var wtxc=1.6, muxc=3.8, boxwidth=1.8;
+var wtxc=2.1, muxc=5.1, boxwidth=2.9;   // Sept2017: increased boxwidth from 1.8
 var svg, xscale, yscale, Yscreen0, points;
 var tissue_lists={};
 
@@ -68,7 +80,6 @@ var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=nul
 
 // Array indexes for the 7-number boxplot_stats():
 var ilowerwhisker=1, ilowerhinge=2, imedian=3, iupperhinge=4, iupperwhisker=5; // also: ilowest=0, ihighest=6
-
 
 
 function parse_boxplot_csv_data_into_points_array(boxplot_csv) {
@@ -1207,8 +1218,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
     $.fancybox.open({
 		preload: 0, // Number of gallary images to preload
 		minWidth: 800, // was 900 but too wide of older monitors and projectors.
-		minHeight: 510,
-		width: 820,  // as boxplot is 500 + legend table of 317 = 817px
+		minHeight: svgHeight + 10,
+		width: svgWidth + 320,  // as boxplot is 500 + legend table of 317 = 817px
 		height: 510,
 		// width: '100%',
 		// height: '100%',

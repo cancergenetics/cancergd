@@ -7,7 +7,16 @@
 # s.bridgett@qub.ac.uk, colm.ryan@ucd.ie
 # ================================== #
 
+# To run, use: setwd("/Users/sbridgett/Documents/DjangoApps/cancergd/R_scripts/"); source("run_intercell_analysis.R")
+
+
 # Need to have preprocessCore, gplots and mixtools installed.
+# Using:
+# source("https://bioconductor.org/biocLite.R")
+# biocLite("preprocessCore")
+# install.packages("gplots")
+# install.packages("mixtools")
+
 
 # ----------------------------------------------------------- #
 # Set output path on your computer                            #
@@ -15,10 +24,11 @@
 # ----------------------------------------------------------- #
 
 # Eg: on Windows:
-setwd("C:/Users/HP/Django_projects/cancergd/R_scripts/")
+# setwd("C:/Users/HP/Django_projects/cancergd/R_scripts/")
 # Eg: on Mac:
 # setwd("/Users/colm/Desktop/django_stuff/cancergd/R_scripts/")
 # setwd("/Users/sbridgett/Documents/UCD/cancergd/R_scripts/")
+setwd("/Users/sbridgett/Documents/DjangoApps/cancergd/R_scripts/")
 
 
 # --------------------------------------------------- #
@@ -28,16 +38,22 @@ setwd("C:/Users/HP/Django_projects/cancergd/R_scripts/")
 # data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.  Pubmed_id: "26947069"
 # data_set <- "Cowley"    # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines. (Achilles project). Pubmed_id: "25984343"
 # data_set <- "Marcotte"  # Marcotte et al (2016) - Breast cancer cell lines. (Colt study).  Pubmed_id: "26771497"
-data_set <- "Marcotte2012" # Marcotte et al (2012) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "22585861"
-# data_set <- "Wang_mmc3"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.  Pubmed_id: "28162770"
-# data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data, but not used at present.  Pubmed_id: "27260156"
+# data_set <- "Marcotte2012" # Marcotte et al (2012) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "22585861"
+data_set <- "Wang_mmc3"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.  Pubmed_id: "28162770"
+### data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data, BUT *NOT* USED AT PRESENT.  Pubmed_id: "27260156"
+# data_set <- "Hahn" # Hahn et al (2017) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "28753430"
+# data_set <- "DRIVE_ATARiS"
+
+# data_set <- "DRIVE_RSA"  # <-- Not using this RSA dataet.
 
 # NOTES:
-  # (1) Cowley: "Cowley_cancergd.txt" uses entrezid instead of ensembl ids, and "Cowley_cancergd_tissues.txt" treats PLEURA as separate tissue.
+  # (1) Cowley: *Replaced by "(6) Hahn"*.  "Cowley_cancergd.txt" uses entrezid instead of ensembl ids, and "Cowley_cancergd_tissues.txt" treats PLEURA as separate tissue.
   # (2) Marcotte: All "Marcotte" data are breast tissues, so only 'by-tissue' analysis. There are several ids with just number and '_EntrezNotFound':
   # (3) Marcotte2012: The breast cell lines in this screen are a subset of those in Marcotte2016 above. so we won't store any breast specific dependencies from this screen. We should only store PANCAN, OVARY and PANCREAS specific dependencies.
   # (4) Wang_mmc3: "mmc3" is the table used from their paper (the smaller dataset in table "mmc7" isn't used here). All AML tissue so only 'by-tissue' analksis.
-  # (5) Achilles_CRISPR: Not using it at present. kinome_file: "Achilles_v3.3.8_cancergd_with_entrezids.txt" and  tissues_file: "Achilles_v3.3.8_tissues.txt"
+  # (5) Achilles_CRISPR: *Not using it at present*. kinome_file: "Achilles_v3.3.8_cancergd_with_entrezids.txt" and  tissues_file: "Achilles_v3.3.8_tissues.txt"
+  # (6) Hahn: "Hahn_cancergd.txt" replaces Cowley, uses entrezid instead of ensembl ids, and "Hahn_cancergd_tissues.txt" ???treats PLEURA as separate tissue.
+  # (7) DRIVE_ATARiS/DRIVE_RSA:  *Only using ATARiS data at present*. (DRIVE_RSA seems to contain all of DRIVE_ATARiS).
 
 # ------------------------------ #
 # Uncomment action(s) to perform #
@@ -48,7 +64,6 @@ run_analysis <- TRUE
 
 #write_boxplot_files <- FALSE
 write_boxplot_files <- TRUE
-
 
 
 # ------------------------------ #
@@ -65,9 +80,12 @@ combmuts_classes_file <- "../preprocess_genotype_data/genotype_output/GDSC1000_c
 # Specify the Analysis specific input and results files #
 # ------------------------------------------------------#
 
-if (is.null(data_set) || data_set=='') {stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Cowley', 'Marcotte', 'Marcotte2012' or 'Wang_mm3'"))}
+if (is.null(data_set) || data_set=='') {stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Cowley', 'Marcotte', 'Marcotte2012', 'Wang_mm3', 'Hahn', 'DRIVE_ATARiS', or 'DRIVE_RSA'"))}
 
-output_pancaner_results <- ( data_set=="Campbell" || data_set=="Cowley" || data_set=="Achilles_CRISPR" || data_set=="Marcotte2012" ) # No pan-cancer results for "Marcotte" (as all Breast) nor "Wand_mm3" (as all AML)
+output_pancaner_results <- data_set %in% c("Campbell", "Cowley", "Achilles_CRISPR", "Marcotte2012", "Hahn", "DRIVE_ATARiS", "DRIVE_RSA" ) # No pan-cancer results for "Marcotte" (as all Breast) nor "Wand_mm3" (as all AML)
+
+# Temporary hack:
+# output_pancaner_results <- FALSE 
 
 # Input files:
 kinome_file  <- paste0("../preprocess_rnai_data/rnai_output/",data_set,"_cancergd.txt")
@@ -116,7 +134,9 @@ if (run_analysis) {
   if (output_pancaner_results) {
 	# Driver gene mutations in combined histotypes - No Pan-cancer for Colt as it is only Breast cancer cell lines.
     cat("Starting Pan-cancer univariate tests ...\n")
-
+  
+    # cat("Number to test:",length(colnames(kinome_combmuts$func_muts)))
+  
     # Writing results directly to file (rather than appending each result to a data frame, which becomes slow with Cowley and  data):
     fileConn<-file(open="w", uv_results_kinome_combmuts_file)
 	num_results <- run_univariate_tests(

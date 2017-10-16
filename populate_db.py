@@ -14,6 +14,17 @@ django.setup()
 from gendep.models import Study, Gene, Dependency 
 from django.conf import settings  # To get the current database engine type (sqlite or mysql).
 
+# Set input data file  names:
+AlterationDetailsFile    = "./input_data/AlterationDetails.csv"
+EntrezSummariesFile      = "./input_data/entrez_summaries.txt"
+HgncCompleteSetFile      = "./input_data/hgnc_complete_set.txt"
+ScreenDescriptionsFile   = "./input_data/ScreenDescriptions.txt"
+StringDbEntrezGeneIdFile = "./input_data/entrez_gene_id.vs.string.v10.28042015.tsv"
+StringDbProteinAliasFile = "./input_data/9606.protein.aliases.v10.5.txt"
+StringDbProteinLinksFile = "./input_data/9606.protein.links.v10.5.txt"
+DgiDrugTargetsFile       = "./input_data/dgi_drug_targets.txt"
+
+
 """In the SQLite database (used for development locally), the max_length parameter for fields
 is ignored as the "numeric arguments in parentheses that following the type name (ex: "VARCHAR(255)")
 are ignored by SQLite - SQLite does not impose any length restrictions (other than the large global
@@ -25,8 +36,6 @@ we use :"""
 
 warnings.filterwarnings('error', 'Data truncated .*')
 
-
-
 def progress(message): 
     """ To print progress messages to both stdout, and to stderr, as stdout usually redirected to a log file as large volume of output """ 
     if not sys.stdout.isatty(): print(message, file=sys.stderr)
@@ -36,7 +45,8 @@ def progress(message):
 
 # Doing "bulk_create()" in smaller batches of 200 as on MySQL on PythonAnwhere.com, as trying to bulk insert many gives error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away').
 # 999 is the default for the bulk_create() batch_size parameter in sqlite.
-DB_BATCH_SIZE = 999 if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' else 200   # 'django.db.backends.mysql'
+DB_BATCH_SIZE = 1 if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' else 200   # 'django.db.backends.mysql'
+print("** DB_BATCH_SIZE=",DB_BATCH_SIZE)
             
 def db_bulk_insert(table, rows) :
     """
@@ -65,10 +75,17 @@ def db_bulk_insert(table, rows) :
           
         #for key,val in row.items():
         #    progress(key + ":" + val)
-        progress(rows)
+        for row in rows:
+            progress(row)
         progress("\n")
         raise warning
-
+    except Exception as exception:  # To report the row causing any data truncation error.        
+        progress("\n***ERROR***:"+str(exception))
+        print(exception.args)     # arguments stored in .args
+        for row in rows:
+           progress(row)
+        progress("\n")
+        raise exception
 
     
 def add_gene_details() :
@@ -80,7 +97,7 @@ def add_gene_details() :
     entrez_to_symbol = {}
     rows = []
     # The hgnc_complete_set.txt file contains unicode characters in the 'name' column, eg. the Greek symbols for Alpha and Beta, etc, so need to open it with utf-8 encoding:
-    with open_file("./input_data/hgnc_complete_set.txt") as f :
+    with open_file(HgncCompleteSetFile) as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             if row['entrez_id'] and row['symbol']:
@@ -114,7 +131,7 @@ def add_driver_details() :
     """
     Adds details of the alteration types considered for each driver
     """
-    with open("./input_data/AlterationDetails.csv","r") as f :
+    with open_file(AlterationDetailsFile) as f :
         reader = csv.DictReader(f, dialect='excel')
         for row in reader :
             entrez_id = row['Gene'].split('_')[1]
@@ -151,14 +168,14 @@ def add_ensembl_proteinids() :
     entrez_to_ensemblpid = {}    
     ensemblg_to_ensemblpid = {}
     uniprot_to_ensemblpid = {}
-    with open("./input_data/entrez_gene_id.vs.string.v10.28042015.tsv","r") as f:
+    with open_file(StringDbEntrezGeneIdFile) as f:
         f.readline()
         reader = csv.reader(f,delimiter="\t")
         for r in reader :
             entrez = r[0]
             ensembl_pid = r[1].split('.')[1]
             entrez_to_ensemblpid[entrez] = ensembl_pid
-    with open_file("./input_data/9606.protein.aliases.v10.txt") as f:
+    with open_file(StringDbProteinAliasFile) as f:
         for line in f :
             if 'ENSG' in line :
                 parts = line.split("\t")
@@ -183,7 +200,7 @@ def add_inhibitor_details() :
     Adds inhibitors for each gene, sourced from DGIdb
     """
     entrez_to_inhibitor = {}
-    with open("./input_data/dgi_drug_targets.txt","r") as f :
+    with open_file(DgiDrugTargetsFile) as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             entrez_to_inhibitor[row['EntrezID']] = row['Inhibitors']
@@ -199,7 +216,7 @@ def add_entrez_summaries() :
     Adds entrez summaries for each gene
     """
     entrez_to_summary = {}
-    with open("./input_data/entrez_summaries.txt","r") as f :
+    with open_file(EntrezSummariesFile) as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
             entrez_to_summary[row['EntrezID']] = row['Summary']
@@ -215,9 +232,12 @@ def add_studies() :
     Adds details of the screens included
     """
     rows=[]
-    with open("input_data/ScreenDescriptions.txt","rU") as f :
+    with open(ScreenDescriptionsFile,"rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
+            if row['Study'][0] == '#':
+                print("Skipping sudy '%s' as is commented out." %(row['Study']))
+                continue # To skip commented out lines.
             rows.append( Study(pmid=row["PMID"], code = row['Code'], short_name = row['ShortName'], title = row["Title"], 
                 authors = row["Authors"], abstract = row["Abstract"], summary = row["Summary"], experiment_type = row["Type"], 
                 journal = row["Journal"], pub_date = row["Date"], num_targets = row["Targets"]) )
@@ -257,11 +277,16 @@ def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
             zdiff = float(row["ZDiff"])
             za = float(row["zA"])
             zb = float(row["zB"])
+            
             try :
                 driver = Gene.objects.get(entrez_id = marker_entrez)
                 if not driver.is_driver :
                     print("Gene %s %s should have is_driver=True, but is %s" %(driver.gene_name, marker_entrez, driver.is_driver))
                 target = Gene.objects.get(entrez_id = target_entrez)
+
+                # if study=="28753430" and driver=="KRAS" and target=="A2M" and tissue=="HAEMATOPOIETIC_AND_LYMPHOID_TISSUE" :
+                print("FOUND: %s %s %s %s" %(study,driver,target,tissue))
+
                 if not target.is_target :
                     target.is_target=True
                     target.save()
@@ -271,13 +296,14 @@ def add_dependency_file(study, filename, duplicates=False, exclude_tissues=[]) :
 
             if duplicates: # Check if this dependency exists already
 #                existing_cgd = None
-                key="%s:%s:%s:%s" %(driver, target, tissue, study)                
+                key="%s:%s:%s:%s" %(driver, target, tissue, study)
 #                if key in cgd_dict:  # in the batch update dictionary
 #                    existing_cgd = cgd_dict[key]
 #                elif Dependency.objects.filter(driver=driver, target=target, histotype=tissue, study=study).exists(): # or saved in the table
 #                    existing_cgd = Dependency.objects.get(driver=driver, target=target, histotype=tissue, study=study)
                 existing_cgd = cgd_dict.get(key, None)
                 if existing_cgd is not None:
+                    progress("Duplicate: "+key)
                     if existing_cgd.wilcox_p > wilcox_p :
                         existing_cgd.za = za
                         existing_cgd.zb = zb
@@ -317,9 +343,10 @@ def add_dependencies() :
     in the Marcotte2012 data as already these are a subset of the
     Marcotte (2016) data.
     """
-    with open("input_data/ScreenDescriptions.txt","rU") as f :
+    with open(ScreenDescriptionsFile,"rU") as f :
         reader = csv.DictReader(f,delimiter="\t")
         for row in reader :
+            if row['Study'][0] == '#' : continue  # To skip commented out studies.
             pmid = row["PMID"]
             screens = row["CGD_files"].split(';')
             duplicates = row["DuplicateGenes"] == "1"
@@ -343,7 +370,8 @@ def get_string_confidence(score) :
         return "Medium"
     else :
         return "Low"
-        
+
+  
 def add_string_interactions() :
     """
     For every CGD we store details of whether it involves a gene pair
@@ -360,7 +388,7 @@ def add_string_interactions() :
     stored_interactions = {}
 
     progress("   Loading protein links ...")
-    with open_file("./input_data/9606.protein.links.v10.txt") as f:
+    with open_file(StringDbProteinLinksFile) as f:
         f.readline()
         reader = csv.reader(f,delimiter=" ")
         for r in reader :
@@ -561,7 +589,7 @@ def add_multihit_interactions1() :
 if __name__ == "__main__" :
 
     with transaction.atomic():
-        """
+        
         progress("Emptying database tables")
         for table in (Dependency, Study, Gene):
             table.objects.all().delete()
@@ -589,7 +617,7 @@ if __name__ == "__main__" :
         
         progress("Adding String-DB Interactions to Dependency table")
         add_string_interactions()
-        """
+        
         progress("Adding multi-hit interactions to Dependency table")
         add_multihit_interactions3()
 

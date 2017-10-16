@@ -343,7 +343,22 @@ write_box_dot_plot_data <- function(
   
   i <- NULL	
   for(i in 1:nrow(results)){
-
+    
+    if (length(results$nA[i]) == 0) {
+      print(paste0("Result is empty for i=",i," result:",results[i]))
+      next
+    }
+    
+    if (is.na(results$nA[i])) {
+      print(paste0("Result is NA for i=",i, " result:",results[i]))
+      next
+    }
+    
+    if (!is.numeric(results$nA[i])) {
+      print(paste0("Result is not numeric for i=",i, " is: '",results$nA[i],"'", "  result:",results[i]))
+      next
+    }
+    
     if(results$nA[i] > 2){
       marker_gene <- strsplit(results$marker[i], "_")[[1]][1]
       target_gene <- strsplit(results$target[i], "_")[[1]][1]
@@ -431,8 +446,9 @@ write_box_dot_plot_data <- function(
               if (tissue=="INTESTINE" && (cell_line_tissues[k]=="LARGE_INTESTINE" || cell_line_tissues[k]=="SMALL_INTESTINE")) {
                 #print(paste("Accepting:",cell_line_tissues[k],"==",tissue))
               } else {
-                stop(paste("ERROR:",cell_line_tissues[k], "!=", tissue[k]))
-              }
+                if (cell_line_tissues[k] != tissue[k]) {stop(paste0("ERROR are different A: '",cell_line_tissues[k], "' != '", tissue[k], "'"))}
+                stop(paste0("ERROR A: '",cell_line_tissues[k], "' != '", tissue[k], "' or '", tissue, "'"))
+              }  # SOFT_TISSUE' != 'SOFT_TISSUE' or 'SOFT_TISSUE'
               # But for Achilles data we allow the case of: 
               #LARGE_INTESTINE != INTESTINE
               #SMALL_INTESTINE != INTESTINE
@@ -465,12 +481,13 @@ write_box_dot_plot_data <- function(
           cell_line_tissues <- sub("^(.*?)_","",cell_lines) # the part after the first "_"
           #					print(cell_line_tissues)
           if(length(which(cell_line_tissues != tissue)) > 0){
-            unequal_tissues <- which(cell_line_tissues != tissue)					
+            unequal_tissues <- which(cell_line_tissues != tissue)
             for (k in 1:length(unequal_tissues)) {
               if (tissue=="INTESTINE" && (cell_line_tissues[k]=="LARGE_INTESTINE" || cell_line_tissues[k]=="SMALL_INTESTINE")) {
                 # print(paste("Accepting:",cell_line_tissues[k],"==",tissue))
               } else {
-                stop(paste("ERROR:",cell_line_tissues[k], "!=", tissue[k]))
+                if (cell_line_tissues[k] != tissue[k]) {stop(paste0("ERROR are different B: '",cell_line_tissues[k], "' != '", tissue[k], "'"))}              
+                stop(paste0("ERROR B: '",cell_line_tissues[k], "' != '", tissue[k], "' or '", tissue, "'"))
               }
             }
           }

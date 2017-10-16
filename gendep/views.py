@@ -14,7 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache  # To cache previous results. NOTE: "To provide thread-safety, a different instance of the cache backend will be returned for each thread."
 from django.core.urlresolvers import reverse
 from django.utils import timezone # For log_comment(), with USE_TZ=True in settings.py, and istall "pytz"
-from django.db.models import Q # Used for get_drivers()         
+from django.db.models import Q # Used for get_drivers()
 
 from .models import Study, Gene, Dependency, Comment  # Removed: Histotype,
 
@@ -77,18 +77,18 @@ def get_study_shortname_from_study_list(study_pmid, study_list):
         return ''
     if study_pmid=="ALL_STUDIES":
         return "All studies"
-    try:    
+    try:
         study = study_list.get(study_pmid=study.pmid)
-#   Or iterate through the list:        
+#   Or iterate through the list:
 #   for study in study_list:
 #       if study_pmid == study.pmid:
         return study.short_name
     except ObjectDoesNotExist: # Not found by the objects.get()
         print("WARNING: '"+study_pmid+"' NOT found in database so will be ignored")
         return '' # ie. if study_pmid parameter value not found then ignore it.
-        
-        
-        
+
+
+
 def get_timing(start_time, name, time_list=None):
     """ Prints the time taken by functions, to help optimise the code and SQL queries.
     The start_time parameter value should be obtained from: datetime.now()
@@ -153,7 +153,7 @@ def awstats_view(request):
     # Maybe 'bufsize=-1'
 
     # "This will deadlock when using stdout=PIPE or stderr=PIPE and the child process generates enough output to a pipe such that it blocks waiting for the OS pipe buffer to accept more data. Use Popen.communicate() when using pipes to avoid that.
-    # "Use the communicate() method rather than .stdin.write, .stdout.read or .stderr.read to avoid deadlocks due to streams pausing reading or writing and blocking the child process.           
+    # "Use the communicate() method rather than .stdin.write, .stdout.read or .stderr.read to avoid deadlocks due to streams pausing reading or writing and blocking the child process.
 
     # awstats output seems to be in "iso-8859-1" rather than "uft-8"   see: https://sourceforge.net/p/awstats/discussion/43428/thread/b5cbb36c/
     # So can get error about: 
@@ -1217,6 +1217,21 @@ def faq(request):
 def contact(request):
     return render(request, 'gendep/contact.html')
 
+def news(request):
+    news_list = News.objects.filter(deleted=False).order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    # Unused code for news template:   {% if news.img_filename not empty %}{% if news.img_link %}<a href="{{ news.img_link }}">{% endif %}<img src="{{ MEDIA_URL }}{{ news.img_filename }}" style="float: {{ news.img_align }};" />{% if news.img_link %}</a>{% endif %}{% endif %}
+    context = {'news_list': news_list}
+    return render(request, 'gendep/news.html', context)
+    # If in admin mode then can edit the above news items? - ie. pass an extra parameter
+
+
+"""
+def edit_news(request):
+    news_list = News.objects.filter(deleted=False).order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    # Unused code for news template:   {% if news.img_filename not empty %}{% if news.img_link %}<a href="{{ news.img_link }}">{% endif %}<img src="{{ MEDIA_URL }}{{ news.img_filename }}" style="float: {{ news.img_align }};" />{% if news.img_link %}</a>{% endif %}{% endif %}
+    context = {'news_list': news_list}
+    return render(request, 'gendep/news.html', context)
+"""
 
 
 search_by_driver_column_headings_for_download = ['Dependency', 'Dependency description', 'Entez_id',  'Ensembl_id', 'Ensembl_protein_id', 'Dependency synonyms', 'Wilcox P-value', 'Effect size', 'Z diff', 'Tissue', 'Study', 'PubMed Id', 'Experiment Type', 'Multiple hit', 'String interaction', 'Inhibitors', 'Boxplot link']                                 

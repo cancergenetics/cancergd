@@ -132,18 +132,20 @@ class Study(models.Model):
 #    histotype   = models.CharField('Histotype', max_length=10, primary_key=True, db_index=True)
 #    full_name   = models.CharField('Histotype', max_length=30)
 
-
-
 class Dependency(models.Model):
     """ Dependency = Driver-Target interactions """
     # Values for the histotype choices CharField. The two letter codes at right are used for faster transfer to webbrowser.
     HISTOTYPE_CHOICES = (
+("AUTONOMIC_GANGLIA",                  "Autonomic Ganglia"),  # <-- *** `Add to box plots table, Oct 2017  
+("BILIARY_TRACT",                      "Biliary tract"),  # <-- *** `Add to box plots table, Oct 2017
       ("BONE",                               "Bone"),        #  "Bo"),  was "BONE", in R - but using Bone, as Achilles has some non-Osteosarcoma bone cell-lines
       ("BREAST",                             "Breast"),#        "Br"),
       ("CENTRAL_NERVOUS_SYSTEM",             "CNS"),#           "CN"),
 #      ("CERVICAL",                           "Cervical"),#      "Ce"), # In Campbell, Not in Achilles
       ("CERVIX",                             "Cervix"),#        "Ce"), # Changed from Cervical to Cervix, Sept 2016. In Campbell, Not in Achilles      
 	  ("ENDOMETRIUM",                        "Endometrium"),#   "En"),  BUT only 2 cell lines so not analysed by R ?
+("EYE",                                "Eye"),  # <-- *** `Add to box plots table, Oct 2017
+("GASTROINTESTINAL_TRACT_(SITE_INDETERMINATE)", "Gastrointestinal tract (site indeterimnate)"),  # <-- *** `Add to box plots table, Oct 2017
 	  ("HAEMATOPOIETIC_AND_LYMPHOID_TISSUE", "Blood & Lymph"),# "HL"),
       ("HEADNECK",                           "Head & Neck"),#   "HN"), # In Campbell, Not in Achilles
 	  ("INTESTINE",                          "Intestine"),#     "In"),
@@ -155,13 +157,15 @@ class Dependency(models.Model):
       ("OVARY",                              "Ovary"),#         "Ov"),
       # More added below for Achilles data - may need to add these to the index template
 	  ("PANCREAS", 	                         "Pancreas"),#      "Pa"),
-      # ("LIVER",                            "Liver"),#         "Li"), only 1 cell line so not analysed by R
+("LIVER",                            "Liver"),#         "Li"), only 1 cell line so not analysed by R  <-- *** `Add to box plots table, Oct 2017
 	  ("PLEURA",                             "Pleura"),#        "Pl"), PLEURA is in PANCAN dependencies, separate from LUNG.
 	  ("PROSTATE",                           "Prostate"),#      "Pr"),
 	  ("SKIN",                               "Skin"),#          "Sk"),
 	  ("SOFT_TISSUE",                        "Soft tissue"),#   "So"), only 2 celllines so not analysed by R ?
 	  ("STOMACH",                            "Stomach"),#       "St"),
+("THYROID",                            "Thyroid"),  # <-- *** `Add to box plots table, Oct 2017
 	  ("URINARY_TRACT",                      "Urinary tract"),# "Ur"),
+("UPPER_AERODIGESTIVE_TRACT",          "Upper Aerodigestive tract"),  # <-- *** `Add to box plots table, Oct 2017
       ("PANCAN",                             "Pan cancer"),#    "PC"),
     )
 
@@ -222,8 +226,8 @@ class Dependency(models.Model):
             if row[0] == h: return row[1]
         return "Unknown"
        
-#    def __str__(self):
-#        return self.target.gene_name
+    def __str__(self):  # To print a human-readable string, instead of just: 
+        return "study=%s driver=%s target=%s tissue=%s" %(self.study, self.driver, self.target, self.histotype)  # or self.target.gene_name, etc....
     
     # Based on: https://groups.google.com/forum/#!topic/django-users/SzYgjbrYVCI
     def __setattr__(self, name, value):
@@ -245,6 +249,21 @@ class Comment(models.Model):
     comment     = models.TextField('Comment')
     ip          = models.CharField('IP address', max_length=30) # To help block/blacklist any spam messages.
     date        = models.DateTimeField('Date', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
+
+
+class News(models.Model):
+    """ Stores latest news posts for the "News" page """
+    content     = models.TextField('Content', default='', blank=True)
+    first_posted= models.DateTimeField('First posted', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
+    last_edited = models.DateTimeField('Last edited', default=timezone.now, editable=True,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
+
+
+class Download(models.Model):
+    type         = models.CharField('Type', max_length=20) # CSV or SQLite
+    filename     = models.CharField('Filename', max_length=255) # Will be in the static dir
+    changes      = models.TextField('Changes', default='', blank=True) # Changes in this file, not present in previous version.
+    # num_downloads= models.IntegerField('Num downloads', default=0) # Number of downloads
+    date_created = models.DateTimeField('Date created', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
 
 
 # NOTES:
