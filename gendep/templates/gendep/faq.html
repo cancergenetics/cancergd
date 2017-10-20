@@ -56,7 +56,7 @@
 
 <a name="multihit"><h2>What does the <i>Multiple Hit</i> column indicate?</h2></a>
 
-<p> The Multiple Hit column indicates whether a specific dependency has been observed in more than one dataset. For example, in breast cancer, <i>ERBB2</i> amplification has been associated with an increased dependency upon ERBB3 in three individual screens (Campbell <i>et al</i> 2016, Marcotte <i>et al</i> 2016, Cowley<i> et al</i> 2014) so is indicated with a <i>Yes</i> in the Multiple Hit column. Note that a dependency is only considered a Mulitple Hit if the same driver was associated with the same dependency in the same cancer type (or Pan-Cancer in both screens). A dependency seen in one dataset in lung cancer and in another in breast cancer would not be considered a Multiple Hit. You can download all multiple hit dependencies <a href="{% static 'gendep/multihit_dependencies.csv' %}">here.</a> </p>
+<p> The Multiple Hit column indicates whether a specific dependency has been observed in more than one dataset. For example, in breast cancer, <i>ERBB2</i> amplification has been associated with an increased dependency upon ERBB3 in three individual screens (Campbell <i>et al</i> 2016, Marcotte <i>et al</i> 2016, Cowley<i> et al</i> 2014) so is indicated with a <i>Yes</i> in the Multiple Hit column. Note that a dependency is only considered a Mulitple Hit if the same driver was associated with the same dependency in the same cancer type (or Pan-Cancer in both screens). A dependency seen in one dataset in lung cancer and in another in breast cancer would not be considered a Multiple Hit. You can download all multiple hit dependencies from the <a href="{% url 'gendep:download' %}">'Downloads' page</a></p>
 
 <a name="datasets"><h2>How can I contribute a loss-of-function screen to CancerGD?</h2></a>
 
@@ -131,9 +131,9 @@ http://{{current_url}}{% url 'gendep:get_boxplot' dataformat='csv' driver_name='
 
 
 <a name="downloaddb"><h2>How can I download the whole CancerGD database to interrogate locally?</h2></a>
-<p>The full CancerGD database can be downloaded as an <a href="{% static 'gendep/db_sqlite.zip' %}" download>Sqlite3 database</a> or a <a href="{% static 'gendep/all_dependencies.csv.gz' %}" download>Comma-separate values (CSV) file</a>. These are compressed files so need to be uncompressed using either Linux/MacOS command-line, eg: "unzip db_sqlite.zip" or "gunzip all_dependencies.csv.gz". On Windows could use a program such as <a href="http://www.7-zip.org/">7-Zip</a>.
+<p>The full CancerGD database can be downloaded from the <a href="{% url 'gendep:download' %}">'Downloads' page</a> as an Sqlite3 database or as a Comma-separate values (CSV) file.</p>
 
-<p>To query the SQLite database you can use a program such as the free <a href="http://sqlitebrowser.org/">SQLite Browser</a>
+<p>To query the SQLite database you can use a program such as the free <a href="http://sqlitebrowser.org/">SQLite Browser</a></p>
 {% comment %}, as follows:</p>
 
 <p>On the "Browse Data" tab, can select the "gendep_dependency" table and set filters in the cells below the column names. Can also the use '%' symbol to match to text within a string column eg: in the 'boxplot_data' column use %LUNG% to match any rows containing LUNG in that column.</p>

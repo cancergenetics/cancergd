@@ -36,11 +36,11 @@ var tissue_colours = {
 
   // The following are added for the DRIVE_ATARiS data:
   "AUTONOMIC_GANGLIA": "goldenrod",  // so is similar to CENTRAL_NERVOUS_SYSTEM
-  "BILIARY_TRACT": "",
-  "EYE": "",
-  "GASTROINTESTINAL_TRACT_(SITE_INDETERMINATE)": "",
-  "LIVER": "",
-  "THYROID":  "",
+  "BILIARY_TRACT": "sienna",
+  "EYE": "lightblue",
+  "GASTROINTESTINAL_TRACT_(SITE_INDETERMINATE)": "saddlebrown",
+  "LIVER": "maroon",
+  "THYROID":  "darkblue",
   "UPPER_AERODIGESTIVE_TRACT": "seagreen"
   };
 
@@ -56,25 +56,29 @@ var svgNS="http://www.w3.org/2000/svg"; // Name space needed for SVG.
 // Boxplot dimensions and scaling:
 var irange=0, iwtbox=3, imubox=8;
 var itissue=0, icellline=1, iy=2, imutant=3;  // was: ix=2, 
-var svgWidth=700, svgHeight=550;  // Sept2017 : increased width of SVG plot from 500 to 700, then to 1000 in Oct 2017
+// var svgWidth=700, svgHeight=550;  // Sept2017 : increased width of SVG plot from 500 to 700, then to 1000 in Oct 2017
+var svgWidth=600, svgHeight=590;   // Oct2017 : increased width of SVG plot from 500 to 700, then to 1000 in Oct 2017
 
 var XscreenMin=50,  XscreenMax=(svgWidth-10); // To allow for a margin of 50px at left, and 10px at right
 var YscreenMin=(svgHeight-50), YscreenMax=10; // To allow a margin of 50px at bottom, and small 10px margin at top
-var wtxc=2.1, muxc=5.1, boxwidth=2.9;   // Sept2017: increased boxwidth from 1.8
+
+// var wtxc=2.1, muxc=5.1, boxwidth=2.9;   // Sept2017: increased boxwidth from 1.8
+var wtxc=1.8, muxc=4.4, boxwidth=2.0;   // Oct2017: increased boxwidth from 1.8
+
 var svg, xscale, yscale, Yscreen0, points;
 var tissue_lists={};
 
 var collusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
-var PointRadius = 5; // Radius of Circle on the SVG plot.
+var wtPointRadius = 3, muPointRadius = 5; // Radius of Circle on the SVG plot. Was = 5, but reduced to 3 on 20 Oct 2017 for larger datasets.
 
-var TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*PointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
-var TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*PointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
-var TriangleCentreToApex = Math.sqrt((4*Math.PI)/(3*Math.sqrt(3)))*PointRadius; // circumcentre to apex of triangle (is 2/sqrt(3) times the half base width).
+var TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
+var TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*muPointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
+var TriangleCentreToApex = Math.sqrt((4*Math.PI)/(3*Math.sqrt(3)))*muPointRadius; // circumcentre to apex of triangle (is 2/sqrt(3) times the half base width).
 // So triangle points relative to centre are at: (x,y) = (-TriangleHalfBase, -TriangleBaseToCentre), (-TriangleHalfBase, -TriangleBaseToCentre), (0,TriangleCentreToApex).
 
-var SquareCornerXY = 0.5*Math.sqrt(Math.PI)*PointRadius; // So square has same are as circle withy radius PointRadius.
+var SquareCornerXY = 0.5*Math.sqrt(Math.PI)*muPointRadius; // So square has same are as circle withy radius PointRadius.
 
-var DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*PointRadius; // So diagonal has same are as circle with radius PointRadius.
+var DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*muPointRadius; // So diagonal has same are as circle with radius PointRadius.
 
 var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=null, copynumber_legend=null;
 
@@ -92,7 +96,7 @@ function parse_boxplot_csv_data_into_points_array(boxplot_csv) {
   var NA_total = 0; // count of lines with y='NA'
   for (var i=1; i<data_lines.length; i++) {  
     var col = data_lines[i].split(",");	
-    if (col[iy]=='NA') {console.log("Skipping "+col[icellline]+" "+tissue+" as y='"+col[iy]+"'"); NA_total++; continue;}
+    if (col[iy]=='NA') {console.log("Skipping "+col[icellline]+" "+col[itissue]+" "+col[imutant]+" as y='"+col[iy]+"'"); NA_total++; continue;}
     if (col[itissue]=="OSTEOSARCOMA") {col[itissue]="BONE";}  // BONE is "OSTEOSARCOMA" in the tissue_colours array.
 	points.push(col);
   }    
@@ -292,14 +296,14 @@ function tissue_legend_Out(e)  {
 function mouseOver(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
 	var target = e.target || e.srcElement;
-	target.setAttribute("r", "10");   // "r" only applies to circles.
+	target.setAttribute("r", (2*wtPointRadius).toString());   // "r" only applies to circles. Set size to wtPointRadius, as all circles should be 'wt' - alternatively could text if x coord if point is wt, using i and imutant col?
     }
 
 
 function mouseOut(e) {
 	e = e || window.event;  // Need: window.event for IE <=8 
 	var target = e.target || e.srcElement;
-	target.setAttribute("r", "5");
+	target.setAttribute("r", wtPointRadius.toString());   // "r" only applies to circles. Set size to wtPointRadius, as all circles should be 'wt' - alternatively could text if x coord if point is wt, using i and imutant col?
     }
 
 
@@ -498,6 +502,158 @@ function diamond_points(x,y) {
 
 
 
+
+function beeswarm(points,wtxc,muxc,boxwidth) {
+  // Plots the swarm of points.
+  // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
+  var wt_points=[],mu_points=[];
+
+  var wtHorizPointSpacing = 3, muHorizPointSpacing = 12;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
+  var tissue_count=0;
+  var wtleft=[], wtright=[], muleft=[], muright=[]; // To avoid overlapping points.
+  var wt_tissue_counts = {}, mu_tissue_counts = {};
+  
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
+    var tissue = points[i][itissue];
+		
+
+	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
+	
+
+if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
+else {mu_points.push(parseFloat(points[i][iy]))}
+
+//    var y = tohalf(Yscreen0 + parseFloat(points[i][iy]) * yscale, 1);
+    var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
+
+    var Yi = Math.round(y / collusionTestRadius);
+
+	var pointType = "circle", svgType = "circle";
+	// Pre-Aug-2016 mutation types mapping was:
+	//   1,2,3 = mutation
+    //   4,5 = copy number (is one a deletion and one an amplification?)
+    // Now simply:
+	//   1 = mutation
+    //   2 = copy number (is one a deletion and one an amplification?)    
+    if (!isWT) {
+	  switch (points[i][imutant]) {		  
+	    case "1":
+		  // pointType = "square";   svgType = "rect"; break; // Square not drawn correctly yet.
+		  pointType = "diamond";  svgType = "polygon"; break;		  
+
+	    case "2":
+          pointType = "triangle"; svgType = "polygon"; break;
+		// if needed a 5-point star could be another shape
+	    
+//	    case "3":		
+//      case "4":
+//	    case "5":
+	    default: alert("Invalid point type: '"+points[i][imutant]+"'")
+	  }
+	}
+	
+    var e = document.createElementNS(svgNS, svgType);
+
+	var colour = tissue_colours[tissue];
+	if (typeof colour === 'undefined') {alert("Unexpected tissue '"+tissue+"'");}
+	
+    e.setAttribute("fill", colour);
+    //e.setAttribute("stroke", colour);    // e.style.stroke=colour;
+	// e.setAttribute("stroke-width", "1"); // e.style.strokewidth=1;
+	// e.setAttribute("fill-opacity", "0.5");
+
+	var x = isWT ? wtxc*xscale : muxc*xscale;  // The centerline.
+		
+    if (tissue in tissue_lists) {tissue_lists[tissue].push(e);}
+	else {
+	  tissue_lists[tissue]=[e];
+	  wt_tissue_counts[tissue]=0;
+	  mu_tissue_counts[tissue]=0;
+	  tissue_count++;
+	  }
+	if (points[i][imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
+	else {mu_tissue_counts[tissue]++}
+
+	if (isWT) { // Wild type
+	    // on right side set to position one to true so won't plot two points on centre line, as point on left occupies the one position..
+		for (var j=-2; j<=2; j++) {
+	      if (typeof wtleft[Yi+j] === 'undefined') {if (typeof wtright[Yi+j] !== 'undefined') {alert("wtright defined Yi+'+j+' "+Yi)}; wtleft[Yi+j]=[]; wtright[Yi+j]=[true];}
+		  }
+				
+       // find position on left nearest to centre line:
+	   var xleft  = search_rows_above_and_below('wtleft:'+Yi,wtleft[Yi],wtleft[Yi-1],wtleft[Yi+1],wtleft[Yi-2],wtleft[Yi+2]);
+	   var xright = search_rows_above_and_below('wtright:'+Yi,wtright[Yi],wtright[Yi-1],wtright[Yi+1],wtright[Yi-2],wtright[Yi+2]);
+
+//       if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.
+	   if (xleft<=xright)
+	     {for (var j=wtleft[Yi].length; j<xleft; j++) {wtleft[Yi][j]=false;}; wtleft[Yi][xleft]=true; x-=xleft*wtHorizPointSpacing;} // console.log('using xleft x='+x+' wtleft[Yi].length:'+wtleft[Yi].length);
+	   else 
+	     {for (var j=wtright[Yi].length; j<xright; j++) {wtright[Yi][j]=false;}; wtright[Yi][xright]=true; x+=xright*wtHorizPointSpacing;} // console.log('using xright x='+x+' wtright[Yi].length:'+wtright[Yi].length);
+	   	   
+	   } // end of isWT
+	   
+	else { // is Altered (Mutant)
+	   for (var j=-2; j<=2; j++) {
+	     if (typeof muleft[Yi+j] === 'undefined') {if (typeof muright[Yi+j] !== 'undefined') {alert("muright defined Yi+'+j+' "+Yi)}; muleft[Yi+j]=[]; muright[Yi+j]=[true];}
+	     }
+	  
+       // find position on left nearest to centre line:		
+	   var xleft  = search_rows_above_and_below('muleft:'+Yi,muleft[Yi],muleft[Yi-1],muleft[Yi+1],muleft[Yi-2],muleft[Yi+2]);
+	   var xright = search_rows_above_and_below('muright:'+Yi,muright[Yi],muright[Yi-1],muright[Yi+1],muright[Yi-2],muright[Yi+2]);
+
+       //  if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.	   
+	   if (xleft<=xright)
+	     {for (var j=muleft[Yi].length; j<xleft; j++) {muleft[Yi][j]=false;}; muleft[Yi][xleft]=true; x-=xleft*muHorizPointSpacing;} // console.log('using xleft x='+x+' muleft[Yi].length:'+muleft[Yi].length);
+	   else 
+	     {for (var j=muright[Yi].length; j<xright; j++) {muright[Yi][j]=false;}; muright[Yi][xright]=true; x+=xright*muHorizPointSpacing;} // console.log('using xright x='+x+' muright[Yi].length:'+muright[Yi].length);
+	   
+		} // end of is Mutant
+		
+    // Using tohalf() and Math.round() to prevent anti-aliasing of horizontal and vertical lines, and ensure circles, triangle, diamond are drawn pixel consistently.
+    switch(pointType) {
+	  case "circle":
+	    //add the xcentre after the above calculations 	
+	    e.setAttribute("cx", tohalf(x,1).toString() ); // or: e.cx.baseVal.value =  parseFloat(points[i][2]) * xscale );	
+	    e.setAttribute("cy", tohalf(y,1).toString() ); // or: e.cy.baseVal.value = parseFloat(points[i][3]) * yscale );				
+	    e.setAttribute("r", (isWT ? wtPointRadius : muPointRadius).toString()); // Firefox and IE don't use the 'r' in the 'circle' class (whereas Chrome does)  e.r.baseVal.value = PointRadius.toString(); set in the 'circle' class
+		break;
+	
+      case "square": // rect
+	    e.setAttribute("x", tohalf(x-SquareCornerXY, 1).toString());
+	    e.setAttribute("y", tohalf(y-SquareCornerXY, 1).toString());
+	    e.setAttribute("width", Math.round(2*SquareCornerXY).toString());
+	    e.setAttribute("height",Math.round(2*SquareCornerXY).toString());
+	    break;
+
+	  case "triangle": // polygon
+	    // polygons also have stroke and fill which is similar to circle: "stroke:#660000; fill:#cc3333; stroke-width: 3;"
+	    // draw triangle inverted as graphics y=0 is at top of screen.
+	    e.setAttribute("points", triangle_points(x,y));
+	    break;
+		
+	  case "diamond": // path
+	    e.setAttribute("points",diamond_points(x,y));
+        break;
+		
+      //default:
+				
+	}
+	
+	var id = "c"+i.toString();
+	e.setAttribute("id", id); // 'c' for circle or cell_line
+	
+	e.onmouseover = mouseOver;  // or: e.onmouseover = function() { myFun(this) };
+	// the mouseenter event, the mouseover event triggers if a mouse pointer enters any child elements as well as the selected element. The mouseenter event is only triggered when the mouse pointer enters the selected element. 
+	e.onmouseout = mouseOut;
+	
+	//evt.target.setAttribute('opacity', '0.5');"
+	svg.appendChild(e);
+    }
+    
+   create_legend_table(wt_tissue_counts,mu_tissue_counts);
+}
+
+/* ORIGINAL - pre Oct 2017, when the wt horiz needed automatic resetting:
 function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
   // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
@@ -647,7 +803,7 @@ else {mu_points.push(parseFloat(points[i][iy]))}
     
    create_legend_table(wt_tissue_counts,mu_tissue_counts);
 }
-
+*/
 
 function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
     // Creates the tissue legend table, with totals and check-boxes to show/hide points.
@@ -655,7 +811,14 @@ function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
   	
 	var legend_tbody='<tbody>';
 	var wt_total=0, mu_total=0;
-    for (tissue in tissue_lists) {
+	
+	// Want table ordered by tissue names:
+	var sorted_tissue_array = Object.keys(tissue_lists).sort(function(a, b){return histotype_display(a) > histotype_display(b)}); // although Object.keys() is not supported in older browsers, eg. pre-IE9.
+    // console.log("sorted_tissue_array:",sorted_tissue_array);
+    // for (tissue in sorted_tissue_array) {  <-- doesn't work, whereas doe for dictionary: for (tissue in tissue_lists) { ....
+    for (var i = 0; i < sorted_tissue_array.length; i++) {
+      var tissue =  sorted_tissue_array[i];
+      console.log("tissue:",tissue);
 	  var colour = tissue_colours[tissue];
 	  
 //	  $('head').append('<style type="text/css">.'+tissue+'_tooltip{background:'+colour+';}</style>'); // add the style to use later for the tooltips background colour.
@@ -1193,8 +1356,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
       + '  polygon {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
       + '  polygon.bold  {stroke-width: 5px; stroke: black;}'
       + '  polygon:hover {stroke-width: 5px; stroke: black;}'
-      + '  circle.bold   {stroke-width: 5px; opacity: 0.9; stroke: black;}'	  
-      + '  circle:hover  {stroke-width: 5px; opacity: 0.9; stroke: black;}'	  
+      + '  circle.bold   {stroke-width: '+wtPointRadius.toString()+'px; opacity: 0.9; stroke: black;}'	  
+      + '  circle:hover  {stroke-width: '+wtPointRadius.toString()+'px; opacity: 0.9; stroke: black;}'	  
       + '  text {font-family: sans-serif; word-spacing: 2; text-anchor: middle;}'
       + ']]></style>'
       + '<rect id="background_rect" x="0" y="0" width="'+svgWidth.toString()+'" height="'+svgHeight.toString()+'" style="fill:white;stroke-width:0;fill-opacity:1.0;"/>'
@@ -1217,10 +1380,10 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
 		
     $.fancybox.open({
 		preload: 0, // Number of gallary images to preload
-		minWidth: 800, // was 900 but too wide of older monitors and projectors.
-		minHeight: svgHeight + 10,
-		width: svgWidth + 320,  // as boxplot is 500 + legend table of 317 = 817px
-		height: 510,
+		minWidth: svgWidth + 320 + 40, // 800, // was 900 but too wide of older monitors and projectors.
+		width:    svgWidth + 320 + 40,  // as boxplot is 500 + legend table of 317 = 817px, +30 for border.
+		minHeight: svgHeight + 10 + 10, // +50 for text area below the svg boxplot 
+		height:    svgHeight + 10 + 10,  // 510,
 		// width: '100%',
 		// height: '100%',
 		padding: 5, // To reduce the border arround box from the 15px default, to fit narrower screens/projectors. (padding is the space between image and fancybox, default 15)
@@ -1237,8 +1400,11 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
             	type: 'inside'
 	        },
     	    overlay: {
-        	    showEarly: true  // false  // Show true, as otherwise incorrectly sized box displays before images have arrived.
-	        }
+        	    showEarly: true,  // false  // Show true, as otherwise incorrectly sized box displays before images have arrived.
+                // css: { 'background': 'rgba(0, 0, 255, 0.5)' }
+                // css: {'background-color': '#ff0000'}
+                // css: { 'background': '#ffffff' } // for white background to match boxplot plot.
+	        }    	        
     	},
 		type: 'inline', // 'html', // 'iframe', // 'html',
 		content: mycontent,

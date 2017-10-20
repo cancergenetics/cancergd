@@ -11,19 +11,21 @@ app_name = 'gendep'
 # Optional parameters: http://stackoverflow.com/questions/14351048/django-optional-url-parameters
 
 cachetime = 60*60*24    # Cache time in seconds - so this view will be cached for 24 hours.
+newscachetime = 10      # Cache time in seconds - so this view will be cached for 10 seconds.
 #cachetime = 1
 
 urlpatterns = [
     
     url(r'^$',          cache_page(cachetime)(views.index),    name='home'),
     url(r'^about/$',    cache_page(cachetime)(views.about),    name='about'),
+    url(r'^news/$',     cache_page(newscachetime)(views.news), name='news'),
     url(r'^tutorial/$', cache_page(cachetime)(views.tutorial), name='tutorial'),    
     url(r'^drivers/$',  cache_page(cachetime)(views.drivers),  name='drivers'),    
     url(r'^targets/$',  cache_page(cachetime)(views.targets),  name='targets'),
     url(r'^tissues/$',  cache_page(cachetime)(views.tissues),  name='tissues'),
     url(r'^studies/$',  cache_page(cachetime)(views.studies),  name='studies'),    
     url(r'^faq/$',      cache_page(cachetime)(views.faq),      name='faq'),
-
+    url(r'^download/$', cache_page(cachetime)(views.download), name='download'),
     url(r'^study/(?P<study_pmid>[0-9A-Za-z]+)/$', cache_page(cachetime)(views.show_study), name='show_study'), # pmid could be 'Pending0001'
         
     url(r'^contact/$', views.contact, name='contact'), # Don't cache this contact form, as uses a csrf_token, and need it protected, see: https://docs.djangoproject.com/en/1.10/ref/csrf/#caching  

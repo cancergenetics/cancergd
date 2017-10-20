@@ -44,10 +44,10 @@ def progress(message):
 
 
 # Doing "bulk_create()" in smaller batches of 200 as on MySQL on PythonAnwhere.com, as trying to bulk insert many gives error: django.db.utils.OperationalError: (2006, 'MySQL server has gone away').
-# 999 is the default for the bulk_create() batch_size parameter in sqlite.
-DB_BATCH_SIZE = 1 if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' else 200   # 'django.db.backends.mysql'
+# 999 is the default for the bulk_create() batch_size parameter in Sqlite.
+DB_BATCH_SIZE = 999 if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' else 200   # 'django.db.backends.mysql'
 print("** DB_BATCH_SIZE=",DB_BATCH_SIZE)
-            
+
 def db_bulk_insert(table, rows) :
     """
     Uses one SQL query to add multiple rows, so is faster than individual inserts.
@@ -471,23 +471,45 @@ def add_multihit_interactions2() :
     return
 
 def add_multihit_interactions3() :
-    """ Using SQL GROUP_CONCAT() is fastest, but in sqlite cannot order the study names within the concatinated group, wherease can order in MySQL """ 
+    """ Using SQL GROUP_CONCAT() is fastest, but in sqlite cannot order the study names within the concatinated group, whereas can order in MySQL """ 
 
     """" Avoid table joins is faster """
     shortnames = {}
     for s in Study.objects.iterator() :
         shortnames[s.pmid] = s.short_name
     
+    # multi_hits = Dependency.objects.raw("""SELECT D.id,
+    #    COUNT(DISTINCT D.pmid) AS num_studies,
+    #    GROUP_CONCAT(DISTINCT D.pmid) AS studies
+    #    FROM gendep_dependency D
+	#	GROUP BY D.driver, D.target, D.histotype
+	#	HAVING num_studies > 1
+	#	ORDER BY D.id ASC;""")
+    # To put the studies list in order by short_name, need to do a split, convert pmids to short_names, sort and join:
+    # for m in multi_hits : 
+    #    Dependency.objects.filter(id = m.id).update(multi_hit= ",".join( sorted( [shortnames[pmid] for pmid in m.studies.split(',')] ) ))
+
+    # BUT: Testing for: Driver: 6502, Target: 1871, only id=191774 is annotated with the multi-hit column, but should also be added in id=128389
+    # id: 128389  study: 28753430  multihit "" 
+    # id: 191774  study: 28753431  multihit: "McDonald(2017),Tsherniak(2017)"
+    
+    # The 'D.id' isn't actually needed, as we are grouping by D.driver, D.target, D.histotype
+    # BUT in Django we must include the primary key in the raw query, otherwise error: "InvalidQuery: Raw query must include the primary key"
     multi_hits = Dependency.objects.raw("""SELECT D.id,
         COUNT(DISTINCT D.pmid) AS num_studies,
         GROUP_CONCAT(DISTINCT D.pmid) AS studies
         FROM gendep_dependency D
 		GROUP BY D.driver, D.target, D.histotype
-		HAVING num_studies > 1
-		ORDER BY D.id ASC;""")
+		HAVING num_studies > 1""")
     # To put the studies list in order by short_name, need to do a split, convert pmids to short_names, sort and join:
-    for m in multi_hits : 
-        Dependency.objects.filter(id = m.id).update(multi_hit= ",".join( sorted( [shortnames[pmid] for pmid in m.studies.split(',')] ) ))
+    num_multi_hits=0
+    for m in multi_hits :
+        multi_hit_studies = ",".join( sorted( [shortnames[pmid] for pmid in m.studies.split(',')] ) )
+        Dependency.objects.filter(driver = m.driver, target = m.target, histotype = m.histotype).update(multi_hit = multi_hit_studies)
+        num_multi_hits += 1
+    # An alternative way would be to also: GROUP_CONCAT(D.id) AS dids, then do the update using then dids.
+    print("%d multi-hit dependencies were found and marked." %(num_multi_hits))
+
 
 
 def test() :

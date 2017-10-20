@@ -63,7 +63,7 @@
 
    <script type="text/javascript" src="{% static 'gendep/cgdd_functions.js' %}?4"></script>
 
-   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?•"></script>
+   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?31"></script>
 
 {% endblock %}
 {% block scripts %}
@@ -139,6 +139,11 @@ Because when you hover an item the jQuery adds the style "ui-state-focus" to the
 }
 */
 
+/* Fancybox skin color - white to match the boxplots: */ 
+.fancybox-skin{
+    background-color:#ffffff!important;
+}
+
 </style>
 
 
@@ -171,8 +176,8 @@ var global_url_for_mystudy = "{% url 'gendep:show_study' study_pmid='mystudy' %}
 var global_url_for_cytoscape_get = "{% url 'gendep:cytoscape_get' required_score='700' protein_list='myproteins' gene_list='mygenes' %}";
 {# var global_url_for_enrichr = "{ % url 'gendep:enrichr' gene_set_library='mylibrary' gene_list='mygenes' % }"; #}
 
-// String-db options:
-// The string interactive URL is now moved to the 'string_interactive_form' form at bottom of this "index.html", so need to set any options in that form's action:
+// String-db options: (NOTE: Also need to change options in the 'string_interactive_form' form HTML further below in this 'index.html' file. 
+// (The string interactive URL is now moved to the 'string_interactive_form' form at bottom of this "index.html", so need to also set any options in that form's action)
 var stringdb_options="network_flavor=confidence&species=9606&caller_identity=CGDD";  // &additional_network_nodes=0
 
 var stringdb_options_score400 = stringdb_options + "&required_score=400&limit=0"; // Used for the Driver + Target links (Medium, High, Highest); and only want these two proteins displayed so need limit=0.
@@ -792,17 +797,18 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   <input type="button" id="string_image" value="Stringdb Image" data-value="Stringdb Image" onclick="show_stringdb(stringdb_image);" />
 </td>
 <td>
-  {# full string interactive URL is: http://string-db.org/newstring_cgi/show_network_section.pl?network_flavor=confidence&caller_identity=CGDD&required_score=700&limit=0&advanced_menu=yes&identifiers=..... "> #}
+  {# full string interactive URL is: http://string-db.org/newstring_cgi/show_network_section.pl?network_flavor=confidence&caller_identity=CGDD&required_score=700&limit=0&advanced_menu=yes&species=9606&identifiers=..... "> #}
   <!-- Using the a href below instead of js onclick="", avoids the popup window blocker -->
-  <form id="string_interactive_form" method="post" action="http://string-db.org/newstring_cgi/show_network_section.pl" target="_blank">
-    <input type="hidden" name="identifiers" id="string_protein_identifiers" value=""/>
+  <form id="string_interactive_form" action="http://string-db.org/newstring_cgi/show_network_section.pl" target="_blank" method="post">
     <!-- input name="identifier" id="string_protein_identifier" value="" type="hidden"/--> <!-- maybe single interaction isn't needed ?-->
     <input type="hidden" name="network_flavor" value="confidence"/>
     <input type="hidden" name="required_score" value="700"/>
+    <input type="hidden" name="species" value="9606"/>
     <input type="hidden" name="limit" value="0"/>
     <input type="hidden" name="advanced_menu" value="yes"/>
     <input type="hidden" name="caller_identity" value="Cancer Genetic Dependency Database"/>
     <input type="submit" id="string_interactive_submit_button" value="Stringdb Interactive" data-value="Stringdb Interactive" onclick="set_string_form_identifiers();"/> <!-- or new HTML5 button tag: formtarget="_blank" -->
+    <input type="hidden" name="identifiers" id="string_protein_identifiers" value=""/>
   </form>
 </td>
 {% comment "Not using Cytoscape.js at present" %}

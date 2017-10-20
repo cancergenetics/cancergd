@@ -16,7 +16,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone # For log_comment(), with USE_TZ=True in settings.py, and istall "pytz"
 from django.db.models import Q # Used for get_drivers()
 
-from .models import Study, Gene, Dependency, Comment  # Removed: Histotype,
+from .models import Study, Gene, Dependency, Comment, News, Download  # Removed: Histotype,
 
 from django.conf import settings # import the settings file for the Google analytics ID. Maybe better to use a context processor in the settings.py file: https://chriskief.com/2013/09/19/access-django-constants-from-settings-py-in-a-template/  and: http://www.nomadblue.com/blog/django/google-analytics-tracking-code-into-django-project/
 # or use the settings export script: https://github.com/jkbrzt/django-settings-export   (see: http://stackoverflow.com/questions/433162/can-i-access-constants-in-settings-py-from-templates-in-django  and: http://stackoverflow.com/questions/629696/deploying-google-analytics-with-django and: https://github.com/montylounge/django-google-analytics )
@@ -1218,12 +1218,39 @@ def contact(request):
     return render(request, 'gendep/contact.html')
 
 def news(request):
-    news_list = News.objects.filter(deleted=False).order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    # news_list = News.objects.filter(deleted=False).order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    
+    # news_list = News.objects.order_by('-id')    # for reverse id order (ie. most recently posted is first.
     # Unused code for news template:   {% if news.img_filename not empty %}{% if news.img_link %}<a href="{{ news.img_link }}">{% endif %}<img src="{{ MEDIA_URL }}{{ news.img_filename }}" style="float: {{ news.img_align }};" />{% if news.img_link %}</a>{% endif %}{% endif %}
+    # Want list in reverse order:
+    news_list = (
+    {'id':'2', 'content':'Data added from the <a href="https://www.ncbi.nlm.nih.gov/pubmed/28753431" target="_blank">McDonald(2017) [Project DRIVE ATARiS]</a> and <a href="https://www.ncbi.nlm.nih.gov/pubmed/28753430" target="_blank">Tsherniak(2017) [Project Achilles v2.20.2]</a> studies.', 'first_posted':'16-Oct-2017', 'last_edited':'16-Oct-2017'},
+    {'id':'1', 'content':'The manuscript describing CancerDG.org is available <a href="http://www.cell.com/cell-systems/fulltext/S2405-4712(17)30230-2" target="_blank">here</a>.', 'first_posted':'14-July-2014', 'last_edited':'14-July-2014'},
+    )
+
     context = {'news_list': news_list}
     return render(request, 'gendep/news.html', context)
     # If in admin mode then can edit the above news items? - ie. pass an extra parameter
 
+def download(request):
+    # download_list = Download.objects.filter(deleted=False).order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    
+    # download_list = Download.objects.order_by('-id')    # for reverse id order (ie. most recently posted is first.
+    # Unused code for news template:   {% if news.img_filename not empty %}{% if news.img_link %}<a href="{{ news.img_link }}">{% endif %}<img src="{{ MEDIA_URL }}{{ news.img_filename }}" style="float: {{ news.img_align }};" />{% if news.img_link %}</a>{% endif %}{% endif %}
+    
+    # Want list in reverse order:
+    download_list = (
+    {'id':'6', 'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_17Oct2017.sqlite3',  'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'5', 'type':'CSV text file of All dependencies',       'filename':'all_dependencies_17Oct2017.csv',      'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'4', 'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_17Oct2017.csv', 'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'3', 'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_1Apr2017.sqlite3',   'date_created':'1-Apr-2017',  'changes':'Original data'},
+    {'id':'2', 'type':'CSV text file of All dependencies',       'filename':'all_dependencies_1Apr2017.csv',       'date_created':'1-Apr-2017',  'changes':'Original data'},
+    {'id':'1', 'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_1Apr2017.csv',  'date_created':'1-Apr-2017',  'changes':'Original data'},
+    )
+
+    context = {'download_list': download_list}
+    return render(request, 'gendep/download.html', context)
+    # If in admin mode then can edit the above news items? - ie. pass an extra parameter
 
 """
 def edit_news(request):

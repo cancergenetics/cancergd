@@ -35,11 +35,11 @@ setwd("/Users/sbridgett/Documents/DjangoApps/cancergd/R_scripts/")
 # Select dataset to process by uncommenting that line #
 # --------------------------------------------------- #
 
-# data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.  Pubmed_id: "26947069"
+data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.  Pubmed_id: "26947069"
 # data_set <- "Cowley"    # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines. (Achilles project). Pubmed_id: "25984343"
 # data_set <- "Marcotte"  # Marcotte et al (2016) - Breast cancer cell lines. (Colt study).  Pubmed_id: "26771497"
 # data_set <- "Marcotte2012" # Marcotte et al (2012) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "22585861"
-data_set <- "Wang_mmc3"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.  Pubmed_id: "28162770"
+# data_set <- "Wang_mmc3"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.  Pubmed_id: "28162770"
 ### data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data, BUT *NOT* USED AT PRESENT.  Pubmed_id: "27260156"
 # data_set <- "Hahn" # Hahn et al (2017) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "28753430"
 # data_set <- "DRIVE_ATARiS"
