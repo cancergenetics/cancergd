@@ -35,16 +35,21 @@ setwd("/Users/sbridgett/Documents/DjangoApps/cancergd/R_scripts/")
 # Select dataset to process by uncommenting that line #
 # --------------------------------------------------- #
 
-data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.  Pubmed_id: "26947069"
-# data_set <- "Cowley"    # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines. (Achilles project). Pubmed_id: "25984343"
+# data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer Cell Lines.  Pubmed_id: "26947069"
+#### data_set <- "Cowley"  *Replaced by "(6) Hahn"*   # Cowley et al   (2014) - Loss of function screens in 216 cancer cell lines. (Achilles project). Pubmed_id: "25984343"
 # data_set <- "Marcotte"  # Marcotte et al (2016) - Breast cancer cell lines. (Colt study).  Pubmed_id: "26771497"
 # data_set <- "Marcotte2012" # Marcotte et al (2012) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "22585861"
 # data_set <- "Wang_mmc3"  # Wang et al (2017) - CRISPR screens identify essential genes in 14 human AML cell lines.  Pubmed_id: "28162770"
-### data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data, BUT *NOT* USED AT PRESENT.  Pubmed_id: "27260156"
+#### data_set <- "Achilles_CRISPR" # New Achilles CRISPR-Cas9 data, BUT *NOT* USED AT PRESENT.  Pubmed_id: "27260156"
 # data_set <- "Hahn" # Hahn et al (2017) - Breast, pancreatic, and ovarian cancer cells.  Pubmed_id: "28753430"
-# data_set <- "DRIVE_ATARiS"
+data_set <- "DRIVE_ATARiS"
 
-# data_set <- "DRIVE_RSA"  # <-- Not using this RSA dataet.
+# data_set <- "Meyers"
+
+#### data_set <- "DRIVE_RSA"  # <-- Not using this RSA dataet.
+
+#all_data_sets <- c( "Campbell", "Marcotte", "Marcotte2012", "Wang_mmc3", "Hahn", "DRIVE_ATARiS", "Meyers" )
+all_data_sets <- c( "Meyers" )
 
 # NOTES:
   # (1) Cowley: *Replaced by "(6) Hahn"*.  "Cowley_cancergd.txt" uses entrezid instead of ensembl ids, and "Cowley_cancergd_tissues.txt" treats PLEURA as separate tissue.
@@ -54,7 +59,8 @@ data_set <- "Campbell"  # Campbell et al (2016) - Kinase Dependencies in Cancer 
   # (5) Achilles_CRISPR: *Not using it at present*. kinome_file: "Achilles_v3.3.8_cancergd_with_entrezids.txt" and  tissues_file: "Achilles_v3.3.8_tissues.txt"
   # (6) Hahn: "Hahn_cancergd.txt" replaces Cowley, uses entrezid instead of ensembl ids, and "Hahn_cancergd_tissues.txt" ???treats PLEURA as separate tissue.
   # (7) DRIVE_ATARiS/DRIVE_RSA:  *Only using ATARiS data at present*. (DRIVE_RSA seems to contain all of DRIVE_ATARiS).
-
+  # (8) Meyers: 
+  
 # ------------------------------ #
 # Uncomment action(s) to perform #
 # ------------------------------ #
@@ -75,62 +81,37 @@ combmuts_func_file <- "../preprocess_genotype_data/genotype_output/GDSC1000_cnv_
 combmuts_all_file <- "../preprocess_genotype_data/genotype_output/GDSC1000_cnv_exome_all_muts_v1.txt"  # (indicates if there is any mutation)
 combmuts_classes_file <- "../preprocess_genotype_data/genotype_output/GDSC1000_cnv_exome_func_mut_types_v1.txt" # (indicates mutation types: 1 or 2)
 
-
-# ----------------------------------------------------- #
-# Specify the Analysis specific input and results files #
-# ------------------------------------------------------#
-
-if (is.null(data_set) || data_set=='') {stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Cowley', 'Marcotte', 'Marcotte2012', 'Wang_mm3', 'Hahn', 'DRIVE_ATARiS', or 'DRIVE_RSA'"))}
-
-output_pancaner_results <- data_set %in% c("Campbell", "Cowley", "Achilles_CRISPR", "Marcotte2012", "Hahn", "DRIVE_ATARiS", "DRIVE_RSA" ) # No pan-cancer results for "Marcotte" (as all Breast) nor "Wand_mm3" (as all AML)
-
-# Temporary hack:
-# output_pancaner_results <- FALSE 
-
-# Input files:
-kinome_file  <- paste0("../preprocess_rnai_data/rnai_output/",data_set,"_cancergd.txt")
-tissues_file <- paste0("../preprocess_rnai_data/rnai_output/",data_set,"_cancergd_tissues.txt")
-
-# Output files:
-uv_results_kinome_combmuts_file <- if (output_pancaner_results) paste0("outputs/", data_set, "_CGDs_pancan_witheffectsize_and_zdiff.txt") else "NONE"
-uv_results_kinome_combmuts_bytissue_file <- paste0("outputs/", data_set, "_CGDs_bytissue_witheffectsize_and_zdiff.txt")
-
-
-cat("\nVariables set to:",
-	"\n  Data_set:", data_set,
-    "\n  Run_analysis:", run_analysis,
-    "\n  Write_boxplot_files:", write_boxplot_files,
-	"\n  Input kinome_file:", kinome_file,
-	"\n  Input tissues_file:",tissues_file,
-	"\n  Pan-cancer results file:", uv_results_kinome_combmuts_file,
-	"\n  By-tissue results file:", uv_results_kinome_combmuts_bytissue_file,
-	"\n\n")
-
 # ------------------------------ #
 # Source the Intercell functions #
 # ------------------------------ #
-
 source("../R_scripts/Intercell_analysis_functions.R");  # source_file_info <- file.info(source_script); 
+
+
 
 
 # ---------------- #
 # Read in the data
 # ---------------- #
-cat("Reading input data ...\n")
-kinome_combmuts <- read_rnai_mutations(
+read_the_input_data <- function(kinome_file,tissues_file, combmuts_func_file, combmuts_all_file, combmuts_classes_file) {
+  cat("Reading input data ...\n")
+  kinome_combmuts <- read_rnai_mutations(
 	rnai_file=kinome_file,
 	func_muts_file=combmuts_func_file,
 	all_muts_file=combmuts_all_file,
 	mut_classes_file=combmuts_classes_file,
 	tissues_file=tissues_file
 	)
+  return( kinome_combmuts )
+} # end of: read_the_input_data(...)
+
+
 
 # -------------------------------- #
 # Run the set of hypothesis tests
 # on the kinome z-score data sets
 # -------------------------------- #
 
-if (run_analysis) {
+run_the_analysis <- function(kinome_combmuts, output_pancaner_results, uv_results_kinome_combmuts_file, uv_results_kinome_combmuts_bytissue_file) {  
   if (output_pancaner_results) {
 	# Driver gene mutations in combined histotypes - No Pan-cancer for Colt as it is only Breast cancer cell lines.
     cat("Starting Pan-cancer univariate tests ...\n")
@@ -167,14 +148,14 @@ if (run_analysis) {
   close(fileConn)
   cat("\n",num_results,"by-tissue results\n\n")
   
-  }  # end of: if (run_analysis) ...
+  }  # end of: run_the_analysis(....)
 
 
 # ------------------------------------------------------------ #
 # Reload results and add the boxplot data to the result files  #
 # ------------------------------------------------------------ #
 
-if (write_boxplot_files) {
+write_the_boxplot_files <- function(kinome_combmuts, output_pancaner_results, uv_results_kinome_combmuts_file, uv_results_kinome_combmuts_bytissue_file) {  
 
   if (output_pancaner_results) {
 
@@ -251,7 +232,43 @@ if (write_boxplot_files) {
     }
   close(fileConn) # caller should close the fileConn
 
-} # end of: if (write_boxplot_files) ...
+} # end of: write_the_boxplot_files(...) 
 
 
-cat("\nFinished",data_set,"\n")
+
+# ----------------------------------------------------- #
+# Specify the Analysis specific input and results files #
+# ------------------------------------------------------#
+for (data_set in all_data_sets) {
+  if (is.null(data_set) || data_set=='') {stop(paste("ERROR: Invalid data_set: '",data_set,"' but should be 'Campbell', 'Cowley', 'Marcotte', 'Marcotte2012', 'Wang_mm3', 'Hahn', 'DRIVE_ATARiS', 'DRIVE_RSA', or 'Meyers'"))}
+
+  output_pancaner_results <- data_set %in% c("Campbell", "Cowley", "Achilles_CRISPR", "Marcotte2012", "Hahn", "DRIVE_ATARiS", "DRIVE_RSA" , "Meyers" ) # No pan-cancer results for "Marcotte" (as all Breast) nor "Wand_mm3" (as all AML)
+
+  # Temporary hack:
+  # output_pancaner_results <- FALSE 
+
+  # Input files:
+  kinome_file  <- paste0("../preprocess_rnai_data/rnai_output/",data_set,"_cancergd.txt")
+  tissues_file <- paste0("../preprocess_rnai_data/rnai_output/",data_set,"_cancergd_tissues.txt")
+
+  # Output files:
+  uv_results_kinome_combmuts_file <- if (output_pancaner_results) paste0("outputs/", data_set, "_CGDs_pancan_witheffectsize_and_zdiff.txt") else "NONE"
+  uv_results_kinome_combmuts_bytissue_file <- paste0("outputs/", data_set, "_CGDs_bytissue_witheffectsize_and_zdiff.txt")
+
+  cat("\nVariables set to:",
+	"\n  Data_set:", data_set,
+    "\n  Run_analysis:", run_analysis,
+    "\n  Write_boxplot_files:", write_boxplot_files,
+	"\n  Input kinome_file:", kinome_file,
+	"\n  Input tissues_file:",tissues_file,
+	"\n  Pan-cancer results file:", uv_results_kinome_combmuts_file,
+	"\n  By-tissue results file:", uv_results_kinome_combmuts_bytissue_file,
+	"\n\n")
+
+  kinome_combmuts <- read_the_input_data(kinome_file, tissues_file, combmuts_func_file, combmuts_all_file, combmuts_classes_file)
+  if (run_analysis) {run_the_analysis(kinome_combmuts, output_pancaner_results, uv_results_kinome_combmuts_file, uv_results_kinome_combmuts_bytissue_file)}
+  if (write_boxplot_files) {write_the_boxplot_files(kinome_combmuts, output_pancaner_results, uv_results_kinome_combmuts_file, uv_results_kinome_combmuts_bytissue_file)}
+  cat("\nFinished",data_set,"\n")
+}
+cat("\nFinished All datasets\n")
+

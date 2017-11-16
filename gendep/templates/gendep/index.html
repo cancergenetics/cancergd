@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% block links_top %}
 
+{# jqueryui version: using version: 1.11.4   as latest version doesn't work in same way: 1.12.1 #}
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" class="ui-theme" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
@@ -294,12 +295,38 @@ function initialise_result_table_and_tooltips() {
 		initialized : function(table){console.log("result_table: initialised")}, // do something after tablesorter has initialized.
 
 		showProcessing: true,
+		
+		
 		delayInit: false, // or true to display table a bit sooner
+		
+		// Start of a suggested speed up: https://github.com/Mottie/tablesorter/wiki/FAQ#slow
+		// when true, the table cache is not built initially. The cache is built
+        // if the table has an initial sort, initial filter settings, or once
+        // the user clicks on a header cell to sort the table
+        /*
+        delayInit: true,
+        // Simplified text extraction method
+        textExtraction: function(node){
+            return node.textContent || $(node).text() || '';
+        },
+        */
+        // for just very basic header widgets: 
+        // headerTemplate: '',
+		// end of speedup ======
+		
+		
 		theme: 'blue',
 		widgets: ["filter", "scroller"], // "resizable",
 
+        // Parsers
+        // - When the plugin auto-detects the parser, it needs to gather data from the table, so if your table has something like 50 columns, initialization time can be improved by simply pre-defining a parser for each column. This can be as simple as adding a headers option (e.g. 0 : { sorter : 'text' }) for each header cell.
+        // - The more empty cells there are near the top of the table (within a column), the further down in rows the parser detection code needs to search to find usable content; so an empty column - a column would "appear" empty if it was filled with checkboxes, or inputs - would have the parser detection code search every row!
+
+        // BUT "Some widgets may force the table to build the cache thus skipping the benefit of setting the delayInit option to false. For example, if the filter widget were included with an initial query, the cache would be built before the search was performed.
 		widgetOptions: {
 			scroller_height: 400,
+        //    filter_ignoreCase: true, // filtering ignores case
+
 			filter_functions: { // 0-based column indexes:
                 1: {
                     //  "<0.05" :  function(e, n, f, i) {return  n <= 0.05;}, (Not used as all less than 0.05)
@@ -324,7 +351,6 @@ function initialise_result_table_and_tooltips() {
 		sortRestart: true, // so sort always restarts from the specified sortInitialOrder.
 		sortStable: true,
 		ignoreCase: true,  // sort ignores case
-		filter_ignoreCase: true, // filtering ignores case
 	})
 	.bind('filterEnd', function(e, filter){
 	   var num_rows = ($('#result_table tbody tr:visible').length-1).toString();

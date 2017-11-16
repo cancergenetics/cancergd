@@ -378,15 +378,26 @@ def add_string_interactions() :
     known to functionally interact according to STRING. Only medium 
     confidence (score >= 400) or higher interactions are stored. We 
     manually set all self-self interactions to 'highest confidence'
+    Format of the Protein links file is:
+     protein1 protein2 combined_score
+     9606.ENSP00000000233 9606.ENSP00000263431 260
     """
     driver_ids = set()
     drivers = Gene.objects.filter(is_driver = True)
     for d in drivers :
+        print("driver:",d)
         if d.ensembl_protein_id :
             driver_ids.add(d.ensembl_protein_id)
-    
-    stored_interactions = {}
+        else:
+            print("add_string_interactions(): Driver '%s' has no ensembl_protein_id" %(d) )
+        
+    print("add_string_interactions() driver_ids:",driver_ids)
 
+    stored_interactions = {}
+    
+    # select * from gendep_dependency where interaction != '' and  interaction != 'Highest'
+    # grep ENSP00000394932 grep ENSP00000411552
+    
     progress("   Loading protein links ...")
     with open_file(StringDbProteinLinksFile) as f:
         f.readline()
@@ -394,15 +405,17 @@ def add_string_interactions() :
         for r in reader :
             score = float(r[2])
             if score >= 400 :
-                gene1 = r[0].split('.')[1]
+                gene1 = r[0].split('.')[1]  # The r[0].split('.')[0] is '9606' for Human.
                 gene2 = r[1].split('.')[1]
+                if (gene1=='ENSP00000394932' and gene2=='ENSP00000411552') or (gene1=='ENSP00000411552' and gene2=='ENSP00000394932'): print("Found: ",r,"score=",score)
                 if gene1 in driver_ids or gene2 in driver_ids :
                     # As each gene pair appears in protein.links as both geneA,geneB and as geneB,geneA, then sort the gene pair (so always geneA,geneB) and store the score once instead of twice to reduce memory needed, and then test just once below.
                     genes = (gene1, gene2) if gene1 < gene2 else (gene2, gene1)  # or: genes = tuple(sorted((gene1,gene2)))
                     if genes in stored_interactions and stored_interactions[genes] != score :
                         progress("Scores differ %d != %d for reversed occurance of gene_pair (%s %s)" %(stored_interactions[genes], score, gene1, gene2))
                     stored_interactions[genes] = score  # Would gene1+'_'+gene2 be faster as the key?
-                    
+                    if (gene1=='ENSP00000394932' and gene2=='ENSP00000411552') or (gene1=='ENSP00000411552' and gene2=='ENSP00000394932'): print("Using: ",r,"score=",score)
+
     progress("   Num stored_interaction: %d.  Adding interactions to table ..." %(len(stored_interactions)) )
     # for d in Dependency.objects.select_related("driver", "target").all() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_protein_id's.
     for d in Dependency.objects.select_related("driver", "target").only("interaction","driver__ensembl_protein_id","target__ensembl_protein_id",).iterator() :  # Use select_related() so that doesn't do a separate SQL query for each d to find the ensemble_protein_id's.  Use only() as otherwise query data grows to ver 500Mb
@@ -611,7 +624,7 @@ def add_multihit_interactions1() :
 if __name__ == "__main__" :
 
     with transaction.atomic():
-        
+       
         progress("Emptying database tables")
         for table in (Dependency, Study, Gene):
             table.objects.all().delete()
@@ -620,9 +633,9 @@ if __name__ == "__main__" :
         
         # Add details to gene table
         progress("Adding Genes")
-        mapped_genes = add_gene_details()
+        mapped_genes = add_gene_details()   
         add_driver_details()
-
+        
         # Add dependencies
         progress("Adding Dependencies:")
         add_dependencies()
@@ -641,10 +654,9 @@ if __name__ == "__main__" :
         add_string_interactions()
         
         progress("Adding multi-hit interactions to Dependency table")
-        add_multihit_interactions3()
-
+        add_multihit_interactions3() 
         
     progress("Optmizing database")
-    optimize_database() # Is outside the transaction.atomic()
+    # optimize_database() # Is outside the transaction.atomic()
         
     progress("Finished.")

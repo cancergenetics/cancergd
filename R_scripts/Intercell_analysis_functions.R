@@ -297,6 +297,14 @@ run_univariate_test_bytissue <- function(x, fileConn, writeheader){
 #      next
 #    }
 # In the main "" script run_univariate_tests(...) has min_size=5 for pancancer tests so that is ok.
+
+    # Added in Nov 2017:
+    # "Can we drop tissue specific analyses if there are less than 10 cell lines in total? AR in prostate cancer (image attached) is included because it has at least three mutant samples in one tissue (prostate). However the results aren't especially convincing because there's only 6 prostate cell lines in total. I understand this will mean some drivers disappear.
+    if(cellline_count < 10){
+      print(paste("  Skipping tissue:",tissue,"as it has less than 10 cell lines."))
+      next
+    }
+
     tissue_rows <- which(
       x$tissues[,tissue] == 1
     )

@@ -68,17 +68,8 @@ var wtxc=1.8, muxc=4.4, boxwidth=2.0;   // Oct2017: increased boxwidth from 1.8
 var svg, xscale, yscale, Yscreen0, points;
 var tissue_lists={};
 
-var collusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
-var wtPointRadius = 3, muPointRadius = 5; // Radius of Circle on the SVG plot. Was = 5, but reduced to 3 on 20 Oct 2017 for larger datasets.
-
-var TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
-var TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*muPointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
-var TriangleCentreToApex = Math.sqrt((4*Math.PI)/(3*Math.sqrt(3)))*muPointRadius; // circumcentre to apex of triangle (is 2/sqrt(3) times the half base width).
-// So triangle points relative to centre are at: (x,y) = (-TriangleHalfBase, -TriangleBaseToCentre), (-TriangleHalfBase, -TriangleBaseToCentre), (0,TriangleCentreToApex).
-
-var SquareCornerXY = 0.5*Math.sqrt(Math.PI)*muPointRadius; // So square has same are as circle withy radius PointRadius.
-
-var DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*muPointRadius; // So diagonal has same are as circle with radius PointRadius.
+// The variables are global, but their values are now set in the beeswarm() function, as depend on the numbers of wt and mu points:
+var wtPointRadius, muPointRadius, wtCollusionTestRadius, muCollusionTestRadius, TriangleHalfBase, TriangleBaseToCentre, TriangleCentreToApex, SquareCornerXY, DiamondDiagonalXY;
 
 var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=null, copynumber_legend=null;
 
@@ -506,9 +497,37 @@ function diamond_points(x,y) {
 function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
   // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
-  var wt_points=[],mu_points=[];
+  var num_wt=0, num_mu=0;
+  var wtHorizPointSpacing = 6, muHorizPointSpacing = 12;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
 
-  var wtHorizPointSpacing = 3, muHorizPointSpacing = 12;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
+  wtPointRadius = 5, muPointRadius = 5;  // Global, Radius of Circle on the SVG plot. Was = 5, but reduced to 3 on 20 Oct 2017 for larger datasets.
+  wtCollusionTestRadius=4.6; muCollusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
+
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
+	if (points[i][imutant]=="0") {num_wt++;}  // Wildtype rather than mutant.
+    else {num_mu++;} // mutant
+    }
+
+  // Always use same point sizes:
+  if ( (num_wt > 300) || (num_mu > 300) ) {wtHorizPointSpacing=2; muHorizPointSpacing=2; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 2; muCollusionTestRadius = 2;}
+  // else if (....> 200) to Optionally add in another if for >200   
+  else if ( (num_wt > 100) || (num_mu > 100) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 3; muCollusionTestRadius = 3;}
+
+
+  
+  // Or set the following radius for mu and wt separately:
+  
+  // Point sizes, based on mu Radius:  
+  TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
+  TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*muPointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
+  TriangleCentreToApex = Math.sqrt((4*Math.PI)/(3*Math.sqrt(3)))*muPointRadius; // circumcentre to apex of triangle (is 2/sqrt(3) times the half base width).
+  // So triangle points relative to centre are at: (x,y) = (-TriangleHalfBase, -TriangleBaseToCentre), (-TriangleHalfBase, -TriangleBaseToCentre), (0,TriangleCentreToApex).
+
+  SquareCornerXY = 0.5*Math.sqrt(Math.PI)*muPointRadius; // So square has same are as circle withy radius PointRadius.
+  DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*muPointRadius; // So diagonal has same are as circle with radius PointRadius.
+
+
+  var wt_points=[],mu_points=[];
   var tissue_count=0;
   var wtleft=[], wtright=[], muleft=[], muright=[]; // To avoid overlapping points.
   var wt_tissue_counts = {}, mu_tissue_counts = {};
@@ -516,17 +535,15 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
   for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
     var tissue = points[i][itissue];
 		
-
 	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
 	
-
 if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
 else {mu_points.push(parseFloat(points[i][iy]))}
 
 //    var y = tohalf(Yscreen0 + parseFloat(points[i][iy]) * yscale, 1);
     var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
 
-    var Yi = Math.round(y / collusionTestRadius);
+    var Yi = Math.round(y / (isWT ? wtCollusionTestRadius : muCollusionTestRadius) );
 
 	var pointType = "circle", svgType = "circle";
 	// Pre-Aug-2016 mutation types mapping was:
@@ -1343,6 +1360,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
   boxplot_csv = '';
   fetch_data(driver,target,histotype,study_pmid);	  // is asynchronous AJAX call. // removed parameter: target_variant
 
+  // '+wtPointRadius.toString()+'  '+wtPointRadius.toString()+'
+
   if (!svg_fancybox_loaded) {  // so this function was called by clicking on dependency table cell, rather than by Previous/Next boxplot button.
 
     // Need the [CDATA[ tag as SVG can contain extra '<' characters that can confuse HTML parsers.
@@ -1356,8 +1375,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
       + '  polygon {fill-opacity: 0.9; stroke-width: 1px; stroke: black;}'
       + '  polygon.bold  {stroke-width: 5px; stroke: black;}'
       + '  polygon:hover {stroke-width: 5px; stroke: black;}'
-      + '  circle.bold   {stroke-width: '+wtPointRadius.toString()+'px; opacity: 0.9; stroke: black;}'	  
-      + '  circle:hover  {stroke-width: '+wtPointRadius.toString()+'px; opacity: 0.9; stroke: black;}'	  
+      + '  circle.bold   {stroke-width: 4px; opacity: 0.9; stroke: black;}'	  
+      + '  circle:hover  {stroke-width: 4px; opacity: 0.9; stroke: black;}'	  
       + '  text {font-family: sans-serif; word-spacing: 2; text-anchor: middle;}'
       + ']]></style>'
       + '<rect id="background_rect" x="0" y="0" width="'+svgWidth.toString()+'" height="'+svgHeight.toString()+'" style="fill:white;stroke-width:0;fill-opacity:1.0;"/>'
