@@ -71,7 +71,7 @@ var tissue_lists={};
 // The variables are global, but their values are now set in the beeswarm() function, as depend on the numbers of wt and mu points:
 var wtPointRadius, muPointRadius, wtCollusionTestRadius, muCollusionTestRadius, TriangleHalfBase, TriangleBaseToCentre, TriangleCentreToApex, SquareCornerXY, DiamondDiagonalXY;
 
-var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], mutation_legend=null, copynumber_legend=null;
+var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], labels_elems=[], mutation_legend=null, copynumber_legend=null;
 
 // Array indexes for the 7-number boxplot_stats():
 var ilowerwhisker=1, ilowerhinge=2, imedian=3, iupperhinge=4, iupperwhisker=5; // also: ilowest=0, ihighest=6
@@ -136,6 +136,8 @@ function draw_svg_boxplot(driver, target, boxplot_data) {
   // beeswarm(points, wtxc-1*boxwidth, muxc-2*boxwidth, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
   beeswarm(points, wtxc, muxc, boxwidth); // The -1 and -2 are because that is the position set in R for the jitter.
 
+  labels_elems = add_mutant_copynumber_labels(ymin);  // Needed after beeswarm(...) as beeswarm set the point triangle and square size.
+  
   add_target_info_to_boxplot(target); // this gene info and ncbi_summary is returned with the boxplot_data from the AJAX call.
 
   add_tooltips();  
@@ -148,10 +150,12 @@ function remove_existing_svg_elems() {
 	  tissue_lists[tissue] = remove_array_of_elements(tissue_lists[tissue]); // remove any existing points.
     }
   tissue_lists={};
-  mutation_legend = null;  copynumber_legend = null;    // Are in the axes_elems below.
   axes_elems = remove_array_of_elements(axes_elems);    // Delete the old axes elems.
   wt_boxplot_elems = remove_array_of_elements(wt_boxplot_elems);
   mu_boxplot_elems = remove_array_of_elements(mu_boxplot_elems); 
+  
+  mutation_legend = null;  copynumber_legend = null;    // Are in the labels_elems below.  
+  labels_elems = remove_array_of_elements(labels_elems);
   // elements will be destroyed by garbage collector when there are no reference counts to them.
   }
 
@@ -185,48 +189,50 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
 	svg_line(XscreenMin/xscale,-2, XscreenMax/xscale,-2, "1px", true, "red") // the red y=-2 full-width line	  
 	];
 	
-	for (var y=ymin; y<=ymax; y++) {
-	  elems.push( svg_line((XscreenMin-5)/xscale,y, XscreenMin/xscale,y,"1px",false,"black") );
-	  var x = y>=0 ? 0.32 : 0.27;
-	  elems.push( svg_text(x,y+8/yscale,18,false, y.toString()) );
-	  }
-	  
-    // The labels for the type of alteration:
-	//var x = tohalf( (XscreenMin + 0.80*(XscreenMax-XscreenMin))/xscale ,1);
-    //var y = tohalf(ymin+45/yscale,1);
-    var x = XscreenMin+ 0.85*(XscreenMax-XscreenMin);
-	var y = ymin*yscale+15;  // yscreen = Yscreen0 + y*yscale;
-
-	var e = document.createElementNS(svgNS, "polygon");
-	e.setAttribute("fill", "white");	
-	e.setAttribute("points",diamond_points(x,Yscreen0+y-5));   // yscreen = Yscreen0 + y*yscale;
-    svg.appendChild(e);
-    elems.push(e);
-	e.onmouseover = mutation_legend_Over;
-	e.onmouseout  = mutation_legend_Out;
-	mutation_legend = e; // Global variable for now.	
-   
-	e = svg_text( (x+28)/xscale ,y/yscale,11,false, "Mutation");
-	e.onmouseover = mutation_legend_Over;
-	e.onmouseout  = mutation_legend_Out;
-	elems.push(e);
-	
-	var y = ymin*yscale+30;
-	e = document.createElementNS(svgNS, "polygon");
-	e.setAttribute("fill", "white");
-	e.setAttribute("points", triangle_points(x, Yscreen0+y-2));   // yscreen = Yscreen0 + y*yscale;
-	svg.appendChild(e);
-	elems.push(e);
-	e.onmouseover = copynumber_legend_Over;
-	e.onmouseout  = copynumber_legend_Out;
-	copynumber_legend = e; // Global variable for now.
-    e = svg_text( (x+40)/xscale, y/yscale,11,false, "Copy number");
-	e.onmouseover = copynumber_legend_Over;
-	e.onmouseout  = copynumber_legend_Out;	
-	elems.push(e);
-	
-    return elems;
+  for (var y=ymin; y<=ymax; y++) {
+    elems.push( svg_line((XscreenMin-5)/xscale,y, XscreenMin/xscale,y,"1px",false,"black") );
+    var x = y>=0 ? 0.32 : 0.27;
+    elems.push( svg_text(x,y+8/yscale,18,false, y.toString()) );
     }
+  }	  
+
+
+function add_mutant_copynumber_labels(ymin) {
+  // The labels for the type of alteration:
+  //var x = tohalf( (XscreenMin + 0.80*(XscreenMax-XscreenMin))/xscale ,1);
+  //var y = tohalf(ymin+45/yscale,1);
+  var x = XscreenMin+ 0.85*(XscreenMax-XscreenMin);
+  var y = ymin*yscale+15;  // yscreen = Yscreen0 + y*yscale;
+
+  var e = document.createElementNS(svgNS, "polygon");
+  e.setAttribute("fill", "white");	
+  e.setAttribute("points",diamond_points(x,Yscreen0+y-5));   // yscreen = Yscreen0 + y*yscale;
+  svg.appendChild(e);
+  e.onmouseover = mutation_legend_Over;
+  e.onmouseout  = mutation_legend_Out;
+  mutation_legend = e; // Global variable for now.
+  var elems = [e];
+  e = svg_text( (x+28)/xscale ,y/yscale,11,false, "Mutation");
+  e.onmouseover = mutation_legend_Over;
+  e.onmouseout  = mutation_legend_Out;
+  elems.push(e);
+	
+  var y = ymin*yscale+30;
+  e = document.createElementNS(svgNS, "polygon");
+  e.setAttribute("fill", "white");
+  e.setAttribute("points", triangle_points(x, Yscreen0+y-2));   // yscreen = Yscreen0 + y*yscale;
+  svg.appendChild(e);
+  elems.push(e);
+  e.onmouseover = copynumber_legend_Over;
+  e.onmouseout  = copynumber_legend_Out;
+  copynumber_legend = e; // Global variable for now.
+  e = svg_text( (x+40)/xscale, y/yscale,11,false, "Copy number");
+  e.onmouseover = copynumber_legend_Over;
+  e.onmouseout  = copynumber_legend_Out;	
+  elems.push(e);
+	
+  return elems;
+  }
 
 
 function highlight_mutant_points(alteration_code, polygon_class) {
@@ -511,7 +517,7 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
   // Always use same point sizes:
   if ( (num_wt > 300) || (num_mu > 300) ) {wtHorizPointSpacing=2; muHorizPointSpacing=2; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 2; muCollusionTestRadius = 2;}
   // else if (....> 200) to Optionally add in another if for >200   
-  else if ( (num_wt > 100) || (num_mu > 100) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 3; muCollusionTestRadius = 3;}
+  else if ( (num_wt > 150) || (num_mu > 150) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 3; muCollusionTestRadius = 3;}
 
 
   
