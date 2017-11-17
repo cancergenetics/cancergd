@@ -1,28 +1,32 @@
 # Extracts the dependencies that are found in more than one study.
 # Input: "all_dependencies.csv.gz"   Output: "multihit_dependencies.csv"
 
-import csv
-import gzip
+import sys, csv, lzma   # gzip
 from collections import defaultdict
 
-print("Extracting multi-hit dependencies (ie. dependencies found in more than one study) ...")
+# Note: The script name sys.argv[0]
+infile = sys.argv[1] if len(sys.argv)>1 else "./all_dependencies.csv.xz"
+outfile= sys.argv[2] if len(sys.argv)>2 else "./multihit_dependencies.csv"
+# Alternatively if outfile is empty, then could write to stderr.
+
+
+print("Extracting multi-hit dependencies (ie. dependencies found in more than one study) from %s to %s ..." %(infile,outfile), file=sys.stderr )
 
 cgds = defaultdict(set) # a dictionary mapping cgds to the studies they were observed in
 interacting = 0
 
-with gzip.open("./all_dependencies.csv.gz","rt", encoding='utf-8') as fin :
+with lzma.open(infile,"rt", encoding='utf-8') as fin :
     # First we record all the dependencies seen in CancerGD:
     reader = csv.DictReader(fin, delimiter = ",") 
     for r in reader :
         cgd = (r['driver_genename'], r['target_genename'], r['tissue'])
         cgds[cgd].add(r['study'])
 
-
 	# Then we output all of the dependencies seen in at least 2 studies
-# with gzip.open("./all_dependencies.csv.gz","rt", encoding='utf-8') as fin :
+# with gzip.open(infile,"rt", encoding='utf-8') as fin :
     fin.seek(0)     # can rewind to beginning instead of reopening the file.
     reader = csv.DictReader(fin, delimiter = ",")
-    with open("./multihit_dependencies.csv", "w") as fout :
+    with open(outfile, "w") as fout :  # Could write directly to lzma using lzma.open(outfile", "w") as fout:
         fieldnames = ['driver_genename', 'driver_entrez', 'target_genename', 
                       'target_entrez', 'interaction', 'tissue', 'driver_ensembl', 
                       'target_ensembl', 'target_ensembl_protein', 'inhibitors', 

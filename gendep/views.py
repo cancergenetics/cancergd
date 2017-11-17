@@ -1224,7 +1224,7 @@ def news(request):
     # Unused code for news template:   {% if news.img_filename not empty %}{% if news.img_link %}<a href="{{ news.img_link }}">{% endif %}<img src="{{ MEDIA_URL }}{{ news.img_filename }}" style="float: {{ news.img_align }};" />{% if news.img_link %}</a>{% endif %}{% endif %}
     # Want list in reverse order:
     news_list = (
-    {'id':'4', 'content':'Added data from <a href="https://www.ncbi.nlm.nih.gov/pubmed/29083409" target="_blank">Meyers(2017)</a>.', 'first_posted':'15-Nov-2017', 'last_edited':'15-Nov-2017'},
+    {'id':'4', 'content':'Added data from <a href="https://www.ncbi.nlm.nih.gov/pubmed/29083409" target="_blank">Meyers(2017)</a>.', 'first_posted':'16-Nov-2017', 'last_edited':'16-Nov-2017'},
     {'id':'3', 'content':'Added Fifty additional <a href="'+reverse('gendep:drivers')+'" target="_blank">driver genes</a>.', 'first_posted':'23-Oct-2017', 'last_edited':'23-Oct-2017'},
     {'id':'2', 'content':'Data added from the <a href="https://www.ncbi.nlm.nih.gov/pubmed/28753431" target="_blank">McDonald(2017) [Project DRIVE ATARiS]</a> and <a href="https://www.ncbi.nlm.nih.gov/pubmed/28753430" target="_blank">Tsherniak(2017) [Project Achilles v2.20.2]</a> studies.', 'first_posted':'16-Oct-2017', 'last_edited':'16-Oct-2017'},
     {'id':'1', 'content':'The manuscript describing CancerDG.org is available <a href="http://www.cell.com/cell-systems/fulltext/S2405-4712(17)30230-2" target="_blank">here</a>.', 'first_posted':'14-July-2014', 'last_edited':'14-July-2014'},
@@ -1242,18 +1242,18 @@ def download(request):
     
     # Want list in reverse order:
     download_list = (
-    {'id':'12', 'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_15Nov2017.sqlite3',  'date_created':'15-Nov-2017', 'changes':'Added Meyers(2017) data'},
-    {'id':'11', 'type':'CSV text file of All dependencies',       'filename':'all_dependencies_15Nov2017.csv',      'date_created':'15-Nov-2017', 'changes':'Added Meyers(2017) data'},
-    {'id':'10', 'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_15Nov2017.csv', 'date_created':'15-Nov-2017', 'changes':'Added Meyers(2017) data'},
-    {'id':'9',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_23Oct2017.sqlite3',  'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
-    {'id':'8',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_23Oct2017.csv',      'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
-    {'id':'7',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_23Oct2017.csv', 'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
-    {'id':'6',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_17Oct2017.sqlite3',  'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
-    {'id':'5',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_17Oct2017.csv',      'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
-    {'id':'4',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_17Oct2017.csv', 'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
-    {'id':'3',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_1Apr2017.sqlite3',   'date_created':'1-Apr-2017',  'changes':'Original data'},
-    {'id':'2',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_1Apr2017.csv',       'date_created':'1-Apr-2017',  'changes':'Original data'},
-    {'id':'1',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_1Apr2017.csv',  'date_created':'1-Apr-2017',  'changes':'Original data'},
+    {'id':'12', 'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_16Nov2017.sqlite3.xz',  'date_created':'16-Nov-2017', 'changes':'Added Meyers(2017) data'},
+    {'id':'11', 'type':'CSV text file of All dependencies',       'filename':'all_dependencies_16Nov2017.csv.xz',      'date_created':'16-Nov-2017', 'changes':'Added Meyers(2017) data'},
+    {'id':'10', 'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_16Nov2017.csv.xz', 'date_created':'16-Nov-2017', 'changes':'Added Meyers(2017) data'},
+    {'id':'9',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_23Oct2017.sqlite3.zip',  'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
+    {'id':'8',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_23Oct2017.csv.zip',      'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
+    {'id':'7',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_23Oct2017.csv.zip', 'date_created':'23-Oct-2017', 'changes':'Added Fifty additional driver genes'},
+    {'id':'6',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_17Oct2017.sqlite3.zip',  'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'5',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_17Oct2017.csv.zip',      'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'4',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_17Oct2017.csv.zip', 'date_created':'17-Oct-2017', 'changes':'Added McDonald(2017) and Tsherniak(2017) data'},
+    {'id':'3',  'type':'SQLite Database of All dependencies',     'filename':'all_dependencies_1Apr2017.sqlite3.zip',   'date_created':'1-Apr-2017',  'changes':'Original data'},
+    {'id':'2',  'type':'CSV text file of All dependencies',       'filename':'all_dependencies_1Apr2017.csv.zip',       'date_created':'1-Apr-2017',  'changes':'Original data'},
+    {'id':'1',  'type':'CSV text file of Multi-hit dependencies', 'filename':'multihit_dependencies_1Apr2017.csv.zip',  'date_created':'1-Apr-2017',  'changes':'Original data'},
     )
 
     context = {'download_list': download_list}
