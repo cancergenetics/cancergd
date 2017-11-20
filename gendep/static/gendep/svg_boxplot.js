@@ -77,29 +77,51 @@ var wt_boxplot_elems=[], mu_boxplot_elems=[], axes_elems=[], labels_elems=[], mu
 var ilowerwhisker=1, ilowerhinge=2, imedian=3, iupperhinge=4, iupperwhisker=5; // also: ilowest=0, ihighest=6
 
 
+
+// Problem case - where the first point is y=NA
+// CNPY3 vs ARID1B McDonald  // CNPY3 entrez_id= 10695  // ARID1B entrez_id= 57492
+// 265,-2,2,-0.96,-0.26,0.02,0.24,0.88,-0.69,-0.5,-0.29,-0.12,0.12;
+// SOFT_TISSUE,A204,NA,0;SOFT_TISSUE,A673,0.6,0;SOFT_TISSUE,G402,-0.42,0;SOFT_TISSUE,HT1080,0.62,0;SOFT_TISSUE,KYM1,0.41,0;SOFT_TISSUE,RD,-0.17,0;SOFT_TISSUE,RH41,0.38,0;SOFT_TISSUE,SJRH30,0.23,0;CENTRAL_NERVOUS_SYSTEM,A172,-0.09,0;CENTRAL_NERVOUS_SYSTEM,DAOY,-0.11,0;CENTRAL_NERVOUS_SYSTEM,GAMG,0.29,0;CENTRAL_NERVOUS_SYSTEM,GB1,-0.19,0;CENTRAL_NERVOUS_SYSTEM,GI1,-0.16,0;CENTRAL_NERVOUS_SYSTEM,KNS42,0.12,0;CENTRAL_NERVOUS_SYSTEM,KS1,0,0;CENTRAL_NERVOUS_SYSTEM,LN18,-0.37,0;CENTRAL_NERVOUS_SYSTEM,LN229,NA,0;CENTRAL_NERVOUS_SYSTEM,SF268,0.81,0;CENTRAL_NERVOUS_SYSTEM,SF295,-0.02,0;CENTRAL_NERVOUS_SYSTEM,SW1088,-0.76,0;CENTRAL_NERVOUS_SYSTEM,U118MG,0.09,0;CENTRAL_NERVOUS_SYSTEM,U251,0.49,0;CENTRAL_NERVOUS_SYSTEM,U87MG,-0.63,0;STOMACH,2313287,0.44,0;STOMACH,HGC27,0.19,0;STOMACH,IM95,-0.09,0;STOMACH,MKN1,-0.1,0;STOMACH,MKN45,0.12,0;STOMACH,MKN7,-1.1,0;STOMACH,NCIN87,0.34,0;STOMACH,NUGC3,-0.11,0;STOMACH,OCUM1,-0.12,1;STOMACH,NCISNU1,-0.66,1;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,697,-0.23,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,CMK,0.02,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,HEL,0.07,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,KASUMI1,-0.39,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,MOLM13,-0.17,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,MOLM16,-0.73,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,MONOMAC6,-0.45,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,RCHACV,-0.37,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,REH,-0.83,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,RL,-0.62,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,RPMI8226,0.29,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,SUDHL4,-0.25,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,SUDHL6,-1.06,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,THP1,0.04,0;HAEMATOPOIETIC_AND_LYMPHOID_TISSUE,WSUDLCL2,0.05,0;KIDNEY,769P,-0.07,0;KIDNEY,7860,-0.63,0;KIDNEY,A498,0.38,0;KIDNEY,A704,NA,0;KIDNEY,ACHN,-0.57,0;KIDNEY,BFTC909,0.04,0;KIDNEY,CAKI1,0.14,0;KIDNEY,CAL54,0.23,0;KIDNEY,G401,NA,0;KIDNEY,KMRC1,NA,0;KIDNEY,KMRC20,0.01,0;KIDNEY,OSRC2,0.12,0;KIDNEY,VMRCRCW,0.18,0;THYROID,8305C,1.18,0;THYROID,8505C,0.8,0;THYROID,BCPAP,0.8,0;THYROID,BHT101,0.2,0;SKIN,A101D,0.27,0;SKIN,A2058,-0.02,0;SKIN,A375,0.75,0;SKIN,COLO679,0.23,0;SKIN,COLO829,0.28,0;SKIN,HS939T,0.19,0;SKIN,IGR1,0.2,0;SKIN,IGR37,-0.47,0;SKIN,IPC298,0.75,0;SKIN,LOXIMVI,-0.09,0;SKIN,MELHO,0.36,0;SKIN,MELJUSO,-0.06,0;SKIN,RPMI7951,-1.23,0;SKIN,RVH421,0.29,0;SKIN,SH4,0.11,0;SKIN,SKMEL28,-0.14,0;SKIN,SKMEL2,0.1,0;SKIN,SKMEL30,-0.32,0;SKIN,SKMEL3,-0.07,0;SKIN,SKMEL5,-0.04,0;SKIN,UACC257,-0.18,0;SKIN,UACC62,-0.58,0;SKIN,WM115,0.04,0;SKIN,WM793B,-0.16,0;SKIN,MEWO,-0.36,1;HEADNECK,CAL27,0.08,0;HEADNECK,CAL33,0.08,0;HEADNECK,DETROIT562,-0.18,0;HEADNECK,FADU,-0.65,0;HEADNECK,HSC3,-0.1,0;HEADNECK,SCC25,0.75,0;OVARY,A2780,-0.68,0;OVARY,CAOV3,-0.08,0;OVARY,FUOV1,0.22,0;OVARY,IGROV1,NA,0;OVARY,JHOS2,0.3,0;OVARY,OVCAR3,0.59,0;OVARY,OV90,-0.07,0;OVARY,OVCAR4,0.56,0;OVARY,OVCAR8,-0.7,0;OVARY,RMGI,0.73,0;OVARY,TYKNU,-0.31,0;LUNG,A549,0.15,0;LUNG,ABC1,-0.05,0;LUNG,CALU6,0.22,0;LUNG,CHAGOK1,0.45,0;LUNG,CORL105,0.03,0;LUNG,CORL23,-0.74,0;LUNG,DMS114,-0.05,0;LUNG,DMS273,0.88,0;LUNG,EBC1,0.37,0;LUNG,HCC15,-0.29,0;LUNG,HCC44,0.2,0;LUNG,HCC827,0.01,0;LUNG,KNS62,-0.03,0;LUNG,LK2,0.04,0;LUNG,NCIH1048,0.43,0;LUNG,NCIH1299,0.43,0;LUNG,NCIH1355,0.26,0;LUNG,NCIH1435,0.23,0;LUNG,NCIH1437,-0.42,0;LUNG,NCIH1573,-0.1,0;LUNG,NCIH1581,0.72,0;LUNG,NCIH1693,0.02,0;LUNG,NCIH1703,0.38,0;LUNG,NCIH1793,0.21,0;LUNG,NCIH1838,-0.44,0;LUNG,NCIH1944,-0.42,0;LUNG,NCIH196,-0.75,0;LUNG,NCIH1975,0.08,0;LUNG,NCIH2009,-0.06,0;LUNG,NCIH2030,0.43,0;LUNG,NCIH2066,0.26,0;LUNG,NCIH2122,-0.18,0;LUNG,NCIH2170,-0.46,0;LUNG,NCIH2172,-0.26,0;LUNG,NCIH2228,-0.64,0;LUNG,NCIH23,0.14,0;LUNG,NCIH358,-0.29,0;LUNG,NCIH441,-0.05,0;LUNG,NCIH446,0.29,0;LUNG,NCIH460,-0.34,0;LUNG,NCIH522,-0.96,0;LUNG,NCIH661,0.28,0;LUNG,NCIH838,0.15,0;LUNG,RERFLCMS,0.22,0;LUNG,SBC5,0.27,0;LUNG,SHP77,-0.36,0;LUNG,SW1271,-0.27,0;LUNG,SW1573,0.43,0;PLEURA,MPP89,-0.53,0;PLEURA,NCIH2052,0.14,0;PLEURA,NCIH28,-0.56,0;ENDOMETRIUM,MFE280,-0.08,0;ENDOMETRIUM,SNGM,0.04,0;ENDOMETRIUM,AN3CA,-0.18,1;ENDOMETRIUM,MFE296,-0.44,1;URINARY_TRACT,CAL29,0.11,0;URINARY_TRACT,HT1197,-0.22,0;URINARY_TRACT,HT1376,-0.14,0;URINARY_TRACT,KU1919,0.64,0;URINARY_TRACT,RT112,0.33,0;URINARY_TRACT,SW780,0,0;URINARY_TRACT,T24,-0.07,0;URINARY_TRACT,UMUC3,0.24,0;BREAST,BT20,-0.48,0;BREAST,BT549,0.43,0;BREAST,CAL120,0.28,0;BREAST,CAL51,0.09,0;BREAST,CAL851,0.15,0;BREAST,CAMA1,0.06,0;BREAST,EFM192A,-0.13,0;BREAST,HCC1500,0.22,0;BREAST,HCC1806,-0.03,0;BREAST,HCC1954,0.71,0;BREAST,HCC38,-0.23,0;BREAST,HS578T,1.02,0;BREAST,JIMT1,-0.48,0;BREAST,MCF7,-0.14,0;BREAST,MDAMB157,-0.9,0;BREAST,MDAMB231,0.3,0;BREAST,MDAMB415,-0.06,0;BREAST,MDAMB453,0.02,0;BREAST,MDAMB468,-0.49,0;BREAST,T47D,-0.52,0;BREAST,MDAMB436,-0.69,1;PANCREAS,BXPC3,-0.18,0;PANCREAS,CFPAC1,0.49,0;PANCREAS,DANG,-0.53,0;PANCREAS,HUPT3,0.18,0;PANCREAS,HUPT4,0.5,0;PANCREAS,KP1N,0.1,0;PANCREAS,KP3,-0.3,0;PANCREAS,KP4,0.16,0;PANCREAS,PANC0203,-0.22,0;PANCREAS,PANC0403,-0.17,0;PANCREAS,PANC1005,0.15,0;PANCREAS,PATU8902,0.16,0;PANCREAS,PATU8988T,NA,0;PANCREAS,SU8686,-0.31,0;PANCREAS,SUIT2,-0.24,0;PANCREAS,SW1990,-0.29,0;PANCREAS,MIAPACA2,-0.22,2;LARGE_INTESTINE,CCK81,-0.46,0;LARGE_INTESTINE,CL11,-0.23,0;LARGE_INTESTINE,CL34,0.11,0;LARGE_INTESTINE,COLO205,-0.36,0;LARGE_INTESTINE,COLO678,0.27,0;LARGE_INTESTINE,HCT116,-0.4,0;LARGE_INTESTINE,HT29,NA,0;LARGE_INTESTINE,HT55,-0.44,0;LARGE_INTESTINE,KM12,-0.06,0;LARGE_INTESTINE,LS180,0.08,0;LARGE_INTESTINE,LS513,0.23,0;LARGE_INTESTINE,MDST8,-0.62,0;LARGE_INTESTINE,NCIH508,0.56,0;LARGE_INTESTINE,NCIH716,-0.54,0;LARGE_INTESTINE,RKO,0.18,0;LARGE_INTESTINE,SKCO1,-0.88,0;LARGE_INTESTINE,SNU61,0.82,0;LARGE_INTESTINE,SNU81,-0.45,0;LARGE_INTESTINE,SW1417,0.01,0;LARGE_INTESTINE,SW1463,0.22,0;LARGE_INTESTINE,SW48,0.12,0;LARGE_INTESTINE,SW620,-0.35,0;LARGE_INTESTINE,SW948,-0.66,0;LARGE_INTESTINE,CW2,-0.12,1;LARGE_INTESTINE,HCT15,-0.5,1;PROSTATE,DU145,0.23,0;PROSTATE,LNCAPCLONEFGC,0.12,1;LIVER,HEP3B217,-0.02,0;LIVER,HLE,0.19,0;LIVER,HUH1,-0.42,0;LIVER,HUH7,-0.3,0;LIVER,JHH6,0.33,0;LIVER,SKHEP1,0.35,0;LIVER,SNU449,1.24,0;AUTONOMIC_GANGLIA,KELLY,-0.15,0;AUTONOMIC_GANGLIA,KPNYN,-0.39,0;AUTONOMIC_GANGLIA,SKNAS,0.46,0;AUTONOMIC_GANGLIA,SKNDZ,-0.19,0;AUTONOMIC_GANGLIA,SKNFI,0.5,0;AUTONOMIC_GANGLIA,SKNSH,-0.06,0;OESOPHAGUS,KYSE150,0.12,0;OESOPHAGUS,KYSE180,-0.55,0;OESOPHAGUS,KYSE410,0.3,0;OESOPHAGUS,KYSE450,-0.63,0;OESOPHAGUS,KYSE510,0.09,0;OESOPHAGUS,KYSE70,0.06,0;OESOPHAGUS,OE21,-0.19,0;OESOPHAGUS,TE1,0.48,0;OESOPHAGUS,TE4,-0.22,0;OESOPHAGUS,TE6,0.19,0;OESOPHAGUS,TE9,0.1,0;CERVIX,ME180,0,0;BONE,SAOS2,0.55,0;BONE,SJSA1,0.36,0;BONE,SKES1,NA,0;BONE,TC71,0.2,0;BONE,U2OS,0.78,0
+
+// P10P1 vs ARID1D Tserex
+ 
 function parse_boxplot_csv_data_into_points_array(boxplot_csv) {
   var data_lines = boxplot_csv.split(";");
   //console.log("data_lines.length = "+data_lines.length);
 
   points = []; // 'points' is global array used by the tooltip on hoover, etc.
   points.push(data_lines[0].split(","));  // The first line is: cellline_count, y-axis_min, y-axis_max, and wt & mu box stats.
-
+  // y-axis_min and y-axis_max are from R: boxplot_range <- c( floor(boxplot_range[1]), ceiling(boxplot_range[2]) ) # Round lower down and upper up to integers.
+  
+  var ymin_point, ymax_point; 
   var NA_total = 0; // count of lines with y='NA'
   for (var i=1; i<data_lines.length; i++) {  
-    var col = data_lines[i].split(",");	
+    var col = data_lines[i].split(",");
     if (col[iy]=='NA') {console.log("Skipping "+col[icellline]+" "+col[itissue]+" "+col[imutant]+" as y='"+col[iy]+"'"); NA_total++; continue;}
     if (col[itissue]=="OSTEOSARCOMA") {col[itissue]="BONE";}  // BONE is "OSTEOSARCOMA" in the tissue_colours array.
-	points.push(col);
-  }    
 
+    // Find the min and max points - to set the axis:
+    if ((typeof ymin_point == 'undefined') || parseFloat(col[iy])<ymin_point) {ymin_point=parseFloat(col[iy]);}
+    if ((typeof ymax_point == 'undefined') || parseFloat(col[iy])>ymax_point) {ymax_point=parseFloat(col[iy]);}
+
+	points.push(col);
+  }
+  
+  var half_yrange = 0.5*(ymax_point - ymin_point); // To add 5% gap above and below the data points, as multiplying by 10 below.
+  
+  points[0][1]=0.1*Math.floor(10*ymin_point-half_yrange); points[0][2]=0.1*Math.ceil(10*ymax_point+half_yrange); // but 0.1 won't be exact in binary floating point. 
+
+  console.log("ymin_point:",points[0][1], "   ymax_point:",points[0][2]);
+  
   var cellline_count = parseInt(points[0][0]) - NA_total; // Ignore these 'NA' points.
   
   // The "cellline_count" is the number of cell_lines. So add 1 lines for first points(cellline_count,range,wt_box,mu_box).
   if (points.length-1 != cellline_count) {alert( "Boxplot data length mismatch: "+(points.length-1)+" != "+cellline_count+" -NA_total")}  
+  
+  console.log("");
   }
 
-
-  
+ 
 function draw_svg_boxplot(driver, target, boxplot_data) {
   if ((typeof boxplot_data !== 'undefined') && (boxplot_data!='')) {boxplot_csv=boxplot_data;} // so this function was called by AJAX success.
   
@@ -110,8 +132,8 @@ function draw_svg_boxplot(driver, target, boxplot_data) {
   
   parse_boxplot_csv_data_into_points_array(boxplot_csv);
 
-  var ymin = parseInt(points[0][1]), ymax = parseInt(points[0][2]);
-
+  // var ymin = parseInt(points[0][1]), ymax = parseInt(points[0][2]);
+  var ymin = parseFloat(points[0][1]), ymax = parseFloat(points[0][2]); // as is now .1, rather than just integer.
   // These are global:
   // From: http://www.i-programmer.info/programming/graphics-and-imaging/3254-svg-javascript-and-the-dom.html
   svg=document.getElementById("mysvg"); // or can create with js: var svg=document.createElementNS(svgNS,"svg"); svg.width=300; svg.height=300; document.body.appendChild(svg);
@@ -174,7 +196,7 @@ function tohalf(x, strokewidth) {
   return (strokewidth % 2 == 0) ? Math.round(x) : Math.floor(x)+0.5; // if even width then center line on grid, else center half-way between grid lines.
   }
 
-
+// BLVRV vs ARID1B
 function axes(wtxc,muxc, ymin,ymax, driver, target) {	
   var elems = [
     svg_line(wtxc, ymin, muxc, ymin, "1px", false, "black"), // the horizontal axis	
@@ -185,15 +207,25 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
     svg_text(0.5*(XscreenMin+XscreenMax)/xscale,ymin+45/yscale,20,false,driver+"  status"),
 		
 	svg_line(XscreenMin/xscale, ymin, XscreenMin/xscale, ymax, "1px", false, "black"), // y-axis
-    svg_text(15/xscale,0.5*(ymin+ymax),20,true,target+" Z-score"),	 	//svg_text(15/xscale,ymin+2,20,true,target+" Z-score");
-	svg_line(XscreenMin/xscale,-2, XscreenMax/xscale,-2, "1px", true, "red") // the red y=-2 full-width line	  
+    svg_text(15/xscale,0.5*(ymin+ymax),20,true,target+"  Z-score")	 	//svg_text(15/xscale,ymin+2,20,true,target+" Z-score");
 	];
-	
-  for (var y=ymin; y<=ymax; y++) {
+  if (ymin<=-2)	{elems.push(svg_line(XscreenMin/xscale,-2, XscreenMax/xscale,-2, "1px", true, "red"));} // the red y=-2 full-width line
+
+  // Create the labels for the yaxis:	
+  var ylabels = [];  //  array of y-axis labels - starting at bottom.
+  var ymin_ceil = Math.ceil(ymin);  // integer above ymin
+  if (ymin < ymin_ceil - 30/yscale) {ylabels.push(ymin);} // but may overlap - so maybe best to use a yrange, 30 as font is size 18.
+  var ymax_floor = Math.floor(ymax); // integer below ymax 
+  for (var y=ymin_ceil; y<=ymax_floor; y++) {ylabels.push(y);} // Integers.
+  if (ymax > ymax_floor + 30/yscale) {ylabels.push(ymax);} // but labels size means may still overlap - so maybe best to use a yrange, or size of font. 
+  console.log("ylabels:",ylabels);
+  for (var i=0; i<ylabels.length; i++) {
+    y = ylabels[i];
     elems.push( svg_line((XscreenMin-5)/xscale,y, XscreenMin/xscale,y,"1px",false,"black") );
-    var x = y>=0 ? 0.32 : 0.27;
-    elems.push( svg_text(x,y+8/yscale,18,false, y.toString()) );
+    var x = (y>=0) ? 0.32 : 0.27;  // to allow space for the -ive sign.
+    elems.push( svg_text(x,y+7/yscale,18,false, y.toFixed( (Math.round(y)==y) ? 0 : 1)) );  // was y.toString()
     }
+  return elems;
   }	  
 
 
@@ -504,7 +536,7 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
   // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
   var num_wt=0, num_mu=0;
-  var wtHorizPointSpacing = 6, muHorizPointSpacing = 12;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
+  var wtHorizPointSpacing = 7, muHorizPointSpacing = 7;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
 
   wtPointRadius = 5, muPointRadius = 5;  // Global, Radius of Circle on the SVG plot. Was = 5, but reduced to 3 on 20 Oct 2017 for larger datasets.
   wtCollusionTestRadius=4.6; muCollusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
@@ -514,15 +546,13 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
     else {num_mu++;} // mutant
     }
 
-  // Always use same point sizes:
-  if ( (num_wt > 300) || (num_mu > 300) ) {wtHorizPointSpacing=2; muHorizPointSpacing=2; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 2; muCollusionTestRadius = 2;}
-  // else if (....> 200) to Optionally add in another if for >200   
-  else if ( (num_wt > 150) || (num_mu > 150) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 3; muCollusionTestRadius = 3;}
+  // Using same point sizes for wt and mu:
+  if      ( (num_wt > 500) || (num_mu > 500) ) {wtHorizPointSpacing=4; muHorizPointSpacing=4; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 1.8; muCollusionTestRadius = 1.8;}
+  else if ( (num_wt > 350) || (num_mu > 350) ) {wtHorizPointSpacing=5; muHorizPointSpacing=5; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 2.7; muCollusionTestRadius = 2.7;}
+  else if ( (num_wt > 200) || (num_mu > 200) ) {wtHorizPointSpacing=6; muHorizPointSpacing=6; wtPointRadius = 4; muPointRadius = 4; wtCollusionTestRadius = 3.7; muCollusionTestRadius = 3.7;}
 
-
-  
-  // Or set the following radius for mu and wt separately:
-  
+console.log("wtHorizPointSpacing:",wtHorizPointSpacing,"  wtPointRadius",wtPointRadius, "  wtCollusionTestRadius",wtCollusionTestRadius);
+    
   // Point sizes, based on mu Radius:  
   TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
   TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*muPointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
@@ -531,7 +561,6 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
 
   SquareCornerXY = 0.5*Math.sqrt(Math.PI)*muPointRadius; // So square has same are as circle withy radius PointRadius.
   DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*muPointRadius; // So diagonal has same are as circle with radius PointRadius.
-
 
   var wt_points=[],mu_points=[];
   var tissue_count=0;
@@ -828,6 +857,14 @@ else {mu_points.push(parseFloat(points[i][iy]))}
 }
 */
 
+function sort_tissues_function(a,b) {
+	// NOTE: Chrome array.sort() expects -1,0,1, whereas Firefox accepts true,false. https://inderpreetsingh.com/2010/12/01/chromes-javascript-sort-array-function-is-different-yet-proper/
+    // So in Chrome, can't just use: return upA > upB;
+    var upA = histotype_display(a).toUpperCase();
+    var upB = histotype_display(b).toUpperCase();
+    return (upA < upB) ? -1 : (upA > upB) ? 1 : 0;
+}
+
 function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
     // Creates the tissue legend table, with totals and check-boxes to show/hide points.
 	var legend_thead = '<thead><tr><th rowspan="2">Show</th><th rowspan="2">Tissue</th><th colspan="3">Cell lines</th></tr><tr style="font-size: 95%"><th>Wild type</th><th>Altered</th><th>Total</th></tr></thead>';
@@ -836,12 +873,22 @@ function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
 	var wt_total=0, mu_total=0;
 	
 	// Want table ordered by tissue names:
-	var sorted_tissue_array = Object.keys(tissue_lists).sort(function(a, b){return histotype_display(a) > histotype_display(b)}); // although Object.keys() is not supported in older browsers, eg. pre-IE9.
-    // console.log("sorted_tissue_array:",sorted_tissue_array);
-    // for (tissue in sorted_tissue_array) {  <-- doesn't work, whereas doe for dictionary: for (tissue in tissue_lists) { ....
+	
+	var sorted_tissue_array = Object.keys(tissue_lists);
+	sorted_tissue_array.sort(sort_tissues_function); // although Object.keys() is not supported in older browsers, eg. pre-IE9.
+
+//console.log("Object.keys(tissue_lists):",Object.keys(tissue_lists));
+
+//console.log("The sorted_tissue_array:",sorted_tissue_array);
+
+    //console.log("sorted_tissue_array:",sorted_tissue_array);
+    //console.log("sorted_tissue_array => histotype_display()");
+    for (var i = 0; i < sorted_tissue_array.length; i++) {console.log(sorted_tissue_array[i], "=>", histotype_display(sorted_tissue_array[i])); }
+
+    // for (tissue in sorted_tissue_array) {  <-- doesn't work, whereas does for dictionary: for (tissue in tissue_lists) { ....
     for (var i = 0; i < sorted_tissue_array.length; i++) {
       var tissue =  sorted_tissue_array[i];
-      console.log("tissue:",tissue);
+      //console.log("tissue:",tissue);
 	  var colour = tissue_colours[tissue];
 	  
 //	  $('head').append('<style type="text/css">.'+tissue+'_tooltip{background:'+colour+';}</style>'); // add the style to use later for the tooltips background colour.

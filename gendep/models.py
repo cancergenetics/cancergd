@@ -250,9 +250,10 @@ class Comment(models.Model):
     ip          = models.CharField('IP address', max_length=30) # To help block/blacklist any spam messages.
     date        = models.DateTimeField('Date', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
 
-
+"""
+The News and Download are now static template pages, so are directly edited manually.
 class News(models.Model):
-    """ Stores latest news posts for the "News" page """
+    # Stores latest news posts for the "News" page
     content     = models.TextField('Content', default='', blank=True)
     first_posted= models.DateTimeField('First posted', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
     last_edited = models.DateTimeField('Last edited', default=timezone.now, editable=True,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
@@ -264,7 +265,7 @@ class Download(models.Model):
     changes      = models.TextField('Changes', default='', blank=True) # Changes in this file, not present in previous version.
     # num_downloads= models.IntegerField('Num downloads', default=0) # Number of downloads
     date_created = models.DateTimeField('Date created', default=timezone.now, editable=False,)  # Use: django.utils.timezone.now() and set USE_TZ=True in settings.py. Alternatively default=datetime.now or default=timezone.now  
-
+"""
 
 # NOTES:
 # =====
