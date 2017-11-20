@@ -1,0 +1,182 @@
+{% extends 'gendep/base.html' %}
+{% load staticfiles %}
+{% block links_top %}
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" class="ui-theme" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
+<style type="text/css">
+  .ui-tooltip {
+    padding: 5px 5px;
+    background: #ffffc0;
+	/*color: white; */
+    border-radius: 10px;	
+	z-index: 2147478001;  /* So will appear above the fancybox 2147478000*/
+    font: bold 12px "Helvetica Neue", Sans-Serif;
+  }
+</style>
+
+
+<script type="text/javascript">
+
+// Convert the histotypes to display names, eg:.
+// In future could sort displaynames into alphabetic order, as not sorted by the SQLite database query (but should be by the MySQL query)
+function histotypes_to_displaynames(histotype_list) {
+  var displaynames = "";
+  var histotypes = histotype_list.split(",");
+  for (var i=0; i<histotypes.length; i++) {
+    if (displaynames !== "") {displaynames += ", ";}
+    switch (histotypes[i]) {
+      case "": break;
+      {% for histotype in histotype_list %}
+      case "{{ histotype.0 }}": displaynames += "{{ histotype.1 }}"; break; {% endfor %}	
+      // case "BONE": return "Osteosarcoma"; // added for the CVG boxplot legend.
+      case "ALL_HISTOTYPES": displaynames += "All tissues"; break; // Not needed.
+      default: displaynames+= 'Error: Histotype "'+histotypes[i]+'" Not Found';
+    }
+  }
+  return displaynames;
+}
+
+
+
+  function add_tooltips_to_driver_table() {
+	// Initialise the Tooltips
+	$('#study_table_tbody').tooltip({
+	  items: "[data-study], [data-authors], [data-experiment_type], [data-histotype_list]",
+	  show: false, // effect
+	  hide: false,
+      track: true, // follow mouse
+	  position: {
+        my: "center+15% bottom-20",  // this center+10% should match the ".arrow.left {left: 40%;} in 'style.css' file
+        at: "center top",
+	    using: function( position, feedback ) {
+          $( this ).css( position );
+		  
+		  $( "<div>" )
+            .addClass( "arrow" )
+            .addClass( feedback.vertical )
+            .addClass( feedback.horizontal )
+            .appendTo( this );
+        }
+	  },
+	  
+      content: function(callback) {  // 'callback' function is called below with the data:
+        var element = $( this );
+/*
+        if ( element.is( "[data-study_list]" ) ) {
+          var gene_name = element.attr("data-gene");  // was: = element.text();
+		  if (gene_name in gene_info_cache) {
+			var result = format_gene_info_for_tooltip(gene_info_cache[gene_name]);
+			callback(result);
+			}
+		  else {
+            var url = global_url_gene_info_for_mygene.replace('mygene',gene_name);
+            $.ajax({
+              url: url,
+              dataType: 'json', 
+            })
+            .done(function(data, textStatus, jqXHR) {  // or use .always(...)
+              if (data['success']) {
+			  	gene_info_cache[gene_name] = data; // cache to retrieve faster next time.
+			    result = format_gene_info_for_tooltip(data);
+			    callback(result);
+				}
+			  else {callback("Error: "+data['message'])}
+		    })
+		    .fail(function(jqXHR, textStatus, errorThrown) {
+			  callback("Ajax Failed: '"+textStatus+"'  '"+errorThrown+"'");
+            })
+		  }
+        }
+*/        
+ 
+        if ( element.is( "[data-study]" ) ) {
+          return element.attr("data-study");
+        }
+        if ( element.is( "[data-authors]" ) ) {
+          return element.attr("data-authors");
+        }				
+        else if ( element.is( "[data-experiment_type]" ) ) {
+//	      var study_list = study_info(element.attr("data-study").split(',') );
+//        return '<b>'+study[iexptype]+':</b> '+study[isummary];
+//          return '<b>'+study[ishortname]+':</b> '+study[idetails];
+          return element.attr("data-experiment_type");
+        }
+        else if ( element.is( "[data-histotype_list]" ) ) {
+// Convert the histotypes to their full_names:      
+//        var histotype_list = element.attr("data-histotype_list").split(',');
+          return histotypes_to_displaynames(element.attr("data-histotype_list"));   // was: .replace(/,/g, ', ');
+        }
+      }    // end of 'content:'
+   });  // end of tooltip
+}
+
+
+    // Turn off automatic editor creation first.
+    // CKEDITOR.disableAutoInline = true;
+    // CKEDITOR.inline( 'editor1' );
+
+//$(document).ready(function() {
+//    add_tooltips_to_driver_table();
+//    }) 
+    
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>Download<h1/>
+{% endblock %}
+{% block table %}
+
+{# Optional image with Left/Right aligned, and optional url link from the image: #}
+
+{% comment %}
+<p>These files are '.zip' (or the more compact '.xz') compressed files so need to be uncompressed using Linux/MacOS command-line, eg: "unzip db_sqlite.zip", (or unxz "db_sqlite.xz") or on Windows can use the standard Windows uncompression for .zip files, or a faster program such as <a href="http://www.7-zip.org/">7-Zip</a> for .zip and .xz files, or </p>
+{% endcomment %}
+
+<p>These files are '.xz' compressed files so need to be uncompressed using either:
+<ol>
+  <li>Linux/MacOS command-line, eg: <i>unxz FILENAME.xz</i> (or: <i>xz -d FILENAME.xz</i>) ['xz' is pre-installed in most Linux's, and is easily installed in MacOSX using: <a href="http://macpkg.sourceforge.net/">precompiled package</a> or <a href="http://macappstore.org/xz/">brew install</a>].</li>
+  <li>Windows: use the free <a href="http://www.7-zip.org/">7-Zip GUI</a> or <a href="https://tukaani.org/xz/">xzutils command-line tool for Windows (see section "Pre-built binaries" on this xzutils page)</a>.</li>
+</ol>
+<p>The <a href="{% url 'gendep:news' %}">News page</a> gives more details of the changes given in the 'Comments' column below.</p>
+<table cellpadding="3" class="tabler" id="download_table">
+<thead><tr><th>Filename</th><th>Type</th><th>Created</th><th>Comment</th></tr></thead>
+<tbody id="download_table_tbody">
+
+{% comment %}
+{ % for download in download_list % }
+  <tr><td><a href="{% static 'gendep/' %}{{ download.filename }}">{{ download.filename }}</a></td><td>{{ download.type }}</td><td style="color:gray;">{{ download.date_created }}</td><td>{{ download.changes }}</td></tr>
+{ % endfor % }
+{% endcomment %}
+
+<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_16Nov2017.sqlite3.xz  </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr> 
+<tr><td>Text file of All dependencies       </td><td> all_dependencies_16Nov2017.csv.xz      </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_16Nov2017.csv.xz </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td colspan="4"><hr/></td></tr>
+<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_23Oct2017.sqlite3.xz  </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td>Text file of All dependencies       </td><td> all_dependencies_23Oct2017.csv.xz      </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_23Oct2017.csv.xz </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td colspan="4"><hr/></td></tr>
+<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_17Oct2017.sqlite3.xz  </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
+<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_17Oct2017.csv.xz </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
+<tr><td>Text file of All dependencies       </td><td> all_dependencies_16Nov2017.csv.xz      </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td colspan="4"><hr/></td></tr>
+<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_1Apr2017.sqlite3.xz   </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+<tr><td>Text file of All dependencies       </td><td> all_dependencies_1Apr2017.csv.xz       </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_1Apr2017.csv.xz  </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+</tbody>
+</table>
+
+<b>NOTE:</b>
+<ul>
+<li>The 'SQLite Database' can be viewed and queried using, eg: the free <a href="http://sqlitebrowser.org/">SQLite Browser</a>, or <a href="https://sqlite.org/cli.html">sqlite command-line client</a>, or python/perl scripts.</li>
+<li>The 'Text files' are in tab-delimitated format. </li>
+</ul>
+
+{# When aligning elements with float, always define margin and padding for the 'body' element. This is to avoid visual differences in different browsers. #}
+
+{% endblock%}
