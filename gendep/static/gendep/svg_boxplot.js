@@ -530,7 +530,7 @@ function diamond_points(x,y) {
 }
 
 
-
+//** RREB1 vs ARID1B Tas - ylabels overlap at bottom of y-axis.
 
 function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
@@ -547,11 +547,11 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
     }
 
   // Using same point sizes for wt and mu:
-  if      ( (num_wt > 500) || (num_mu > 500) ) {wtHorizPointSpacing=4; muHorizPointSpacing=4; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 1.8; muCollusionTestRadius = 1.8;}
-  else if ( (num_wt > 350) || (num_mu > 350) ) {wtHorizPointSpacing=5; muHorizPointSpacing=5; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 2.7; muCollusionTestRadius = 2.7;}
-  else if ( (num_wt > 200) || (num_mu > 200) ) {wtHorizPointSpacing=6; muHorizPointSpacing=6; wtPointRadius = 4; muPointRadius = 4; wtCollusionTestRadius = 3.7; muCollusionTestRadius = 3.7;}
-
-console.log("wtHorizPointSpacing:",wtHorizPointSpacing,"  wtPointRadius",wtPointRadius, "  wtCollusionTestRadius",wtCollusionTestRadius);
+  if      ( (num_wt > 500) || (num_mu > 500) ) {wtHorizPointSpacing=2.5; muHorizPointSpacing=2.5; wtPointRadius = 2; muPointRadius = 2; wtCollusionTestRadius = 1.8; muCollusionTestRadius = 1.8;}
+  else if ( (num_wt > 350) || (num_mu > 350) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 2.7; muCollusionTestRadius = 2.7;}
+  else if ( (num_wt > 200) || (num_mu > 200) ) {wtHorizPointSpacing=3.5; muHorizPointSpacing=3.5; wtPointRadius = 4; muPointRadius = 4; wtCollusionTestRadius = 3.7; muCollusionTestRadius = 3.7;}
+// KRAS vs KRAS McDonald is a wide boxplot, so needed to reduce horiz space to 4.5.
+console.log("num_wt:",num_wt, "  num_mu:",num_mu, "  wtHorizPointSpacing:",wtHorizPointSpacing, "  wtPointRadius:",wtPointRadius, "  wtCollusionTestRadius:",wtCollusionTestRadius);
     
   // Point sizes, based on mu Radius:  
   TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
