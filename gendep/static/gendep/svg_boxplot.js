@@ -111,7 +111,7 @@ function parse_boxplot_csv_data_into_points_array(boxplot_csv) {
   
   points[0][1]=0.1*Math.floor(10*ymin_point-half_yrange); points[0][2]=0.1*Math.ceil(10*ymax_point+half_yrange); // but 0.1 won't be exact in binary floating point. 
 
-  console.log("ymin_point:",points[0][1], "   ymax_point:",points[0][2]);
+  //console.log("ymin_point:",points[0][1], "   ymax_point:",points[0][2]);
   
   var cellline_count = parseInt(points[0][0]) - NA_total; // Ignore these 'NA' points.
   
@@ -211,13 +211,20 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
 	];
   if (ymin<=-2)	{elems.push(svg_line(XscreenMin/xscale,-2, XscreenMax/xscale,-2, "1px", true, "red"));} // the red y=-2 full-width line
 
-  // Create the labels for the yaxis:	
+  // Create the labels for the yaxis:
   var ylabels = [];  //  array of y-axis labels - starting at bottom.
+
   var ymin_ceil = Math.ceil(ymin);  // integer above ymin
-  if (ymin < ymin_ceil - 30/yscale) {ylabels.push(ymin);} // but may overlap - so maybe best to use a yrange, 30 as font is size 18.
   var ymax_floor = Math.floor(ymax); // integer below ymax 
+  //console.log("ymin:",ymin,"  ymax:",ymax);
+  //console.log("ymin_ceil:",ymin_ceil,"  ymax_floor:",ymax_floor);
+
+  // Only show the non-integer (ie. decimal at top or bottom of y-axis if there is only one or no integer labels.
+  // eg:  TP53 - MAD2L1 Meyers
+  if ((ymin!=ymin_ceil) && (ymin_ceil==ymax_floor)) {ylabels.push(ymin);}
   for (var y=ymin_ceil; y<=ymax_floor; y++) {ylabels.push(y);} // Integers.
-  if (ymax > ymax_floor + 30/yscale) {ylabels.push(ymax);} // but labels size means may still overlap - so maybe best to use a yrange, or size of font. 
+  if ((ymax!=ymax_floor) && (ymin_ceil==ymax_floor)) {ylabels.push(ymax);}
+  
   console.log("ylabels:",ylabels);
   for (var i=0; i<ylabels.length; i++) {
     y = ylabels[i];
@@ -535,12 +542,16 @@ function diamond_points(x,y) {
 function beeswarm(points,wtxc,muxc,boxwidth) {
   // Plots the swarm of points.
   // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
+
+
   var num_wt=0, num_mu=0;
   var wtHorizPointSpacing = 7, muHorizPointSpacing = 7;  // was 12 for wt horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width, and KRAS vs KRAS PANCAN so reduced to 3.
 
   wtPointRadius = 5, muPointRadius = 5;  // Global, Radius of Circle on the SVG plot. Was = 5, but reduced to 3 on 20 Oct 2017 for larger datasets.
   wtCollusionTestRadius=4.6; muCollusionTestRadius=4.6; // just less than the point radius, so can overlap slightly.
 
+
+  // The i needs to start at 1 (not zero as is used for the wtleft[], wtright, muleft, muright arrays.
   for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
 	if (points[i][imutant]=="0") {num_wt++;}  // Wildtype rather than mutant.
     else {num_mu++;} // mutant
@@ -551,8 +562,8 @@ function beeswarm(points,wtxc,muxc,boxwidth) {
   else if ( (num_wt > 350) || (num_mu > 350) ) {wtHorizPointSpacing=3; muHorizPointSpacing=3; wtPointRadius = 3; muPointRadius = 3; wtCollusionTestRadius = 2.7; muCollusionTestRadius = 2.7;}
   else if ( (num_wt > 200) || (num_mu > 200) ) {wtHorizPointSpacing=3.5; muHorizPointSpacing=3.5; wtPointRadius = 4; muPointRadius = 4; wtCollusionTestRadius = 3.7; muCollusionTestRadius = 3.7;}
 // KRAS vs KRAS McDonald is a wide boxplot, so needed to reduce horiz space to 4.5.
-console.log("num_wt:",num_wt, "  num_mu:",num_mu, "  wtHorizPointSpacing:",wtHorizPointSpacing, "  wtPointRadius:",wtPointRadius, "  wtCollusionTestRadius:",wtCollusionTestRadius);
-    
+//console.log("num_wt:",num_wt, "  num_mu:",num_mu, "  wtHorizPointSpacing:",wtHorizPointSpacing, "  wtPointRadius:",wtPointRadius, "  wtCollusionTestRadius:",wtCollusionTestRadius);
+
   // Point sizes, based on mu Radius:  
   TriangleHalfBase = Math.sqrt(Math.PI/Math.sqrt(3))*muPointRadius; // This is half the width of triangle base, so that triangle has same area as the circle
   TriangleBaseToCentre = Math.sqrt(Math.PI/(3*Math.sqrt(3)))*muPointRadius; // base to circumcentre of triangle (is 1/sqrt(3) times the half base width).
@@ -562,14 +573,16 @@ console.log("num_wt:",num_wt, "  num_mu:",num_mu, "  wtHorizPointSpacing:",wtHor
   SquareCornerXY = 0.5*Math.sqrt(Math.PI)*muPointRadius; // So square has same are as circle withy radius PointRadius.
   DiamondDiagonalXY = 0.5*Math.sqrt(2*Math.PI)*muPointRadius; // So diagonal has same are as circle with radius PointRadius.
 
+
+
   var wt_points=[],mu_points=[];
   var tissue_count=0;
   var wtleft=[], wtright=[], muleft=[], muright=[]; // To avoid overlapping points.
   var wt_tissue_counts = {}, mu_tissue_counts = {};
+  var Xi=[0]; // Array of indexes in left and right arrays for each point. Store a dummy zero at index 0, so is same as the points[] array indexes.
   
   for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
-    var tissue = points[i][itissue];
-		
+
 	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
 	
 if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
@@ -579,6 +592,118 @@ else {mu_points.push(parseFloat(points[i][iy]))}
     var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
 
     var Yi = Math.round(y / (isWT ? wtCollusionTestRadius : muCollusionTestRadius) );
+
+	// var x = isWT ? wtxc*xscale : muxc*xscale;  // The centerline. Is a parameter below.
+		
+    // Wild Type (wt) or Altered(Mutant) (mu):
+//    var x = isWT ? find_point_position(wtleft,wtright, i,wtxc*xscale,Yi, wtHorizPointSpacing) : find_point_position(muleft,muright, i,muxc*xscale,Yi, muHorizPointSpacing);
+    Xi.push( isWT ? find_point_position(wtleft,wtright, i, Yi) : find_point_position(muleft,muright, i, Yi) );
+    }
+
+
+  // Use the Xi array to reduce the wt/muHorizPointSpacing if too wide, eg. in ? :
+  var wtXmax=0, muXmax=0;
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
+	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
+    if (isWT) {
+        if (Math.abs(Xi[i]) > wtXmax) {wtXmax=Math.abs(Xi[i]);}
+        }
+    else {     
+        if (Math.abs(Xi[i]) > muXmax) {muXmax=Math.abs(Xi[i]);}
+        }
+  }
+  // Set the horizontal spacing and use the smaller of wt and mu:
+  if (wtXmax*wtHorizPointSpacing > 0.5*boxwidth*xscale-wtPointRadius) {wtHorizPointSpacing = (0.5*boxwidth*xscale-wtPointRadius)/wtXmax;}
+  if (muXmax*muHorizPointSpacing > 0.5*boxwidth*xscale-muPointRadius) {muHorizPointSpacing = (0.5*boxwidth*xscale-muPointRadius)/muXmax;}
+  if (wtHorizPointSpacing > muHorizPointSpacing) {wtHorizPointSpacing > muHorizPointSpacing;}
+  else if (muHorizPointSpacing > wtHorizPointSpacing) {muHorizPointSpacing = wtHorizPointSpacing;}
+
+  // Now create the points:
+  //console.log("*** NEW creating points ***")
+  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
+    var tissue = points[i][itissue];
+	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
+
+	// var x = isWT ? wtxc*xscale : muxc*xscale;  // The centerline. Is a parameter below.
+    var x= isWT ?  wtxc*xscale + Xi[i]*wtHorizPointSpacing : muxc*xscale + Xi[i]*muHorizPointSpacing;
+	
+//    var y = tohalf(Yscreen0 + parseFloat(points[i][iy]) * yscale, 1);
+    var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
+
+	var e = create_point(isWT, tissue, i, x, y);
+
+	if (tissue in tissue_lists) {tissue_lists[tissue].push(e);}
+	else {
+	  tissue_lists[tissue]=[e];
+	  wt_tissue_counts[tissue]=0;
+	  mu_tissue_counts[tissue]=0;
+	  tissue_count++;
+	  }
+	if (points[i][imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
+	else {mu_tissue_counts[tissue]++}
+    }
+
+
+  create_legend_table(wt_tissue_counts,mu_tissue_counts);
+}
+
+
+/*
+function find_point_position(left,right, i,x,Yi, HorizPointSpacing) { // generic version.
+    // left and right are arrays. 
+    // In javascript, arrays are passed as reference to the array so changes to the array contents are reflected in the calling code.
+	// on right side set to position one to true so won't plot two points on centre line, as point on left occupies the one position..
+	for (var j=-2; j<=2; j++) {
+//	    if (typeof left[Yi+j] === 'undefined') {if (typeof right[Yi+j] !== 'undefined') {alert("right defined Yi+'+j+' "+Yi)}; left[Yi+j]=[]; right[Yi+j]=[true];}
+	    if (typeof left[Yi+j] === 'undefined') {if (typeof right[Yi+j] !== 'undefined') {alert("right defined Yi+'+j+' "+Yi)}; left[Yi+j]=[]; right[Yi+j]=[-1];}
+		}
+				
+    // find position on left nearest to centre line, that doesn't overlap existing points in row above or below:
+	var xleft  = search_rows_above_and_below('left:'+Yi, left[Yi], left[Yi-1], left[Yi+1], left[Yi-2], left[Yi+2]);
+	var xright = search_rows_above_and_below('right:'+Yi,right[Yi],right[Yi-1],right[Yi+1],right[Yi-2],right[Yi+2]);
+
+//   if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.
+	if (xleft<=xright) {
+//	    for (var j=left[Yi].length; j<xleft; j++)   {left[Yi][j]=false;};  left[Yi][xleft]=true;   x-=xleft*HorizPointSpacing; // console.log('using xleft x='+x+' left[Yi].length:'+left[Yi].length);
+	    for (var j=left[Yi].length; j<xleft; j++)   {left[Yi][j]=0;};  left[Yi][xleft]=i;   x-=xleft*HorizPointSpacing; // console.log('using xleft x='+x+' left[Yi].length:'+left[Yi].length);
+	  }
+	else { 
+//	    for (var j=right[Yi].length; j<xright; j++) {right[Yi][j]=false;}; right[Yi][xright]=true; x+=xright*HorizPointSpacing; // console.log('using xright x='+x+' right[Yi].length:'+right[Yi].length);
+	    for (var j=right[Yi].length; j<xright; j++) {right[Yi][j]=0;}; right[Yi][xright]=i; x+=xright*HorizPointSpacing; // console.log('using xright x='+x+' right[Yi].length:'+right[Yi].length);
+      }
+    return x;
+}	   	   
+*/
+
+
+function find_point_position(left,right, i, Yi) { // generic version.
+    // left and right are arrays - In javascript, arrays are passed as reference to the array so changes to the array contents are reflected in the calling code.
+    // returns the x index where point should be placed, eg. -3, or +6
+	// On right side set to position one to true so won't plot two points on centre line, as point on left occupies the one position..
+	for (var j=-2; j<=2; j++) {
+	    if (typeof left[Yi+j] === 'undefined') {if (typeof right[Yi+j] !== 'undefined') {alert("right defined Yi+'+j+' "+Yi)}; left[Yi+j]=[]; right[Yi+j]=[true];}
+		}
+				
+    // find position on left nearest to centre line, that doesn't overlap existing points in row above or below:
+	var xleft  = search_rows_above_and_below('left:'+Yi, left[Yi], left[Yi-1], left[Yi+1], left[Yi-2], left[Yi+2]);
+	var xright = search_rows_above_and_below('right:'+Yi,right[Yi],right[Yi-1],right[Yi+1],right[Yi-2],right[Yi+2]);
+
+    // if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.
+	if (xleft<=xright) {
+	    for (var j=left[Yi].length; j<xleft; j++)   {left[Yi][j]=false;}
+	    left[Yi][xleft]=true;
+	    return -xleft;
+	  }
+	else { 
+	    for (var j=right[Yi].length; j<xright; j++) {right[Yi][j]=false;}
+	    right[Yi][xright]=true;
+	    return xright;
+      }
+}
+
+
+
+function create_point(isWT, tissue, i, x, y) {
 
 	var pointType = "circle", svgType = "circle";
 	// Pre-Aug-2016 mutation types mapping was:
@@ -614,53 +739,7 @@ else {mu_points.push(parseFloat(points[i][iy]))}
 	// e.setAttribute("stroke-width", "1"); // e.style.strokewidth=1;
 	// e.setAttribute("fill-opacity", "0.5");
 
-	var x = isWT ? wtxc*xscale : muxc*xscale;  // The centerline.
-		
-    if (tissue in tissue_lists) {tissue_lists[tissue].push(e);}
-	else {
-	  tissue_lists[tissue]=[e];
-	  wt_tissue_counts[tissue]=0;
-	  mu_tissue_counts[tissue]=0;
-	  tissue_count++;
-	  }
-	if (points[i][imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
-	else {mu_tissue_counts[tissue]++}
 
-	if (isWT) { // Wild type
-	    // on right side set to position one to true so won't plot two points on centre line, as point on left occupies the one position..
-		for (var j=-2; j<=2; j++) {
-	      if (typeof wtleft[Yi+j] === 'undefined') {if (typeof wtright[Yi+j] !== 'undefined') {alert("wtright defined Yi+'+j+' "+Yi)}; wtleft[Yi+j]=[]; wtright[Yi+j]=[true];}
-		  }
-				
-       // find position on left nearest to centre line:
-	   var xleft  = search_rows_above_and_below('wtleft:'+Yi,wtleft[Yi],wtleft[Yi-1],wtleft[Yi+1],wtleft[Yi-2],wtleft[Yi+2]);
-	   var xright = search_rows_above_and_below('wtright:'+Yi,wtright[Yi],wtright[Yi-1],wtright[Yi+1],wtright[Yi-2],wtright[Yi+2]);
-
-//       if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.
-	   if (xleft<=xright)
-	     {for (var j=wtleft[Yi].length; j<xleft; j++) {wtleft[Yi][j]=false;}; wtleft[Yi][xleft]=true; x-=xleft*wtHorizPointSpacing;} // console.log('using xleft x='+x+' wtleft[Yi].length:'+wtleft[Yi].length);
-	   else 
-	     {for (var j=wtright[Yi].length; j<xright; j++) {wtright[Yi][j]=false;}; wtright[Yi][xright]=true; x+=xright*wtHorizPointSpacing;} // console.log('using xright x='+x+' wtright[Yi].length:'+wtright[Yi].length);
-	   	   
-	   } // end of isWT
-	   
-	else { // is Altered (Mutant)
-	   for (var j=-2; j<=2; j++) {
-	     if (typeof muleft[Yi+j] === 'undefined') {if (typeof muright[Yi+j] !== 'undefined') {alert("muright defined Yi+'+j+' "+Yi)}; muleft[Yi+j]=[]; muright[Yi+j]=[true];}
-	     }
-	  
-       // find position on left nearest to centre line:		
-	   var xleft  = search_rows_above_and_below('muleft:'+Yi,muleft[Yi],muleft[Yi-1],muleft[Yi+1],muleft[Yi-2],muleft[Yi+2]);
-	   var xright = search_rows_above_and_below('muright:'+Yi,muright[Yi],muright[Yi-1],muright[Yi+1],muright[Yi-2],muright[Yi+2]);
-
-       //  if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.	   
-	   if (xleft<=xright)
-	     {for (var j=muleft[Yi].length; j<xleft; j++) {muleft[Yi][j]=false;}; muleft[Yi][xleft]=true; x-=xleft*muHorizPointSpacing;} // console.log('using xleft x='+x+' muleft[Yi].length:'+muleft[Yi].length);
-	   else 
-	     {for (var j=muright[Yi].length; j<xright; j++) {muright[Yi][j]=false;}; muright[Yi][xright]=true; x+=xright*muHorizPointSpacing;} // console.log('using xright x='+x+' muright[Yi].length:'+muright[Yi].length);
-	   
-		} // end of is Mutant
-		
     // Using tohalf() and Math.round() to prevent anti-aliasing of horizontal and vertical lines, and ensure circles, triangle, diamond are drawn pixel consistently.
     switch(pointType) {
 	  case "circle":
@@ -687,8 +766,7 @@ else {mu_points.push(parseFloat(points[i][iy]))}
 	    e.setAttribute("points",diamond_points(x,y));
         break;
 		
-      //default:
-				
+      //default:			
 	}
 	
 	var id = "c"+i.toString();
@@ -700,162 +778,11 @@ else {mu_points.push(parseFloat(points[i][iy]))}
 	
 	//evt.target.setAttribute('opacity', '0.5');"
 	svg.appendChild(e);
-    }
     
-   create_legend_table(wt_tissue_counts,mu_tissue_counts);
-}
-
-/* ORIGINAL - pre Oct 2017, when the wt horiz needed automatic resetting:
-function beeswarm(points,wtxc,muxc,boxwidth) {
-  // Plots the swarm of points.
-  // Avoids overlapping any points by checking using function "search_rows_above_and_below()" to search arrays wtleft, wtright, muleft, muright
-  var wt_points=[],mu_points=[];
-
-  var wtHorizPointSpacing = 8, muHorizPointSpacing = 12;  // was 12 for horizontal point spacing, but ERBB2 vs ERBB2 points overflow the boxplot width
-  var tissue_count=0;
-  var wtleft=[], wtright=[], muleft=[], muright=[]; // To avoid overlapping points.
-  var wt_tissue_counts = {}, mu_tissue_counts = {};
-  
-  for (var i=1; i<points.length; i++) { // corectly starts at i=1, as points[0] is the boxplot dimensions.
-    var tissue = points[i][itissue];
-		
-
-	var isWT = points[i][imutant]=="0";  // Wildtype rather than mutant.
-	
-
-if (isWT) {wt_points.push(parseFloat(points[i][iy]))}
-else {mu_points.push(parseFloat(points[i][iy]))}
-
-//    var y = tohalf(Yscreen0 + parseFloat(points[i][iy]) * yscale, 1);
-    var y = Yscreen0 + parseFloat(points[i][iy]) * yscale;
-
-    var Yi = Math.round(y / collusionTestRadius);
-
-	var pointType = "circle", svgType = "circle";
-	// Pre-Aug-2016 mutation types mapping was:
-	//   1,2,3 = mutation
-    //   4,5 = copy number (is one a deletion and one an amplification?)
-    // Now simply:
-	//   1 = mutation
-    //   2 = copy number (is one a deletion and one an amplification?)    
-    if (!isWT) {
-	  switch (points[i][imutant]) {		  
-	    case "1":
-		  // pointType = "square";   svgType = "rect"; break; // Square not drawn correctly yet.
-		  pointType = "diamond";  svgType = "polygon"; break;		  
-
-	    case "2":
-          pointType = "triangle"; svgType = "polygon"; break;
-		// if needed a 5-point star could be another shape
-	    
-//	    case "3":		
-//      case "4":
-//	    case "5":
-	    default: alert("Invalid point type: '"+points[i][imutant]+"'")
-	  }
-	}
-	
-    var e = document.createElementNS(svgNS, svgType);
-
-	var colour = tissue_colours[tissue];
-	if (typeof colour === 'undefined') {alert("Unexpected tissue '"+tissue+"'");}
-	
-    e.setAttribute("fill", colour);
-    //e.setAttribute("stroke", colour);    // e.style.stroke=colour;
-	// e.setAttribute("stroke-width", "1"); // e.style.strokewidth=1;
-	// e.setAttribute("fill-opacity", "0.5");
-
-	var x = isWT ? wtxc*xscale : muxc*xscale;  // The centerline.
-		
-    if (tissue in tissue_lists) {tissue_lists[tissue].push(e);}
-	else {
-	  tissue_lists[tissue]=[e];
-	  wt_tissue_counts[tissue]=0;
-	  mu_tissue_counts[tissue]=0;
-	  tissue_count++;
-	  }
-	if (points[i][imutant]==0) {wt_tissue_counts[tissue]++}  // This is correctly outside the above
-	else {mu_tissue_counts[tissue]++}
-
-	if (isWT) { // Wild type
-	    // on right side set to position one to true so won't plot two points on centre line, as point on left occupies the one position..
-		for (var j=-2; j<=2; j++) {
-	      if (typeof wtleft[Yi+j] === 'undefined') {if (typeof wtright[Yi+j] !== 'undefined') {alert("wtright defined Yi+'+j+' "+Yi)}; wtleft[Yi+j]=[]; wtright[Yi+j]=[true];}
-		  }
-				
-       // find position on left nearest to centre line:
-	   var xleft  = search_rows_above_and_below('wtleft:'+Yi,wtleft[Yi],wtleft[Yi-1],wtleft[Yi+1],wtleft[Yi-2],wtleft[Yi+2]);
-	   var xright = search_rows_above_and_below('wtright:'+Yi,wtright[Yi],wtright[Yi-1],wtright[Yi+1],wtright[Yi-2],wtright[Yi+2]);
-
-//       if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.
-	   if (xleft<=xright)
-	     {for (var j=wtleft[Yi].length; j<xleft; j++) {wtleft[Yi][j]=false;}; wtleft[Yi][xleft]=true; x-=xleft*wtHorizPointSpacing;} // console.log('using xleft x='+x+' wtleft[Yi].length:'+wtleft[Yi].length);
-	   else 
-	     {for (var j=wtright[Yi].length; j<xright; j++) {wtright[Yi][j]=false;}; wtright[Yi][xright]=true; x+=xright*wtHorizPointSpacing;} // console.log('using xright x='+x+' wtright[Yi].length:'+wtright[Yi].length);
-	   	   
-	   } // end of isWT
-	   
-	else { // is Altered (Mutant)
-	   for (var j=-2; j<=2; j++) {
-	     if (typeof muleft[Yi+j] === 'undefined') {if (typeof muright[Yi+j] !== 'undefined') {alert("muright defined Yi+'+j+' "+Yi)}; muleft[Yi+j]=[]; muright[Yi+j]=[true];}
-	     }
-	  
-       // find position on left nearest to centre line:		
-	   var xleft  = search_rows_above_and_below('muleft:'+Yi,muleft[Yi],muleft[Yi-1],muleft[Yi+1],muleft[Yi-2],muleft[Yi+2]);
-	   var xright = search_rows_above_and_below('muright:'+Yi,muright[Yi],muright[Yi-1],muright[Yi+1],muright[Yi-2],muright[Yi+2]);
-
-       //  if (tissue_count % 2 == 0) // put odd numbered tissues on the left, even on right.	   
-	   if (xleft<=xright)
-	     {for (var j=muleft[Yi].length; j<xleft; j++) {muleft[Yi][j]=false;}; muleft[Yi][xleft]=true; x-=xleft*muHorizPointSpacing;} // console.log('using xleft x='+x+' muleft[Yi].length:'+muleft[Yi].length);
-	   else 
-	     {for (var j=muright[Yi].length; j<xright; j++) {muright[Yi][j]=false;}; muright[Yi][xright]=true; x+=xright*muHorizPointSpacing;} // console.log('using xright x='+x+' muright[Yi].length:'+muright[Yi].length);
-	   
-		} // end of is Mutant
-		
-    // Using tohalf() and Math.round() to prevent anti-aliasing of horizontal and vertical lines, and ensure circles, triangle, diamond are drawn pixel consistently.
-    switch(pointType) {
-	  case "circle":
-	    //add the xcentre after the above calculations 	
-	    e.setAttribute("cx", tohalf(x,1).toString() ); // or: e.cx.baseVal.value =  parseFloat(points[i][2]) * xscale );	
-	    e.setAttribute("cy", tohalf(y,1).toString() ); // or: e.cy.baseVal.value = parseFloat(points[i][3]) * yscale );				
-	    e.setAttribute("r", PointRadius.toString()); // Firefox and IE don't use the 'r' in the 'circle' class (whereas Chrome does)  e.r.baseVal.value = PointRadius.toString(); set in the 'circle' class
-		break;
-	
-      case "square": // rect
-	    e.setAttribute("x", tohalf(x-SquareCornerXY, 1).toString());
-	    e.setAttribute("y", tohalf(y-SquareCornerXY, 1).toString());
-	    e.setAttribute("width", Math.round(2*SquareCornerXY).toString());
-	    e.setAttribute("height",Math.round(2*SquareCornerXY).toString());
-	    break;
-
-	  case "triangle": // polygon
-	    // polygons also have stroke and fill which is similar to circle: "stroke:#660000; fill:#cc3333; stroke-width: 3;"
-	    // draw triangle inverted as graphics y=0 is at top of screen.
-	    e.setAttribute("points", triangle_points(x,y));
-	    break;
-		
-	  case "diamond": // path
-	    e.setAttribute("points",diamond_points(x,y));
-        break;
-		
-      //default:
-				
-	}
-	
-	var id = "c"+i.toString();
-	e.setAttribute("id", id); // 'c' for circle or cell_line
-	
-	e.onmouseover = mouseOver;  // or: e.onmouseover = function() { myFun(this) };
-	// the mouseenter event, the mouseover event triggers if a mouse pointer enters any child elements as well as the selected element. The mouseenter event is only triggered when the mouse pointer enters the selected element. 
-	e.onmouseout = mouseOut;
-	
-	//evt.target.setAttribute('opacity', '0.5');"
-	svg.appendChild(e);
+    return e;
     }
+
     
-   create_legend_table(wt_tissue_counts,mu_tissue_counts);
-}
-*/
 
 function sort_tissues_function(a,b) {
 	// NOTE: Chrome array.sort() expects -1,0,1, whereas Firefox accepts true,false. https://inderpreetsingh.com/2010/12/01/chromes-javascript-sort-array-function-is-different-yet-proper/
@@ -877,13 +804,12 @@ function create_legend_table(wt_tissue_counts,mu_tissue_counts) {
 	var sorted_tissue_array = Object.keys(tissue_lists);
 	sorted_tissue_array.sort(sort_tissues_function); // although Object.keys() is not supported in older browsers, eg. pre-IE9.
 
-//console.log("Object.keys(tissue_lists):",Object.keys(tissue_lists));
-
-//console.log("The sorted_tissue_array:",sorted_tissue_array);
-
+    //console.log("Object.keys(tissue_lists):",Object.keys(tissue_lists));
+    //console.log("The sorted_tissue_array:",sorted_tissue_array);
     //console.log("sorted_tissue_array:",sorted_tissue_array);
     //console.log("sorted_tissue_array => histotype_display()");
-    for (var i = 0; i < sorted_tissue_array.length; i++) {console.log(sorted_tissue_array[i], "=>", histotype_display(sorted_tissue_array[i])); }
+    
+    // for (var i = 0; i < sorted_tissue_array.length; i++) {console.log(sorted_tissue_array[i], "=>", histotype_display(sorted_tissue_array[i])); }
 
     // for (tissue in sorted_tissue_array) {  <-- doesn't work, whereas does for dictionary: for (tissue in tissue_lists) { ....
     for (var i = 0; i < sorted_tissue_array.length; i++) {
