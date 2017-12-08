@@ -144,7 +144,7 @@ function histotypes_to_displaynames(histotype_list) {
 </ol>
 <p>The <a href="{% url 'gendep:news' %}">News page</a> gives more details of the changes given in the 'Comments' column below.</p>
 <table cellpadding="3" class="tabler" id="download_table">
-<thead><tr><th>Filename</th><th>Type</th><th>Created</th><th>Comment</th></tr></thead>
+<thead><tr><th>Filename (download link)</th><th>Type</th><th>Created</th><th>Comment</th></tr></thead>
 <tbody id="download_table_tbody">
 
 {% comment %}
@@ -153,21 +153,21 @@ function histotypes_to_displaynames(histotype_list) {
 { % endfor % }
 {% endcomment %}
 
-<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_16Nov2017.sqlite3.xz  </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr> 
-<tr><td>Text file of All dependencies       </td><td> all_dependencies_16Nov2017.csv.xz      </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
-<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_16Nov2017.csv.xz </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_16Nov2017.sqlite3.xz' %}">all_dependencies_16Nov2017.sqlite3.xz</a>   </td><td>SQLite Database of All dependencies & genes </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr> 
+<tr><td> <a href="{% static 'gendep/all_dependencies_16Nov2017.csv.xz' %}">all_dependencies_16Nov2017.csv.xz</a>           </td><td>Text file of All dependencies               </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td> <a href="{% static 'gendep/multihit_dependencies_16Nov2017.csv.xz' %}">multihit_dependencies_16Nov2017.csv.xz</a> </td><td>Text file of Multi-hit dependencies         </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
 <tr><td colspan="4"><hr/></td></tr>
-<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_23Oct2017.sqlite3.xz  </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
-<tr><td>Text file of All dependencies       </td><td> all_dependencies_23Oct2017.csv.xz      </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
-<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_23Oct2017.csv.xz </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_23Oct2017.sqlite3.xz' %}">all_dependencies_23Oct2017.sqlite3.xz</a>   </td><td>SQLite Database of All dependencies & genes </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_23Oct2017.csv.xz' %}">all_dependencies_23Oct2017.csv.xz</a>           </td><td>Text file of All dependencies               </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
+<tr><td> <a href="{% static 'gendep/multihit_dependencies_23Oct2017.csv.xz' %}">multihit_dependencies_23Oct2017.csv.xz</a> </td><td>Text file of Multi-hit dependencies         </td><td> 23-Oct-2017 </td><td> Added Fifty additional driver genes </td></tr>
 <tr><td colspan="4"><hr/></td></tr>
-<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_17Oct2017.sqlite3.xz  </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
-<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_17Oct2017.csv.xz </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
-<tr><td>Text file of All dependencies       </td><td> all_dependencies_16Nov2017.csv.xz      </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_17Oct2017.sqlite3.xz' %}">all_dependencies_17Oct2017.sqlite3.xz</a>   </td><td>SQLite Database of All dependencies & genes </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_16Nov2017.csv.xz' %}">all_dependencies_16Nov2017.csv.xz</a>           </td><td>Text file of All dependencies               </td><td> 16-Nov-2017 </td><td> Added Meyers(2017) data </td></tr>
+<tr><td> <a href="{% static 'gendep/multihit_dependencies_17Oct2017.csv.xz' %}">multihit_dependencies_17Oct2017.csv.xz</a> </td><td>Text file of Multi-hit dependencies         </td><td> 17-Oct-2017 </td><td> Added McDonald(2017) and Tsherniak(2017) data </td></tr>
 <tr><td colspan="4"><hr/></td></tr>
-<tr><td>SQLite Database of All dependencies & genes </td><td> all_dependencies_1Apr2017.sqlite3.xz   </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
-<tr><td>Text file of All dependencies       </td><td> all_dependencies_1Apr2017.csv.xz       </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
-<tr><td>Text file of Multi-hit dependencies </td><td> multihit_dependencies_1Apr2017.csv.xz  </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_1Apr2017.sqlite3.xz' %}">all_dependencies_1Apr2017.sqlite3.xz</a>     </td><td>SQLite Database of All dependencies & genes </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+<tr><td> <a href="{% static 'gendep/all_dependencies_1Apr2017.csv.xz' %}">all_dependencies_1Apr2017.csv.xz</a>             </td><td>Text file of All dependencies               </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
+<tr><td> <a href="{% static 'gendepmultihit_dependencies_1Apr2017.csv.xz' %}">multihit_dependencies_1Apr2017.csv.xz</a>    </td><td>Text file of Multi-hit dependencies         </td><td>  1-Apr-2017 </td><td> Original data </td></tr>
 </tbody>
 </table>
 
