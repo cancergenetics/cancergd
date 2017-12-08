@@ -221,10 +221,10 @@ function axes(wtxc,muxc, ymin,ymax, driver, target) {
 
   // Only show the non-integer (ie. decimal at top or bottom of y-axis if there is only one or no integer labels.
   // eg:  TP53 - MAD2L1 Meyers
-  if ((ymin!=ymin_ceil) && (ymin_ceil==ymax_floor)) {ylabels.push(ymin);}
+  if ( (ymin!=ymin_ceil)  && ((ymin_ceil==ymax_floor) || (ymin_ceil==0)) ) {ylabels.push(ymin);}
   for (var y=ymin_ceil; y<=ymax_floor; y++) {ylabels.push(y);} // Integers.
-  if ((ymax!=ymax_floor) && (ymin_ceil==ymax_floor)) {ylabels.push(ymax);}
-  
+  if ( (ymax!=ymax_floor) && ((ymin_ceil==ymax_floor) || (ymax_floor==0)) ) {ylabels.push(ymax);}
+
   console.log("ylabels:",ylabels);
   for (var i=0; i<ylabels.length; i++) {
     y = ylabels[i];
