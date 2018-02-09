@@ -3,6 +3,7 @@
 // Global variables in this script:
 
 var SHOW_NEXT_PREV_BUTTONS = false; // false to hide the 'Previous', 'Close' and 'Next' boxplot buttons.
+var SHOW_NEXT_PREV_ARROWS = true;   // to show the prev/next arrows.
 
 var tissue_colours = {
   "BONE":         "yellow",  // BONE includes OSTEOSARCOMA, as Achilles BONE contains OSTEOSARCOMA non-OSTEOSARCOMA cell-lines.
@@ -1328,10 +1329,26 @@ function set_previous_next_boxplot_buttons(jq_button, mtext, dependency_td) {
 	 .html(mtext+" boxplot<br/>"+dependency_td.getAttribute('data-gene'))
 	 .attr('disabled', false);
     }
-  }  
+  }
 
 
-  
+function set_previous_next_boxplot_arrows(jq_arrow, mtext, dependency_td) {
+//console.log("In set_previous_next_boxplot_arrows");
+  if (dependency_td===null) {
+    jq_arrow.attr('onclick','')  //.attr('disabled', true); // .html("No "+mtext+"</br>boxplot")
+    .hide(); // roughly equivalent to calling .css( "display", "none" )
+    // was: .attr('style','visibility', 'hidden');
+    }
+  else {
+//console.log("Setting "+mtext+" visible");	  	  
+    jq_arrow
+     .attr('onclick', dependency_td.getAttribute('onclick'))  	 // .html(mtext+" boxplot<br/>"+dependency_td.getAttribute('data-gene'))
+	 .show(); // .attr('style','visibility', 'visible');
+	 //.attr('disabled', false);
+    }
+  }
+
+
 function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotype, study_pmid, wilcox_p, effect_size, zdelta_score) {
   // Displays the boxplot in the fancybox popup window. Removed parameter 'target_variant' as only one target variant stored for Cowley data.
   
@@ -1375,7 +1392,11 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
       + '<p id="boxplot_ncbi_summary" style="display:none; font-size:90%; margin-top:0; margin-bottom:0;"></p>'
       + '<p id="boxplot_target_links" style="margin-top: 1px; margin-bottom: 0; text-align: center;"></p>';
 
-		
+    if (SHOW_NEXT_PREV_ARROWS) { // visibility: hidden   Need the full path to sprite image is: /static/gendep/fancybox/source/fancybox_sprite@2x.png  as relative to the svg_boxplot.js script doesn't seem to work. Or use variable fancybox_arrow_images_file
+      plot_title += '<span id="previous_boxplot_arrow" style="left:  2px; position: absolute; top: 50%; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -36px; background-size: 44px 152px;"></span>'
+                  + '<span id="next_boxplot_arrow"     style="right: 2px; position: absolute; top: 50%; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -72px; background-size: 44px 152px;"></span>';
+      }
+
     $.fancybox.open({
 		preload: 0, // Number of gallary images to preload
 		minWidth: svgWidth + 320 + 40, // 800, // was 900 but too wide of older monitors and projectors.
@@ -1474,6 +1495,12 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
     set_previous_next_boxplot_buttons($("#previous_boxplot_button"), 'Previous', previous_dependency(this_td));
     set_previous_next_boxplot_buttons($("#next_boxplot_button"),     'Next',     next_dependency(this_td));
   }
+
+  if (SHOW_NEXT_PREV_ARROWS) {
+    set_previous_next_boxplot_arrows($("#previous_boxplot_arrow"), 'Previous', previous_dependency(this_td));
+    set_previous_next_boxplot_arrows($("#next_boxplot_arrow"),     'Next',     next_dependency(this_td));
+  }
+
 
   return false; // Return false to the caller so won't move on the page
 }	

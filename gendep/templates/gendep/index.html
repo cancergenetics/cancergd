@@ -20,6 +20,7 @@
   <script type="text/javascript" src="{% static 'gendep/jquery-ui-1.11.4/jquery-ui.min.js' %}"></script>
 {% endcomment %}
 
+
   <link rel="stylesheet" href="{% static 'gendep/tablesorter/css/theme.blue.min.css' %}" class="theme blue" />
   <link rel="stylesheet" href="{% static 'gendep/fancybox/source/jquery.fancybox.css' %}" type="text/css" />
 
@@ -64,7 +65,7 @@
 
    <script type="text/javascript" src="{% static 'gendep/cgdd_functions.js' %}?4"></script>
 
-   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?45"></script>
+   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?61"></script>
 
 {% endblock %}
 {% block scripts %}
@@ -149,6 +150,9 @@ Because when you hover an item the jQuery adds the style "ui-state-focus" to the
 
 
 <script type="text/javascript">
+
+// Path to the fancybox arrows sprite (used in the svg_boxplot.js script):
+var fancybox_arrow_images_file="{% static 'gendep/fancybox/source/fancybox_sprite@2x.png' %}";
 
 // Colours for the dependency table highlighting:
 var darkgreen_UCD_logo  = '#00A548';
@@ -725,7 +729,7 @@ function set_study_menu_for_gene_histotype() {
 {# (Select search type ("Driver gene" or "Target gene"). Then in the driver/target search box, #}
 In the 'Driver gene' search box, typing two letters of a gene name will display a menu of matching gene names. The 'Tissue' and 'Study' menu options will be updated depending on gene selected.)</p>
 </div>
-{% if search_by == 'target' %}<p><b>This "Search by target" is an experimental feature that enables you to search the dependency database by target gene (rather than by driver gene). As the database currently contains <a href="{% url 'gendep:drivers' %}">23 driver genes</a> these "Search by Target" dependency results will therefore be limited to these 23 driver genes.</b></p>{% endif %}
+{% if search_by == 'target' %}<p><b>This "Search by target" is an experimental feature that enables you to search the dependency database by target gene (rather than by driver gene). As the database currently contains <a href="{% url 'gendep:drivers' %}">{{ driver_count }} driver genes</a> these "Search by Target" dependency results will therefore be limited to these {{ driver_count }} driver genes. <br/>If you click the "<span style="background-color:#3388ff; color:white;"> &vArr; </span>" arrow beside the 'Target/Dependency gene' input box below, then there may be a delay of several seconds before the menu displays, as there are about 19 thousand target genes in the menu.</b></p>{% endif %}
 
 <table id="searchbox_table" style="margin-left:auto; margin-right:auto;">
 <tr>
@@ -740,7 +744,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
   </select>
 {% endcomment %}
 
-  <label for="gene">Driver gene:</label>
+  <label for="gene">{% if search_by == "target" %}Target/Dependency{% else %}Driver{% endif %} gene:</label>
 
   <input name="gene" id="gene" placeholder="Gene name (eg. ERBB2)"  value="{{ gene_name }}" autofocus/>   {# value= ... is when directed to this page by link from the Drivers or Targets page #}
   <!-- Could add a button: https://jqueryui.com/autocomplete/#combobox -->

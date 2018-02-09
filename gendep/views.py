@@ -430,12 +430,14 @@ def index(request, search_by = 'driver', gene_name='', histotype_name='', study_
     
     if is_search_by_driver(search_by):
         driver_list = build_driver_list('searchpage')
+        driver_count = -1  # driver_list.count() doesn't work, as RAW query set has no .count() attribute, and driver count is only needed for the search by target.
         driver_histotype_study_list = build_driver_histotype_study_list('searchpage')
         target_list = []
     else: 
         # This needs: (is_target=True), not just: (is_target)
-        target_list = Gene.objects.filter(is_target=True).only("gene_name", "entrez_id", "full_name", "prevname_synonyms").order_by('gene_name')        
+        target_list = Gene.objects.filter(is_target=True).only("gene_name", "entrez_id", "full_name", "prevname_synonyms").order_by('gene_name')
         driver_list = []
+        driver_count = Gene.objects.filter(is_driver=True).count()
         driver_histotype_study_list = []
 
     # From testing the three different methods give the sample results
@@ -474,7 +476,7 @@ def index(request, search_by = 'driver', gene_name='', histotype_name='', study_
     current_url =  request.META['HTTP_HOST']
 
     # Set the context dictionary to pass to the template. (Alternatively could add locals() to the context to pass all local variables, eg: return render(request, 'app/page.html', locals())
-    context = {'search_by': search_by, 'gene_name': gene_name, 'histotype_name': histotype_name, 'study_pmid': study_pmid, 'study_short_name': study_short_name, 'driver_list': driver_list, 'driver_histotype_study_list': driver_histotype_study_list, 'target_list': target_list, 'histotype_list': histotype_list, 'study_list': study_list, 'experimenttype_list': experimenttype_list, 'current_url': current_url , 'settings_GOOGLE_ANALYTICS_KEY': settings.GOOGLE_ANALYTICS_KEY}
+    context = {'search_by': search_by, 'gene_name': gene_name, 'histotype_name': histotype_name, 'study_pmid': study_pmid, 'study_short_name': study_short_name, 'driver_count': driver_count, 'driver_list': driver_list, 'driver_histotype_study_list': driver_histotype_study_list, 'target_list': target_list, 'histotype_list': histotype_list, 'study_list': study_list, 'experimenttype_list': experimenttype_list, 'current_url': current_url , 'settings_GOOGLE_ANALYTICS_KEY': settings.GOOGLE_ANALYTICS_KEY}
     return render(request, 'gendep/index.html', context)
 
 
@@ -510,10 +512,6 @@ def get_drivers(request):
     # results = list(Gene.objects.filter(gene_name__icontains=name_contains).values('gene_name'))
     
     return JsonResponse(results, safe=False) # needs 'safe=false' as results is an array, not dictionary.
-
-
-
-
 
 
 def is_valid_ip(ip_address):
@@ -805,7 +803,7 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
     search_by_driver = is_search_by_driver(search_by) # otherwise is by target
     select_related = [ 'target__inhibitors', 'target__ensembl_protein_id' ] if search_by_driver else [ 'driver__inhibitors', 'driver__ensembl_protein_id' ]
 
-    #print("build_dependency_query:", "search_by:",search_by, "gene_name:",gene_name, "histotype_name:",histotype_name, "study_pmid:",study_pmid, "select_related:",select_related)
+    #print("get_drivers(<#request#>)_dependency_query:", "search_by:",search_by, "gene_name:",gene_name, "histotype_name:",histotype_name, "study_pmid:",study_pmid, "select_related:",select_related)
     print("build_dependency_query:", "search_by:",search_by, "entrez_id:",entrez_id, "histotype_name:",histotype_name, "study_pmid:",study_pmid, "select_related:",select_related)    
 
     RAW = True
@@ -861,11 +859,11 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     format(d.wilcox_p, ".0e").replace("e-0", "e-"),
                     format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
                     format(d.zdiff,".2f"), # Usually negative. two decomal places
-                    # d.histotype,
                     d.study_id,
                     d.multi_hit,
                     d.interaction + '#' + d.ensembl_protein_id,
-                    d.inhibitors
+                    d.inhibitors,
+                    d.histotype if histotype_name == "ALL_HISTOTYPES" else ''  # Only need to send the histotype column when all_histotypes, (as otherwise when specific histotype is given in search then only rows with that histotype will be returned, so webpage will know histotype from query)
                     ])
                             
       else: # Not RAW sql        
@@ -887,11 +885,11 @@ def get_dependencies(request, search_by, entrez_id, histotype_name, study_pmid):
                     format(d.wilcox_p, ".0e").replace("e-0", "e-"),
                     format(d.effect_size*100, ".1f"),  # As a percentage with 1 decimal place
                     format(d.zdiff,".2f"), # Usually negative. two decomal places
-                    # d.histotype,
                     d.study_id,
                     d.multi_hit,
                     interaction,
-                    inhibitors # Formatted above
+                    inhibitors, # Formatted above
+                    d.histotype if histotype_name == "ALL_HISTOTYPES" else ''  # Only need to send the histotype column when all_histotypes, (as otherwise when specific histotype is given in search then only rows with that histotype will be returned, so webpage will know histotype from query)
                     ])
                     
 

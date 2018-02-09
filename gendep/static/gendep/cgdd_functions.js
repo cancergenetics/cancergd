@@ -136,7 +136,7 @@ function show_search_info(data) {
   $("#gene_weblinks").html(gene_external_links(data['gene_ids'], '|', true));
 
   var histotype_name = qi['histotype_name'];
-  var histotype_formatted = (histotype_name=="ALL_HISTOTYPES") ? "<b>"+histotype_display(histotype_name)+"All tissues</b>" : "tissue type <b>"+histotype_display(histotype_name)+"</b>";
+  var histotype_formatted = (histotype_name=="ALL_HISTOTYPES") ? "<b>"+histotype_display(histotype_name)+"</b>" : "tissue type <b>"+histotype_display(histotype_name)+"</b>";
 
   $("#result_info").html( "For "+ search_by +" gene <b>" + gene + "</b>, a total of <b>" + qi['dependency_count'] + " dependencies</b> were found in " + histotype_formatted + " in " + study_info(qi['study_pmid'])[idetails]);
 
@@ -508,10 +508,10 @@ function populate_table(data,t0) {
 	}
 
 	var histotype = qi['histotype_name'];
+	var all_histotypes = (histotype == "ALL_HISTOTYPES");
 	
 	// Variables for links to string.org:
 	var search_gene_string_protein = '9606.'+global_selected_gene_info['ensembl_protein_id'];
-
 
 	// Alternative (?default) is 'evidence'.
 
@@ -532,7 +532,9 @@ function populate_table(data,t0) {
 
 	// result array indexes:
 	// igene can be either driver or target depending on 'search_by'.
-	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, istudy_pmid=4, imultihit=5, iinteraction=6, iinhibitors=7; // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
+	var igene=0, iwilcox_p=1, ieffect_size=2, izdelta=3, istudy_pmid=4, imultihit=5, iinteraction=6, iinhibitors=7, ihistotype=8; 
+	    // itarget_variant=8; (removed target_variant - was only for Achilles variant boxplot image)
+        // ihistotype is only returned when histotype is "ALL_HISTOTYPES"
 	// In javascript array indexes are represented internally as strings, so maybe using string indexes is a bit faster??
 
 
@@ -559,10 +561,16 @@ var stopat=20;	// To stop table early for testing.
       if (search_by_driver) {target = d[igene];}
       else {driver = d[igene];}
 
+      if (all_histotypes) {histotype= d[ihistotype];}
+
+	// <td id="dtd114" style="text-align:left; cursor:pointer;" data-gene="HDAC6" data-epid="9606.ENSP00000334061" onclick="plot('dtd114', 'TP53', 'HDAC6', 'BREAST', '28753430', '4e-3', '81.5', '-0.57');" aria-describedby="ui-id-132">HDAC6</td>
+	
+	// <td id="dtd1" style="text-align:left; cursor:pointer;" data-gene="TP53" data-epid="9606.ENSP00000269305"      onclick="plot('dtd1', 'TP53', 'HDAC6', 'ALL_HISTOTYPES', '28753430', '4e-3', '81.5', '-0.57');" aria-describedby="ui-id-20386">TP53</td>
+
 	  // The "this"	parameter correctly doesn't have quotes:
 	  var plot_function = "plot('"+ id +comma+ driver + comma + target +comma+ histotype +comma+ d[istudy_pmid] +comma+ d[iwilcox_p] +comma+ d[ieffect_size] +comma+ d[izdelta] +"');";
 
-      // Another way to pouplatte table is using DocumentFragment in Javascript:
+      // Another way to populate table is using DocumentFragment in Javascript:
       //      https://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-B63ED1A3
 
 	  // *** GOOD: http://desalasworks.com/article/javascript-performance-techniques/
@@ -661,7 +669,7 @@ var stopat=20;	// To stop table early for testing.
         + wilcox_p_cell
 		+ effectsize_cell
 		+ zdelta_cell
-        // + '<td style="'+width100+'text-align:center;">' + histotype_display(d[ihistotype]) + '</td>'
+        // + (all_histotypes ? '<td style="'+width100+'text-align:center;">' + histotype_display(d[ihistotype]) + '</td>' : '') // Still need to add table header for Tissue 
 		+ '<td style="'+width100+'text-align:center;" data-study="'+d[istudy_pmid]+'">' + study_weblink(d[istudy_pmid]) + '</td>' // but extra text in the table, and extra on hover events so might slow things down.
 		+ '<td style="'+width100+'text-align:center;" data-exptype="'+d[istudy_pmid]+'">' + study[iexptype] + '</td>' // experiment type. The 'data-exptype=""' is use by tooltips
 	    + multihit_cell
