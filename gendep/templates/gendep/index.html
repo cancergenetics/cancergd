@@ -65,7 +65,7 @@
 
    <script type="text/javascript" src="{% static 'gendep/cgdd_functions.js' %}?4"></script>
 
-   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?61"></script>
+   <script type="text/javascript" src="{% static 'gendep/svg_boxplot.js' %}?69"></script>
 
 {% endblock %}
 {% block scripts %}
@@ -717,11 +717,11 @@ function set_study_menu_for_gene_histotype() {
 {% endblock %}
 {% block content %}
 <div id="welcome_div" {% if gene_name or search_by == 'target' %}style="display:none"{% endif %} >
-<p>Welcome to CancerGD.org, which integrates results from loss-of-function <a href ="{% url 'gendep:studies' %}" title="Studies">screens</a> in cell line panels with mutational profiles to identify genetic dependencies associated with specific <a href="{% url 'gendep:drivers' %}" title="Driver genes">driver gene</a> mutations. These dependencies include oncogene addictions - e.g. cell lines with <i>ERBB2</i> amplification have an increased sensitivity to <i>ERBB2</i> inhibition - and non-oncogene addictions or synthetic lethalities - <i>e.g.</i> cell lines with <i>SMAD4</i> loss display an increased sensitivity to inhibition of multiple mitotic kinases. This resource currently includes dependencies identified using RNA interference approaches (siRNA and shRNA) but will be expanded in future to include results from CRISPR based screens.</p>
+<p>Welcome to CancerGD.org, which integrates results from loss-of-function <a href ="{% url 'gendep:studies' %}" title="Studies">screens</a> in cell line panels with mutational profiles to identify genetic dependencies associated with specific <a href="{% url 'gendep:drivers' %}" title="Driver genes">driver gene</a> mutations. These dependencies include oncogene addictions - <i>e.g.</i> cell lines with <i>ERBB2</i> amplification have an increased sensitivity to <i>ERBB2</i> inhibition - and non-oncogene addictions or synthetic lethalities - <i>e.g.</i> cell lines with <i>SMAD4</i> loss display an increased sensitivity to inhibition of multiple mitotic kinases. This resource currently includes dependencies identified using RNA interference approaches (siRNA and shRNA) and CRISPR based screens. It contains results from <a href ="{% url 'gendep:studies' %}" title="Studies">{{ study_list|length }} studies</a>, and will be expanded as more results become available.</p>
 
 <!-- p>A preprint describing CancerGD.org is available <a href="http://biorxiv.org/content/early/2016/10/26/081992">here</a>. </p -->
 
-<p>The manuscript describing CancerGD.org is available <a href="http://www.cell.com/cell-systems/fulltext/S2405-4712(17)30230-2" title="CancerGD: A Resource for Identifying and Interpreting Genetic Dependencies in Cancer, Cell Systems, July 2017">here</a>.</p>
+<p>The <a href="http://www.cell.com/cell-systems/fulltext/S2405-4712(17)30230-2" title="CancerGD: A Resource for Identifying and Interpreting Genetic Dependencies in Cancer, Cell Systems, July 2017">manuscript describing CancerGD.org is available here</a>.</p>
 
 <p>We welcome <a href="{% url 'gendep:contact' %}">your comments and queries.</a></p>
 

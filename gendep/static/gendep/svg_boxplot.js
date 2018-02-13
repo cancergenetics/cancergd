@@ -1303,7 +1303,8 @@ function add_target_info_to_boxplot(target)	{
   var target_details = target+'</b>'+target_synonyms+', '+target_full_name
 	 
   var ncbi_summary = target_info['ncbi_summary']; // Not all genes have a summary in Entrez  
-  if ((typeof ncbi_summary !=="undefined") && (ncbi_summary!=="")) {
+  if ((typeof ncbi_summary =="undefined") || (ncbi_summary=="")) {$("#boxplot_ncbi_summary").html('');} // As may have moved to this boxplot via the prev or next arrows, so need to clear any summary from the last boxplot.
+  else {
 	target_details += ' <a id="ncbi_summary_showhide_link" href="javascript:void(0);" onclick="showhide_ncbi_summary();" data-link="Show Entrez gene summary">(Gene Description)</a>'; // The ncbi_summary_link
 	
     $("#boxplot_ncbi_summary").html('<b>Entrez summary for '+target+':</b> '+ncbi_summary);
@@ -1358,8 +1359,14 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
 
   // '+wtPointRadius.toString()+'  '+wtPointRadius.toString()+'
 
-  if (!svg_fancybox_loaded) {  // so this function was called by clicking on dependency table cell, rather than by Previous/Next boxplot button.
-
+  if (svg_fancybox_loaded) {  // so this function was called by clicking on dependency table cell, rather than by Previous/Next boxplot button.
+    if (SHOW_NEXT_PREV_ARROWS) { // To briefly hide these arrows until the previous or next boxplot appears
+console.log("Hiding prev/next arrows");
+      $("#previous_boxplot_arrow").hide();
+      $("#next_boxplot_arrow").hide();
+      }
+    }
+  else { // !svg_fancybox_loaded
     // Need the [CDATA[ tag as SVG can contain extra '<' characters that can confuse HTML parsers.
     var mycontent = '<table align="center" style="padding:0; border-collapse: collapse; border-spacing: 0; border-bottom: solid 1px black;">'
       + '<tr><td rowspan="2" style="padding:0;">'
@@ -1393,8 +1400,8 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
       + '<p id="boxplot_target_links" style="margin-top: 1px; margin-bottom: 0; text-align: center;"></p>';
 
     if (SHOW_NEXT_PREV_ARROWS) { // visibility: hidden   Need the full path to sprite image is: /static/gendep/fancybox/source/fancybox_sprite@2x.png  as relative to the svg_boxplot.js script doesn't seem to work. Or use variable fancybox_arrow_images_file
-      plot_title += '<span id="previous_boxplot_arrow" style="left:  2px; position: absolute; top: 50%; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -36px; background-size: 44px 152px;"></span>'
-                  + '<span id="next_boxplot_arrow"     style="right: 2px; position: absolute; top: 50%; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -72px; background-size: 44px 152px;"></span>';
+      plot_title += '<span id="previous_boxplot_arrow" style="left:  1px; position: absolute; top: 15px; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -36px; background-size: 44px 152px;"></span>'
+                  + '<span id="next_boxplot_arrow"     style="right: 1px; position: absolute; top: 15px; width: 36px; height: 34px; margin-top: -18px; cursor: pointer; z-index: 8040; display: none; background: url(\''+fancybox_arrow_images_file+'\') 0 -72px; background-size: 44px 152px;"></span>';
       }
 
     $.fancybox.open({
@@ -1476,12 +1483,13 @@ function show_svg_boxplot_in_fancybox(dependency_td_id, driver, target, histotyp
      '<b><span data-gene="'+driver+'">'+driver+'</span></b>'
 	 + ' altered cell lines have an increased dependency upon'
  	 + ' <b><span data-gene="'+target+'">'+target+'</span></b></br>'
- 	 + ' (p='+wilcox_p.replace('e', ' x 10<sup>')+'</sup>'
-     + ' | effect size='+effect_size+'%'
+ 	 + ' ( p='+wilcox_p.replace('e', ' x 10<sup>')+'</sup>'
+     + ' | Effect size='+effect_size+'%'
      + ' | &Delta;Score='+zdelta_score
 	 + ' | Tissues='+ histotype_display(histotype)
 	 + ' | Source='+ study_display_shortname(study_pmid)
-	 + ')'
+	 + ' | ExpType='+ study_info(study_pmid)[iexptype]
+	 + ' )'
 	 );
 	
   $("#download_boxplot_form").attr('action', global_url_for_boxplot_data.replace('myformat','download').replace('mydriver',driver).replace('mytarget',target).replace('myhistotype',histotype).replace('mystudy',study_pmid) );  
