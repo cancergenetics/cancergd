@@ -1103,8 +1103,10 @@ def cytoscape(request, required_score, protein_list=None, gene_list=None):
     for line in response:
       # if line:
         cols = line.rstrip().split("\t")
-        if len(cols)<2: err_msg += "\nNum cols = %d (expected >=2) in line: '%s'" %(len(cols),line.rstrip())
-        
+        if len(cols)<2: 
+            err_msg += "\nNum cols = %d (expected >=2) in response line: '%s'" %(len(cols),line.rstrip())
+            continue
+            
         protein1 = cols[0].replace('string:', '') # as ids are prefixed with 'string:'
         if protein1 in initial_nodes:
             nodes[ protein1.replace('9606.', '') ] = True # remove the human tax id
@@ -1121,6 +1123,9 @@ def cytoscape(request, required_score, protein_list=None, gene_list=None):
             edges[edge] = True
 
     # node_list = sorted(nodes)
+    if err_msg != '':
+        print(err_msg)
+        return plain_error('ERROR:'+err_msg)
 
     # Convert node list of protein_ids, to list of gene_names:
     for protein in protein_list: # Can't use 'initial_nodes' here as it will be updated
