@@ -801,7 +801,7 @@ In the 'Driver gene' search box, typing two letters of a gene name will display 
 <p><u>External links:</u> <span id="gene_weblinks" style="font-size: 85%;"></span></p>
 
 <p id="result_info"></p>
-<p style="font-size: 70%;">( Use scrollbar at right of this table to scroll down. Click column header to sort by that column. Click on the gene name in the depenency column to view the box-plot. Enter text into the search box at top of column to optionally filter these results. In the 'Effect size' column search box you can enter eg: ">75" to filter results.)</p>
+<p style="font-size: 70%;">( Use scrollbar at right of this table to scroll down. Click column header to sort by that column. Click on the gene name in the '{% if search_by == 'target' %}Driver{% else %}Depenency{% endif %}' column to view the box-plot. Enter text into the search box at top of column to optionally filter these results. In the 'Effect size' column search box you can enter eg: ">75" to filter results.)</p>
 
 {# <button type="button" name="Download" id="download_csv_button">Download as CSV file</button> #}
 {# <a id="download_csv" href="">[Download tabbed file]</a> #}
